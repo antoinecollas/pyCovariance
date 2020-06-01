@@ -1,3 +1,16 @@
+# data
+data/EMISAR/EMISAR_data.npy
+data/Snjoaq/data
+
+# figures
+figures/*
+
+# other
+other/*
+
+# results
+results_old/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
