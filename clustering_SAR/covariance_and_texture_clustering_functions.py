@@ -2,18 +2,9 @@ import numpy as np
 import scipy as sp
 import warnings
 
-from .covariance_clustering_functions import Riemannian_mean_covariance
+from .covariance_clustering_functions import Riemannian_distance_covariance, Riemannian_mean_covariance
 from .generic_functions import *
 
-# ----------------------------------------------------------------------------
-# 1) Wishart classifier: Simple arithmetic mean and Wishart distance as 
-#    described in II.B. of:
-        # P. Formont, F. Pascal, G. Vasile, J. Ovarlez and L. Ferro-Famil, 
-        # "Statistical Classification for Heterogeneous Polarimetric SAR Images," 
-        # in IEEE Journal of Selected Topics in Signal Processing, 
-        # vol. 5, no. 3, pp. 567-576, June 2011.
-        # doi: 10.1109/JSTSP.2010.2101579
-# ----------------------------------------------------------------------------
 def compute_feature_Covariance_texture(𝐗, args):
     """ Serve to compute feature for Covariance and texture classificaiton.
         We use vech opeartion to save memory space on covariance.
@@ -77,13 +68,12 @@ def Riemannian_distance_covariance_texture(𝐱_1, 𝐱_2, params=None):
             * d = the distance between samples
         """
     p, N = params
-    𝚺_1 = unvech(𝐱_1[:int(p*(p+1)/2)])
-    𝚺_2 = unvech(𝐱_2[:int(p*(p+1)/2)])
+    
+    dist_cov = Riemannian_distance_covariance(𝐱_1[:int(p*(p+1)/2)],𝐱_2[:int(p*(p+1)/2)])
+    
     τ_1 = 𝐱_1[int(p*(p+1)/2):]
     τ_2 = 𝐱_2[int(p*(p+1)/2):]
-    i𝚺_1_sqm = np.linalg.inv(sp.linalg.sqrtm(𝚺_1))
-    d = np.linalg.norm( sp.linalg.logm( i𝚺_1_sqm @ 𝚺_2 @ i𝚺_1_sqm ) )**2  + \
-                np.linalg.norm( np.log( 𝛕_1 / 𝛕_2 ) )**2
+    d = dist_cov + np.linalg.norm(np.log(𝛕_1) - np.log(𝛕_2))**2
 
     return np.real(d)
 
