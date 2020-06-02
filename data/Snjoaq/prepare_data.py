@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import sys
-# from generic_functions import *
+import time
 
 class uavsar_slc_stack_1x1():
     """A class to store data corresponding to a SLC stack of UAVSAR data
@@ -34,72 +34,49 @@ class uavsar_slc_stack_1x1():
                     # Discard commented lines
                     line = line.strip().split(';')[0]
                     if not (line == ''):
-                        category = ' '.join(line.split()[:line.split().index('=')-1])
+                        category = ' '.join(line.split()[:line.split().index('=')-1])   
                         value = ' '.join(line.split()[line.split().index('=')+1:])
                         self.meta_data[filename][category] = value
  
         # remove duplicate and sort dates
         self.dates = list(set(self.dates))
         self.dates.sort()
-
+        
         # Read slc file corresponding to the segment of interest and crop it
-        for date in self.dates:
-            for polar in polarisation:
-                print(date)
-                temp = os.path.join(self.path, '*_' + str(date) + '_*' + polar + '_S' + str(segment) + '*')
-                print(temp)
-                filename = temp + '.slc'
-                filename_ann = temp + '.ann'
-                print(filename)
-                print(glob.glob(filename))
-                import sys
-                sys.exit(0)
+        self.data = np.empty((crop_indexes[1]-crop_indexes[0], crop_indexes[3]-crop_indexes[2], len(polarisation), len(self.dates)), dtype='complex64')
+        for t, date in enumerate(self.dates):
+            for i_pol, polar in enumerate(polarisation):
+                regex = os.path.join(self.path, '*_' + str(date) + '_*' + polar)
+                
+                regex_slc = regex + '*_s' + str(segment) + '*.slc'
+                path_slc = glob.glob(regex_slc)[0]
+                
+                regex_ann = regex + '*.ann'
+                path_ann = glob.glob(regex_ann)[0]
 
-        self.unique_identifiers_time_list = list()
-        for entry in list(self.meta_data.keys()):
-            print(entry)
-            unique_identifiers_time = '_'.join(entry.split('_')[:-2])[:-2] + "POL_" + \
-                                      '_'.join(entry.split('_')[-2:]) + '_sSEGMENT'
-            if unique_identifiers_time not in self.unique_identifiers_time_list:
-                self.unique_identifiers_time_list.append(unique_identifiers_time)
+                print('Reading:', path_slc) 
 
-        # Then we read the files one by one for each polarisation and time
-            self.data = np.empty((crop_indexes[1]-crop_indexes[0], crop_indexes[3]-crop_indexes[2], len(polarisation), 
-                        len(self.unique_identifiers_time_list)), dtype='complex64')
-
-            for t, entry_time in enumerate(self.unique_identifiers_time_list):
-                for i_pol, pol in enumerate(polarisation):
-                    # Read slc file at the given crop indexes
-                    filename = entry_time.replace('POL', pol).replace('SEGMENT', str(segment))
-                    shape = (int(self.meta_data['_'.join(filename.split('_')[:-1])]['slc_1_1x1 Rows']),
-                             int(self.meta_data['_'.join(filename.split('_')[:-1])]['slc_1_1x1 Columns']))   
-                    print("Reading %s" % (self.path+filename))
-                    with open(os.path.join(self.path, filename + '_1x1.slc'), 'rb') as f:
-                        f.seek((crop_indexes[0]*shape[1]+crop_indexes[2])*8, os.SEEK_SET)
-                        for row in range(crop_indexes[1]-crop_indexes[0]):
-                            self.data[row, :, i_pol,t] = np.fromfile(f, dtype=np.complex64, count=crop_indexes[3]-crop_indexes[2])
-                            f.seek(((crop_indexes[0]+row)*shape[1]+crop_indexes[2])*8, os.SEEK_SET)
-            import sys
-            sys.exit(0)
+                with open(path_slc, 'rb') as f:
+                    filename_ann = path_ann.split('/')[-1].split('.')[0]
+                    shape = (int(self.meta_data[filename_ann]['slc_1_1x1 Rows']),
+                             int(self.meta_data[filename_ann]['slc_1_1x1 Columns']))   
+                    f.seek((crop_indexes[0]*shape[1]+crop_indexes[2])*8, os.SEEK_SET)
+                    for row in range(crop_indexes[1]-crop_indexes[0]):
+                             self.data[row, :, i_pol, t] = np.fromfile(f, dtype=np.complex64, count=crop_indexes[3]-crop_indexes[2])
+                             f.seek(((crop_indexes[0]+row)*shape[1]+crop_indexes[2])*8, os.SEEK_SET)
 
 
 if __name__ == '__main__':
-    # ---------------------------------------------------------------------------------------------------------------
-    # Reading UAVSAR dataset
-    # ---------------------------------------------------------------------------------------------------------------
-    print('READING DATASET')
-    # Reading data using the class
-    import time
     t_beginning = time.time()
+    
+    # Reading UAVSAR dataset
+    print('READING UAVSAR DATASET')
     data_class = uavsar_slc_stack_1x1('data')
     crop_indexes = [20000,23000, 3000,4500]
     data_class.read_data(polarisation=['HH', 'HV', 'VV'], segment=2, crop_indexes=crop_indexes)
-    image = data_class.data 
-    print(image.shape)
-    fig = plt.figure(figsize=(23,13), dpi=80)
-    dyn = 70
-    plt.imshow(20*np.log10(np.abs(data_class.data[:,:,0,0])), aspect='auto', cmap='gray', vmin=20*np.log10(np.abs(data_class.data.max())) - dyn, vmax=20*np.log10(np.abs(data_class.data.max())))
-    plt.axis('off')
-    fig.tight_layout()
-    plt.show()
+    images = data_class.data 
+    print(images.shape)
+    
+    # Saving image time series UAVSAR as numpy array
+    np.save('Snjoaq', images)
     print("Done in %f s." % (time.time()-t_beginning))
