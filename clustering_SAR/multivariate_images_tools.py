@@ -5,8 +5,14 @@ from tqdm import tqdm
 
 from .generic_functions import *
 
-def sliding_windows_treatment_image_time_series(image, windows_mask, function_to_compute, function_args, 
-                                                multi=False, queue=0, overlapping_windows=True):
+def sliding_windows_treatment_image_time_series(
+    image,
+    windows_mask,
+    function_to_compute,
+    multi=False,
+    queue=0,
+    overlapping_windows=True
+):
     """ A function that allowing to compute a sliding windows treatment over a multivariate
         image time series.
         Inputs:
@@ -15,7 +21,6 @@ def sliding_windows_treatment_image_time_series(image, windows_mask, function_to
                       of the time series.
             * windows_mask = a local mask to selection data. is a numpy boolean array.
             * function_to_compute = a function to compute the desired quantity. Must output a list.
-            * function_args = arguments to pass to function_to_compute
             * multi = True if parallel computing (use the parallel function not this one), False if not
             * queue = to obtain result for parralel computation
             * overlapping_windows = boolean to chosse between overlapping windows or not
@@ -47,7 +52,7 @@ def sliding_windows_treatment_image_time_series(image, windows_mask, function_to
             local_data = local_data[:,windows_mask.reshape(m_r*m_c).astype(bool),:]
 
             # Computing the function over the local data
-            result_line.append(function_to_compute(local_data, function_args))
+            result_line.append(function_to_compute(local_data))
         result.append(result_line)
         
     if multi:
@@ -57,9 +62,15 @@ def sliding_windows_treatment_image_time_series(image, windows_mask, function_to
 
 
 
-def sliding_windows_treatment_image_time_series_parallel(image, windows_mask, function_to_compute, function_args,
-                                                multi=False, number_of_threads_rows=3, number_of_threads_columns=3, 
-                                                overlapping_windows=True):
+def sliding_windows_treatment_image_time_series_parallel(
+    image,
+    windows_mask,
+    function_to_compute,
+    multi=False,
+    number_of_threads_rows=3,
+    number_of_threads_columns=3, 
+    overlapping_windows=True
+):
     """ A function that is a prallelisation of sliding_windows_treatment_image_time_series
         Inputs:
             * image = a numpy array of shape (n_r,n_c,p,T) where n_r is the number of rows,
@@ -67,7 +78,6 @@ def sliding_windows_treatment_image_time_series_parallel(image, windows_mask, fu
                       of the time series.
             * windows_mask = a local mask to selection data. is a numpy boolean array.
             * function_to_compute = a function to compute the desired quantity. Must output a list.
-            * function_args = arguments to pass to function_to_compute
             * multi = True if parallel computing, False if not
             * number_of_threads_columns = number of thread to use in columns 
                 (total threads = number of cores of the machine in general)
@@ -122,8 +132,14 @@ def sliding_windows_treatment_image_time_series_parallel(image, windows_mask, fu
         queues = [[Queue() for i_c in range(number_of_threads_columns)] for i_r in range(number_of_threads_rows)]
 
         # Arguments to pass to each thread
-        args = [(image_slices_list[i_r][i_c], windows_mask, function_to_compute, function_args, 
-                True, queues[i_r][i_c], overlapping_windows) for i_r in range(number_of_threads_rows) for i_c in range(number_of_threads_columns)] 
+        args = [(
+            image_slices_list[i_r][i_c],
+            windows_mask,
+            function_to_compute,
+            True,
+            queues[i_r][i_c],
+            overlapping_windows
+        ) for i_r in range(number_of_threads_rows) for i_c in range(number_of_threads_columns)] 
 
         # Initialising the threads
         jobs = [Process(target=sliding_windows_treatment_image_time_series, args=a) for a in args]
@@ -155,7 +171,7 @@ def sliding_windows_treatment_image_time_series_parallel(image, windows_mask, fu
 
     else:
         results = sliding_windows_treatment_image_time_series(image, windows_mask, 
-                                        function_to_compute, function_args, overlapping_windows=overlapping_windows)
+                                        function_to_compute, overlapping_windows=overlapping_windows)
     return results
    
     

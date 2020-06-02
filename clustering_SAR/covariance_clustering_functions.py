@@ -7,7 +7,7 @@ from tqdm import tqdm
 from .generic_functions import *
 from .matrix_operators import sqrtm, invsqrtm, logm, expm
 
-def vech_SCM(𝐗, args):
+def vech_SCM(𝐗):
     """ Serve to compute feature for Covariance only classification.
         We use vech opeartion to save memory space.
         ----------------------------------------------------------------------
@@ -15,13 +15,11 @@ def vech_SCM(𝐗, args):
         --------
             * 𝐗 = a (p, N) array where p is the dimension of data and N the number
                     of samples used for estimation
-            * args = unused here but needed for coherent coding
 
         Outputs:
         ---------
             * 𝐱 = the feature for classification
         """
-    #import pdb; pdb.set_trace()
     return list(vech(SCM(np.squeeze(𝐗))))
 
 
@@ -123,7 +121,7 @@ def covariance_arithmetic_mean(𝐗_class, mean_parameters=None):
 # ----------------------------------------------------------------------------
 # 2) Euclidean classifier: Euclidean distance + arithmetic mean
 # ----------------------------------------------------------------------------
-def Euclidean_distance(vh𝚺_1, vh𝚺_2, params='fro'):
+def covariance_Euclidean_distance(vh𝚺_1, vh𝚺_2, params='fro'):
     """ Euclidean distance between covariance matrices in parameters
         ----------------------------------------------------------------------
         Inputs:

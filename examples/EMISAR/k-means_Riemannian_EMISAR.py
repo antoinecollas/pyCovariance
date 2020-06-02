@@ -14,6 +14,7 @@ temp = os.path.dirname(os.path.dirname(current_dir))
 sys.path.insert(1, temp)
 
 from clustering_SAR.cluster_datacube import K_means_SAR_datacube
+from clustering_SAR.features import Covariance, CovarianceEuclidean, CovarianceTexture
 from clustering_SAR.generic_functions import enable_latex_infigures, plot_Pauli_SAR, save_figure
 
 # DEBUG mode for faster debugging
@@ -24,7 +25,7 @@ if DEBUG:
     SIZE_CROP = 100
 
 # Activate latex in figures (or not)
-LATEX_IN_FIGURES = True
+LATEX_IN_FIGURES = False
 if LATEX_IN_FIGURES:
   enable_latex_infigures()
 
@@ -46,11 +47,13 @@ T = 1
 WINDOWS_SHAPE = (7,7)
 
 # features used to cluster the its
-FEATURES = 'covariance'
+features = CovarianceEuclidean()
+# features = Covariance()
+# features = CovarianceTexture(p=3, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])
 
 # K-means parameter
 if DEBUG:
-    K_MEANS_NB_ITER_MAX = 2
+    K_MEANS_NB_ITER_MAX = 3
 else:
     K_MEANS_NB_ITER_MAX = 10
 
@@ -73,7 +76,7 @@ print()
 
 C_its = K_means_SAR_datacube(
     image,
-    FEATURES,
+    features,
     WINDOWS_SHAPE,
     K_MEANS_NB_ITER_MAX,
     ENABLE_MULTI,
