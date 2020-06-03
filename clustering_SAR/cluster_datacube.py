@@ -116,9 +116,8 @@ def K_means_SAR_datacube(
         features.mean,
         init=C,
         eps=1e-6,
-        init_parameters=[C, features.mean, [p, N, 1.0, 0.95, 1e-9, 5, False, 0], True],
         iter_max = k_means_nb_iter_max,
-        enable_multi=enable_multi,
+        enable_multi_distance=enable_multi,
         enable_multi_mean=enable_multi,
         number_of_threads=os.cpu_count()
     )

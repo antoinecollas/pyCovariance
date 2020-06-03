@@ -188,10 +188,9 @@ def K_means_clustering_algorithm(
     distance,
     mean_function,
     init=None,
-    init_parameters=None,
     eps=1e-2,
     iter_max=20,
-    enable_multi=False,
+    enable_multi_distance=False,
     enable_multi_mean=False,
     number_of_threads=4
 ):
@@ -214,7 +213,7 @@ def K_means_clustering_algorithm(
                                            samples in class
             * init = a (N) array with one class per point (for example coming from a H-alpha decomposition). If None, centers are randomly chosen among samples.
             * iter_max = number of maximum iterations of algorithm
-            * enable_multi = enable or not parallel compuation
+            * enable_multi_distance = enable or not parallel computation for distance computation
             * enable_multi_mean = enable or not parallel compuation for mean computation
             * number_of_threads = number of parallel threads (cores of machine)
 
@@ -262,7 +261,7 @@ def K_means_clustering_algorithm(
             X,
             mu,
             distance,
-            enable_multi,
+            enable_multi_distance,
             number_of_threads
         )
         te = time.time()
@@ -275,6 +274,7 @@ def K_means_clustering_algorithm(
         # -----------------------------------------
         # Computing new means using assigned samples
         # -----------------------------------------
+        print("Computing means of %d classes" % K)
         tb = time.time()
         mu_new = wrapper_compute_all_mean_parallel(
             X,
@@ -296,6 +296,8 @@ def K_means_clustering_algorithm(
  
         # Updating iteration
         i = i + 1
+
+        print()
 
     print('Total time to compute distances between samples and classes:', int(time_distances), 's.')
     print('Total time to compute new means:', int(time_means), 's.')
