@@ -29,33 +29,36 @@ def assign_class_H_α(H, α):
         c = 1
       elif α <= 90:
         c = 0
-    else:
-        c = np.nan
 
     return c
 
 
-def compute_h_alpha_class(𝐗, args=None):
+def compute_h_alpha_class(X):
     """ Compute H-α values given data in input and assign to a class
+    The computation of H and Alpha follows 'Unsupervised Classification Using Polarimetric Decomposition and the Complex Wishart Classifier' from Lee et al.
         ----------------------------------------------------------------------
         Inputs:
         --------
-            * 𝐗 = a (p, N) array where p is the dimension of data and N the number
+            * X = a (p, N) array where p is the dimension of data and N the number
                     of samples used for estimation of covariance matrix
-            * args is unused but needed for coherent coding
 
         Outputs:
         ---------
             * the class corresponding to a zone in the H-α plane
     """
+    # Pauli transformation
+    X[1, :] = np.sqrt(2) * X[1, :]
+    cov = SCM(np.squeeze(X))
+    N = (1/np.sqrt(2)) * np.array([[1, 0, 1], [1, 0, -1], [0, np.sqrt(2), 0]])
+    T = N @ cov @ N.T
 
-    𝝨 = SCM(np.squeeze(𝐗))
-    𝛌, 𝐔 = sp.linalg.eigh(𝝨)
-    𝛌 = 𝛌/np.sum(𝛌)
-    α_vector = np.arccos(np.abs(𝐔[0,:]))
+    eigvalues, eigvectors = sp.linalg.eigh(T)
+    eigvalues = eigvalues/np.sum(eigvalues)
 
-    H = - np.dot(𝛌, np.log(𝛌))
-    α = np.dot(𝛌, α_vector) * (180.0/np.pi)
+    α_vector = np.degrees(np.arccos(np.abs(eigvectors[0,:])))
+
+    H = - np.dot(eigvalues, np.log(eigvalues)/np.log(3))
+    α = np.dot(eigvalues, α_vector)
 
     return [assign_class_H_α(H, α)]
 
