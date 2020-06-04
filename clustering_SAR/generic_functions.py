@@ -342,7 +342,7 @@ def plot_Pauli_SAR(image, resolution=[1,1]):
     plt.axis('off')
     return fig
 
-def plot_segmentation(C, aspect):
+def plot_segmentation(C, aspect=1):
     """ Plot a segmentation map.
         Inputs:
             * C: a (height, width) numpy array of integers (classes.

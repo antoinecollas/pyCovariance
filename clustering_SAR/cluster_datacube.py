@@ -53,7 +53,9 @@ def K_means_SAR_datacube(
         ---------
             * C_its
     """
-    
+    if len(images.shape) == 3:
+        images = images.reshape(*images.shape, 1)
+
     print('################################################')
     print('Initialisation: H-alpha')
     print('################################################')
@@ -108,7 +110,7 @@ def K_means_SAR_datacube(
     print('K-means clustering') 
     print('################################################')
     t_beginning = time.time()
-    K = len(np.unique(C[~np.isnan(C)]))
+    K = len(np.unique(C))
     C, mu, i, delta = K_means_clustering_algorithm(
         X,
         K,
