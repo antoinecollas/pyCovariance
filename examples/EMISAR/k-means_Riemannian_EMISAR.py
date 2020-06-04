@@ -43,10 +43,9 @@ RESOLUTION = [0.749, 1.499] # resolution in meters
 # Window size to compute features
 WINDOWS_SHAPE = (7,7)
 
-# features used to cluster the its
-# features = CovarianceEuclidean()
-features = Covariance()
-# features = CovarianceTexture(p=3, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])
+# features used to cluster the image
+features_list = [CovarianceEuclidean(), Covariance(), CovarianceTexture(p=3, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])]
+
 
 # K-means parameter
 if DEBUG:
@@ -69,17 +68,20 @@ n_r, n_c, p = image.shape
 print("Done in %f s." % (time.time()-t_beginning))
 print()
 
-C = K_means_SAR_datacube(
-    image,
-    features,
-    WINDOWS_SHAPE,
-    K_MEANS_NB_ITER_MAX,
-    ENABLE_MULTI,
-    NUMBER_OF_THREADS_ROWS,
-    NUMBER_OF_THREADS_COLUMNS
-)
-C = C.squeeze()
+for features in features_list:
+    print('Features:', str(features))
+    print()
+    C = K_means_SAR_datacube(
+        image,
+        features,
+        WINDOWS_SHAPE,
+        K_MEANS_NB_ITER_MAX,
+        ENABLE_MULTI,
+        NUMBER_OF_THREADS_ROWS,
+        NUMBER_OF_THREADS_COLUMNS
+    )
+    C = C.squeeze()
 
-# Plotting
-plot_segmentation(C, aspect=RESOLUTION[0]/RESOLUTION[1])
-save_figure('figures', 'fig_K_means_EMISAR')
+    # Plotting
+    plot_segmentation(C, aspect=RESOLUTION[0]/RESOLUTION[1])
+    save_figure('figures', 'fig_K_means_' + str(features) + '_EMISAR')

@@ -14,6 +14,9 @@ class BaseClassFeatures:
         self.estimation_parameters = estimation_parameters
         self.distance_parameters = distance_parameters
         self.mean_parameters = mean_parameters
+    
+    def __str__(self):
+        return self.__str__()
 
     def vec(self, feature):
         """ Serve to vectorize a feature. (For example, it vectorizes a matrix of covariance).
@@ -84,6 +87,9 @@ class CovarianceEuclidean(BaseClassFeatures):
     def __init__(self):
         super().__init__()
     
+    def __str__(self):
+        return 'Covariance_Euclidean_features'
+    
     def estimation(self, X):
         return vech_SCM(X)
 
@@ -102,6 +108,9 @@ class Covariance(BaseClassFeatures):
             mean_parameters=mean_parameters
         )
     
+    def __str__(self):
+        return 'Covariance_Riemannian_features'
+
     def estimation(self, X):
         return vech_SCM(X)
 
@@ -126,6 +135,9 @@ class CovarianceTexture(BaseClassFeatures):
             distance_parameters=distance_parameters,
             mean_parameters=mean_parameters
         )
+    
+    def __str__(self):
+        return 'Covariance_texture_Riemannian_features'
     
     def estimation(self, X):
         return compute_feature_Covariance_texture(X, self.estimation_parameters)
