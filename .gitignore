@@ -1,3 +1,6 @@
+# temporary files of VIM
+*.swp
+
 # data
 data/EMISAR/EMISAR_data.npy
 data/Snjoaq/data
