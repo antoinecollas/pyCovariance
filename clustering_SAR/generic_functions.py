@@ -327,7 +327,7 @@ def unvech(v):
     return result
 
 
-def plot_Pauli_SAR(image, resolution=[1,1]):
+def plot_Pauli_SAR(image, aspect=1):
     import matplotlib.pyplot as plt
     """ 1st dimension =HH, 2nd dimnension = HV, 3rd dimension=VV"""
     R = np.abs(image[:,:,0] - image[:,:,2])
@@ -337,7 +337,6 @@ def plot_Pauli_SAR(image, resolution=[1,1]):
     RGB_image = np.stack([R,G,B], axis=2)
     RGB_image = RGB_image - np.min(RGB_image)
     RGB_image[RGB_image > 1] = 1
-    aspect = resolution[0]/resolution[1]
     plt.imshow(RGB_image, aspect=aspect)
     plt.axis('off')
     return fig
