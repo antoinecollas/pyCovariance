@@ -1,5 +1,3 @@
-import matplotlib.pyplot as plt
-import matplotlib as mpl
 import numpy as np
 import os
 import sys
@@ -14,10 +12,10 @@ temp = os.path.dirname(os.path.dirname(current_dir))
 sys.path.insert(1, temp)
 
 from clustering_SAR.H_alpha_functions import cluster_image_by_H_alpha
-from clustering_SAR.generic_functions import enable_latex_infigures, save_figure
+from clustering_SAR.generic_functions import enable_latex_infigures, plot_segmentation, save_figure
 
 # DEBUG mode for faster debugging
-DEBUG = False
+DEBUG = True
 if DEBUG:
     print('DEBUG mode enabled !!!')
     print()
@@ -55,7 +53,6 @@ if DEBUG:
     half_height = SIZE_CROP//2
     half_width = SIZE_CROP//2
     image = image[center[0]-half_height:center[0]+half_height, center[1]-half_width:center[1]+half_width]
-n_r, n_c, p = image.shape
 print("Done in %f s." % (time.time()-t_beginning))
 print()
 
@@ -71,15 +68,5 @@ C = cluster_image_by_H_alpha(
 )
 
 # Plotting
-cmap = plt.cm.inferno_r
-K = len(np.unique(C))
-bounds = np.linspace(0, K, K+1)
-norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
-
-fig = plt.figure(figsize=(16,9), dpi=80, facecolor='w')
-plt.imshow(C, aspect=RESOLUTION[0]/RESOLUTION[1], cmap=cmap, norm=norm)
-plt.axis('off')
-plt.colorbar()
-plt.tight_layout()
-
-save_figure('figures', 'fig_EMISAR')
+plot_segmentation(C, aspect=RESOLUTION[0]/RESOLUTION[1])
+save_figure('figures', 'fig_H_alpha_EMISAR')
