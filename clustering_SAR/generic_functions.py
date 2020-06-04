@@ -342,6 +342,23 @@ def plot_Pauli_SAR(image, resolution=[1,1]):
     plt.axis('off')
     return fig
 
+def plot_segmentation(C, aspect):
+    """ Plot a segmentation map.
+        Inputs:
+            * C: a (height, width) numpy array of integers (classes.
+            * aspect: aspect ratio of the image.
+    """
+    import matplotlib.pyplot as plt
+ 
+    #get discrete colormap
+    cmap = plt.get_cmap('RdBu', np.max(C)-np.min(C)+1)
+ 
+    # set limits .5 outside true range
+    mat = plt.matshow(C, aspect=aspect, cmap=cmap, vmin=np.min(C)-.5, vmax=np.max(C)+.5)
+
+    #tell the colorbar to tick at integers
+    cax = plt.colorbar(mat, ticks=np.arange(np.min(C),np.max(C)+1))
+
 def save_figure(folder, figname):
     """ A function that save the current figure in '.png' and in '.tex'.
         Inputs:
