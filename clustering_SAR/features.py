@@ -1,5 +1,7 @@
+from functools import partial
+
 # import functions related to covariance features
-from .covariance_clustering_functions import vech_SCM, covariance_arithmetic_mean, covariance_Euclidean_distance, Riemannian_distance_covariance, Riemannian_mean_covariance
+from .covariance_clustering_functions import center_vectors, covariance_arithmetic_mean, covariance_Euclidean_distance, Riemannian_distance_covariance, Riemannian_mean_covariance, vech_SCM
 
 # import functions related to covariance and texture features
 from .covariance_and_texture_clustering_functions import compute_feature_Covariance_texture, Riemannian_distance_covariance_texture, Riemannian_mean_covariance_texture
@@ -84,19 +86,14 @@ class BaseClassFeatures:
         raise NotImplementedError
 
 class CovarianceEuclidean(BaseClassFeatures):
-    def __init__(
-        self,
-        estimation_args=(False),
-    ):
-        super().__init__(
-            estimation_args=estimation_args,
-        )
+    def __init__(self):
+        super().__init__()
     
     def __str__(self):
         return 'Covariance_Euclidean_features'
     
     def estimation(self, X):
-        return vech_SCM(X, self.estimation_args)
+        return vech_SCM(X)
 
     def distance(self, x1, x2):
         return covariance_Euclidean_distance(x1, x2)
@@ -152,3 +149,19 @@ class CovarianceTexture(BaseClassFeatures):
 
     def mean(self, X):
         return Riemannian_mean_covariance_texture(X, self.mean_args)
+
+def center_vectors_estimation(features):
+    """ Center vectors before estimating features.
+    -------------------------------------
+        Inputs:
+            --------
+            * features = class of type BaseClassFeatures (e.g CovarianceTexture) 
+        Outputs:
+            ---------
+            * the same class as in the input except the vectors are now centered before estimating
+    """
+    def estimation_on_centered_vectors(X, features_estimation):
+        X = center_vectors(X)
+        return features_estimation(X)
+    features.estimation = partial(estimation_on_centered_vectors, features_estimation=features.estimation)
+    return features

@@ -14,15 +14,21 @@ temp = os.path.dirname(os.path.dirname(current_dir))
 sys.path.insert(1, temp)
 
 from clustering_SAR.cluster_datacube import K_means_datacube
-from clustering_SAR.features import Covariance, CovarianceEuclidean, CovarianceTexture
+from clustering_SAR.features import center_vectors_estimation, Covariance, CovarianceEuclidean, CovarianceTexture
 from clustering_SAR.generic_functions import enable_latex_infigures, plot_segmentation, save_figure
+
+#######################################################
+#######################################################
+# BEGINNING OF HYPERPARAMETERS
+#######################################################
+#######################################################
 
 # DEBUG mode for faster debugging
 DEBUG = True
 if DEBUG:
     print('DEBUG mode enabled !!!')
     print()
-    SIZE_CROP = 50
+    SIZE_CROP = 200
 
 # Activate latex in figures (or not)
 LATEX_IN_FIGURES = False
@@ -49,16 +55,20 @@ RESOLUTION = [1.3, 1.3] # resolution in meters
 WINDOWS_SHAPE = (7,7)
 
 # features used to cluster the image
-# features_list = [CovarianceEuclidean(), Covariance(), CovarianceTexture(p=3, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])]
-estimation_args = (True) # we center the pixels before estimating the covariance matrix
-features_list = [CovarianceEuclidean(estimation_args)]
-
+# we center the pixels before estimating the covariance matrix
+features_list = [center_vectors_estimation(CovarianceEuclidean())]
 
 # K-means parameter
 if DEBUG:
     K_MEANS_NB_ITER_MAX = 2
 else:
     K_MEANS_NB_ITER_MAX = 10
+
+#######################################################
+#######################################################
+# END OF HYPERPARAMETERS
+#######################################################
+#######################################################
 
 print('################################################')
 print('Reading dataset') 

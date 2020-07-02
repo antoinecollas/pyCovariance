@@ -7,25 +7,34 @@ from tqdm import tqdm
 from .generic_functions import *
 from .matrix_operators import sqrtm, invsqrtm, logm, expm
 
-def vech_SCM(X, args):
+def center_vectors(X):
+    """ Serve to center vectors (e.g pixels).
+        ----------------------------------------------------------------------
+        Inputs:
+        --------
+            * X = a (p, N) array where p is the dimension of data and N the number of samples used for estimation
+
+        Outputs:
+        ---------
+            * 𝐱 = the feature for classification
+        """
+    mean = np.mean(X, axis=1)
+    mean = mean[:, np.newaxis]
+    X = X - mean
+    return X
+
+def vech_SCM(X):
     """ Serve to compute feature for Covariance only classification.
         We use vech opeartion to save memory space.
         ----------------------------------------------------------------------
         Inputs:
         --------
             * X = a (p, N) array where p is the dimension of data and N the number of samples used for estimation
-            * args = (center_vectors) where
-                ** center_vectors = boolean to center vectors before computing the SCM
 
         Outputs:
         ---------
             * 𝐱 = the feature for classification
         """
-    center_vectors = args
-    if center_vectors:
-        mean = np.mean(X, axis=1)
-        mean = mean[:, np.newaxis, :]
-        X = X - mean
     return list(vech(SCM(np.squeeze(X))))
 
 
