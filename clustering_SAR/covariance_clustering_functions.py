@@ -7,20 +7,26 @@ from tqdm import tqdm
 from .generic_functions import *
 from .matrix_operators import sqrtm, invsqrtm, logm, expm
 
-def vech_SCM(𝐗):
+def vech_SCM(X, args):
     """ Serve to compute feature for Covariance only classification.
         We use vech opeartion to save memory space.
         ----------------------------------------------------------------------
         Inputs:
         --------
-            * 𝐗 = a (p, N) array where p is the dimension of data and N the number
-                    of samples used for estimation
+            * X = a (p, N) array where p is the dimension of data and N the number of samples used for estimation
+            * args = (center_vectors) where
+                ** center_vectors = boolean to center vectors before computing the SCM
 
         Outputs:
         ---------
             * 𝐱 = the feature for classification
         """
-    return list(vech(SCM(np.squeeze(𝐗))))
+    center_vectors = args
+    if center_vectors:
+        mean = np.mean(X, axis=1)
+        mean = mean[:, np.newaxis, :]
+        X = X - mean
+    return list(vech(SCM(np.squeeze(X))))
 
 
 def vech_tylerdet(𝐗, args):

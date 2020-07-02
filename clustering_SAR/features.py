@@ -7,13 +7,13 @@ from .covariance_and_texture_clustering_functions import compute_feature_Covaria
 class BaseClassFeatures:
     def __init__(
         self,
-        estimation_parameters=None,
-        distance_parameters=None,
-        mean_parameters=None
+        estimation_args=None,
+        distance_args=None,
+        mean_args=None
     ):
-        self.estimation_parameters = estimation_parameters
-        self.distance_parameters = distance_parameters
-        self.mean_parameters = mean_parameters
+        self.estimation_args = estimation_args
+        self.distance_args = distance_args
+        self.mean_args = mean_args
     
     def __str__(self):
         return self.__str__()
@@ -84,14 +84,19 @@ class BaseClassFeatures:
         raise NotImplementedError
 
 class CovarianceEuclidean(BaseClassFeatures):
-    def __init__(self):
-        super().__init__()
+    def __init__(
+        self,
+        estimation_args=(False),
+    ):
+        super().__init__(
+            estimation_args=estimation_args,
+        )
     
     def __str__(self):
         return 'Covariance_Euclidean_features'
     
     def estimation(self, X):
-        return vech_SCM(X)
+        return vech_SCM(X, self.estimation_args)
 
     def distance(self, x1, x2):
         return covariance_Euclidean_distance(x1, x2)
@@ -102,10 +107,10 @@ class CovarianceEuclidean(BaseClassFeatures):
 class Covariance(BaseClassFeatures):
     def __init__(
         self,
-        mean_parameters=[1.0, 0.95, 1e-9, 5, False, 0]
+        mean_args=[1.0, 0.95, 1e-9, 5, False, 0]
     ):
         super().__init__(
-            mean_parameters=mean_parameters
+            mean_args=mean_args
         )
     
     def __str__(self):
@@ -118,32 +123,32 @@ class Covariance(BaseClassFeatures):
         return Riemannian_distance_covariance(x1, x2)
 
     def mean(self, X):
-        return Riemannian_mean_covariance(X, self.mean_parameters)
+        return Riemannian_mean_covariance(X, self.mean_args)
 
 class CovarianceTexture(BaseClassFeatures):
     def __init__(
         self,
         p,
         N,
-        estimation_parameters=(0.01, 20),
-        mean_parameters=[1.0, 0.95, 1e-9, 5, False, 0]
+        estimation_args=(0.01, 20),
+        mean_args=[1.0, 0.95, 1e-9, 5, False, 0]
     ):
-        distance_parameters =  (p, N)
-        mean_parameters =  [p, N] + mean_parameters
+        distance_args =  (p, N)
+        mean_args =  [p, N] + mean_args
         super().__init__(
-            estimation_parameters=estimation_parameters,
-            distance_parameters=distance_parameters,
-            mean_parameters=mean_parameters
+            estimation_args=estimation_args,
+            distance_args=distance_args,
+            mean_args=mean_args
         )
     
     def __str__(self):
         return 'Covariance_texture_Riemannian_features'
     
     def estimation(self, X):
-        return compute_feature_Covariance_texture(X, self.estimation_parameters)
+        return compute_feature_Covariance_texture(X, self.estimation_args)
 
     def distance(self, x1, x2):
-        return Riemannian_distance_covariance_texture(x1, x2, self.distance_parameters)
+        return Riemannian_distance_covariance_texture(x1, x2, self.distance_args)
 
     def mean(self, X):
-        return Riemannian_mean_covariance_texture(X, self.mean_parameters)
+        return Riemannian_mean_covariance_texture(X, self.mean_args)
