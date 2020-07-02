@@ -11,7 +11,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 temp = os.path.dirname(os.path.dirname(current_dir))
 sys.path.insert(1, temp)
 
-from clustering_SAR.cluster_datacube import K_means_SAR_datacube
+from clustering_SAR.cluster_datacube import K_means_datacube
 from clustering_SAR.features import Covariance, CovarianceEuclidean, CovarianceTexture
 from clustering_SAR.generic_functions import enable_latex_infigures, plot_segmentation, save_figure
 
@@ -43,6 +43,9 @@ RESOLUTION = [0.749, 1.499] # resolution in meters
 # Window size to compute features
 WINDOWS_SHAPE = (7,7)
 
+# initialisation
+INIT = 'H-alpha'
+
 # features used to cluster the image
 features_list = [CovarianceEuclidean(), Covariance(), CovarianceTexture(p=3, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])]
 
@@ -71,10 +74,11 @@ print()
 for features in features_list:
     print('Features:', str(features))
     print()
-    C = K_means_SAR_datacube(
+    C = K_means_datacube(
         image,
         features,
         WINDOWS_SHAPE,
+        INIT,
         K_MEANS_NB_ITER_MAX,
         ENABLE_MULTI,
         NUMBER_OF_THREADS_ROWS,
