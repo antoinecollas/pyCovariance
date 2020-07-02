@@ -22,61 +22,66 @@ from clustering_SAR.H_alpha_functions import cluster_image_by_H_alpha
 # import sliding window function
 from clustering_SAR.multivariate_images_tools import sliding_windows_treatment_image_time_series_parallel
 
-def K_means_SAR_datacube(
+def K_means_datacube(
     images,
     features,
     windows_shape,
+    init,
     k_means_nb_iter_max,
     enable_multi,
     number_of_threads_rows,
     number_of_threads_columns
 ):
-    """ K-means algorithm applied on a SAR datacube. It uses Riemannian distances and means on locally computed features (covariances or covariances with textures).
-    ---------------------------------------------------------------
-        Inputs:
-        --------
-            * images = (H, W, p, T) numpy array with:
-                * H = height of the image
-                * W = width of the image
-                * p = size of each pixel
-                * T = number of images (size of the time series)
-            * features = an instance of the class BaseClassFeatures from clustering_SAR.features
-            * windows_shape = (h, w) tuple:
-                * h: height of the window in pixels
-                * w: width of the window in pixels
-            * K_means_nb_iter_max = maximum number of iterations for the K-means algorithm
-            * enable_multi = enable or not parallel compuation
-            * number_of_threads_rows = number of threads to be used to cut the image in height
-            * number_of_threads_columns = number of threads to be used to cut the image in column
+    """ K-means algorithm applied on a image time series datacube. It uses distances and means on locally computed features (e.g covariances or covariances with textures).
+    --------------------------------------------------------------
+    Inputs:
+    --------
+        * images = (H, W, p, T) numpy array with:
+            * H = height of the image
+            * W = width of the image
+            * p = size of each pixel
+            * T = number of images (size of the time series)
+        * features = an instance of the class BaseClassFeatures from clustering_SAR.features
+        * windows_shape = (h, w) tuple:
+            * h: height of the window in pixels
+            * w: width of the window in pixels
+        * init = initialisation of K-means. Either an integer or 'H-alpha'. An integer corresponds to a number of classes. In this case, center of classes are randomly chosen.
+        * K_means_nb_iter_max = maximum number of iterations for the K-means algorithm
+        * enable_multi = enable or not parallel compuation
+        * number_of_threads_rows = number of threads to be used to cut the image in height
+        * number_of_threads_columns = number of threads to be used to cut the image in column
 
-        Outputs:
-        ---------
-            * C_its
+    Outputs:
+    ---------
+    * C_its
     """
     if len(images.shape) == 3:
         images = images.reshape(*images.shape, 1)
-
-    print('################################################')
-    print('Initialisation: H-alpha')
-    print('################################################')
-    windows_mask = np.ones(windows_shape)
-    n_r, n_c, p, T = images.shape
-    m_r, m_c = windows_mask.shape
-    N = m_r*m_c
-    C = []
-    for t in range(T):
-        print("Treating image %d of %d" %(t+1,T))
-        C_tmp = cluster_image_by_H_alpha(
-            images[:,:,:,t],
-            windows_mask,
-            multi=enable_multi,
-            number_of_threads_rows=number_of_threads_rows,
-            number_of_threads_columns=number_of_threads_columns
-        )
-        C.append(C_tmp.reshape(C_tmp.size, 1).T)
-    C = np.squeeze(np.hstack(C))
-    C_tmp = None
-    print()
+    
+    assert (type(init) is int) or init=='H-alpha', 'Error initialisation in K-means arguments'
+    C = None
+    if init=='H-alpha':
+        print('################################################')
+        print('Initialisation: H-alpha')
+        print('################################################')
+        windows_mask = np.ones(windows_shape)
+        n_r, n_c, p, T = images.shape
+        m_r, m_c = windows_mask.shape
+        N = m_r*m_c
+        C = []
+        for t in range(T):
+            print("Treating image %d of %d" %(t+1,T))
+            C_tmp = cluster_image_by_H_alpha(
+                images[:,:,:,t],
+                windows_mask,
+                multi=enable_multi,
+                number_of_threads_rows=number_of_threads_rows,
+                number_of_threads_columns=number_of_threads_columns
+            )
+            C.append(C_tmp.reshape(C_tmp.size, 1).T)
+        C = np.squeeze(np.hstack(C))
+        C_tmp = None
+        print()
 
     print('################################################')
     print('Computing features')
@@ -110,7 +115,10 @@ def K_means_SAR_datacube(
     print('K-means clustering') 
     print('################################################')
     t_beginning = time.time()
-    K = len(np.unique(C))
+    if type(init) is int:
+        K = init
+    else:
+        K = len(np.unique(C))
     C, mu, i, delta = K_means_clustering_algorithm(
         X,
         K,
