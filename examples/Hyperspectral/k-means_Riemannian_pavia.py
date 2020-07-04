@@ -55,8 +55,9 @@ RESOLUTION = [1.3, 1.3] # resolution in meters
 WINDOWS_SHAPE = (7,7)
 
 # features used to cluster the image
+features_list = [CovarianceEuclidean(), Covariance(), CovarianceTexture(p=NB_BANDS_TO_SELECT, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])]
 # we center the pixels before estimating the covariance matrix
-features_list = [center_vectors_estimation(CovarianceEuclidean())]
+features_list = [center_vectors_estimation(features) for features in features_list]
 
 # K-means parameter
 if DEBUG:
