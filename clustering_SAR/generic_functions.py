@@ -342,22 +342,26 @@ def plot_Pauli_SAR(image, aspect=1):
     plt.axis('off')
     return fig
 
-def plot_segmentation(C, aspect=1):
+def plot_segmentation(C, aspect=1, classes=None):
     """ Plot a segmentation map.
         Inputs:
             * C: a (height, width) numpy array of integers (classes.
             * aspect: aspect ratio of the image.
     """
     import matplotlib.pyplot as plt
- 
+    if classes is not None:
+        max_C, min_C = np.max(classes), np.min(classes)
+    else:
+        max_C, min_C = np.max(C), np.min(C) 
+
     #get discrete colormap
-    cmap = plt.get_cmap('RdBu', np.max(C)-np.min(C)+1)
+    cmap = plt.get_cmap('RdBu', max_C-min_C+1)
  
     # set limits .5 outside true range
-    mat = plt.matshow(C, aspect=aspect, cmap=cmap, vmin=np.min(C)-.5, vmax=np.max(C)+.5)
+    mat = plt.matshow(C, aspect=aspect, cmap=cmap, vmin=min_C-.5, vmax=max_C+.5)
 
     #tell the colorbar to tick at integers
-    cax = plt.colorbar(mat, ticks=np.arange(np.min(C),np.max(C)+1))
+    cax = plt.colorbar(mat, ticks=np.arange(min_C,max_C+1))
 
 def pca_and_save_variance(folder, figname, image, nb_components):
     """ A function that centers data and applies PCA. It also saves a figure of the explained variance.
@@ -423,3 +427,35 @@ def save_figure(folder, figname):
 
     path_tex = path + '.tex'
     tikzplotlib.save(path_tex)
+
+def assign_classes_segmentation_to_gt(C, gt):
+    """ A function that assigns the classes of the segmentation to the ground truth.
+        Inputs:
+            * C: segmented image.
+            * gt: ground truth
+        Ouput:
+            * segmented image with the right classes.
+    """
+    from scipy.optimize import linear_sum_assignment
+    
+    C = C + 1
+
+    classes = np.unique(gt)[1:]
+    nb_classes = len(classes)
+
+    cost_matrix = np.zeros((nb_classes, nb_classes))
+
+    for i in classes:
+        mask = (gt == i)
+        #nb_pixels = np.sum(mask)
+        for j in classes:
+            cost_matrix[i-1, j-1] = -np.sum(C[mask] == j)#/nb_pixels
+            
+    row_ind, col_ind = linear_sum_assignment(cost_matrix)
+    row_ind += 1
+    col_ind += 1
+    new_C = np.zeros(C.shape)
+    for i, j in zip(row_ind, col_ind):
+        new_C[C==i] = j
+
+    return new_C
