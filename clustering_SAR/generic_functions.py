@@ -3,6 +3,7 @@ import numpy as np
 import os
 import scipy as sp
 import scipy.special
+from sklearn.decomposition import PCA
 import tikzplotlib
 import warnings
 
@@ -358,6 +359,55 @@ def plot_segmentation(C, aspect=1):
     #tell the colorbar to tick at integers
     cax = plt.colorbar(mat, ticks=np.arange(np.min(C),np.max(C)+1))
 
+def pca_and_save_variance(folder, figname, image, nb_components):
+    """ A function that centers data and applies PCA. It also saves a figure of the explained variance.
+        Inputs:
+            * folder: string.
+            * figname: string.
+            * image: numpy array to save.
+    """
+    # center pixels
+    h, w, _ = image.shape
+    image = image.reshape((-1, image.shape[-1]))
+    mean = np.mean(image, axis=0)
+    image = image - mean
+    # check pixels are centered
+    assert (np.abs(np.mean(image, axis=0)) < 1e-9).all()
+
+    # apply PCA
+    pca = PCA(nb_components)
+    image = pca.fit_transform(image)
+    # check pixels are still centered
+    assert (np.abs(np.mean(image, axis=0)) < 1e-9).all()
+    # reshape image
+    image = image.reshape((h, w, nb_components))
+
+    # plot and save explained variance 
+    plt.plot(np.arange(1, nb_components+1), np.cumsum(pca.explained_variance_ratio_))
+    plt.xlabel('Number of components')
+    plt.ylabel('Cumulative explained variance');
+    if not os.path.exists(folder):
+        os.makedirs(folder, exist_ok=True)
+    path = os.path.join(folder, figname)
+    path_png = path + '.png'
+    plt.savefig(path_png)
+    path_tex = path + '.tex'
+    tikzplotlib.save(path_tex)
+    return image
+
+def save_segmentation(folder, filename, np_array):
+    """ A function that saves a numpy array in a folder. The array and the folder are passed as arguments.
+        Inputs:
+            * folder: string.
+            * filename: string.
+            * np_array: numpy array to save.
+    """
+    if not os.path.exists(folder):
+        os.makedirs(folder, exist_ok=True)
+    path = os.path.join(folder, filename)
+
+    np.save(path, np_array)
+
 def save_figure(folder, figname):
     """ A function that save the current figure in '.png' and in '.tex'.
         Inputs:
@@ -365,7 +415,7 @@ def save_figure(folder, figname):
             * figname: string corresponding to the name of the figure to save.
     """
     if not os.path.exists(folder):
-        os.mkdir(folder)
+        os.makedirs(folder, exist_ok=True)
     path = os.path.join(folder, figname)
     
     path_png = path + '.png'

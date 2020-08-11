@@ -1,3 +1,4 @@
+from datetime import datetime
 import numpy as np
 import os
 import random
@@ -15,7 +16,7 @@ sys.path.insert(1, temp)
 
 from clustering_SAR.cluster_datacube import K_means_datacube
 from clustering_SAR.features import center_vectors_estimation, Covariance, CovarianceEuclidean, CovarianceTexture
-from clustering_SAR.generic_functions import enable_latex_infigures, plot_segmentation, save_figure
+from clustering_SAR.generic_functions import enable_latex_infigures, pca_and_save_variance, plot_segmentation, save_figure, save_segmentation
 
 #######################################################
 #######################################################
@@ -24,11 +25,16 @@ from clustering_SAR.generic_functions import enable_latex_infigures, plot_segmen
 #######################################################
 
 # DEBUG mode for faster debugging
-DEBUG = True
+DEBUG = False
 if DEBUG:
     print('DEBUG mode enabled !!!')
     print()
-    SIZE_CROP = 200
+    SIZE_CROP = 100
+
+# folder to save results
+date_str = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
+FOLDER_RESULTS = os.path.join('results', 'Pavia_'+date_str)
+FOLDER_FIGURES = os.path.join(FOLDER_RESULTS, 'figures')
 
 # Activate latex in figures (or not)
 LATEX_IN_FIGURES = False
@@ -48,7 +54,7 @@ NUMBER_OF_THREADS = os.cpu_count()
 PATH = 'data/Pavia/PaviaU.mat'
 KEY_DICT_PAVIA = 'paviaU'
 NUMBER_CLASSES = 9
-NB_BANDS_TO_SELECT = 25
+NB_BANDS_TO_SELECT = 10
 RESOLUTION = [1.3, 1.3] # resolution in meters
 
 # Window size to compute features
@@ -56,8 +62,6 @@ WINDOWS_SHAPE = (7,7)
 
 # features used to cluster the image
 features_list = [CovarianceEuclidean(), Covariance(), CovarianceTexture(p=NB_BANDS_TO_SELECT, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])]
-# we center the pixels before estimating the covariance matrix
-features_list = [center_vectors_estimation(features) for features in features_list]
 
 # K-means parameter
 if DEBUG:
@@ -75,11 +79,19 @@ print('################################################')
 print('Reading dataset') 
 print('################################################')
 t_beginning = time.time()
+
+# load image
 image = loadmat(PATH)[KEY_DICT_PAVIA]
-random.seed(752)
-bands = random.sample(list(np.arange(image.shape[2])), k=NB_BANDS_TO_SELECT)
-bands.sort()
-image = image[:, :, bands]
+
+# center image globally
+mean = np.mean(image, axis=0)
+image = image - mean
+# check pixels are centered
+assert (np.abs(np.mean(image, axis=0)) < 1e-9).all()
+
+# pca
+image = pca_and_save_variance(FOLDER_FIGURES, 'fig_explained_variance_Pavia', image, NB_BANDS_TO_SELECT)
+
 if DEBUG:
     center = np.array(image.shape[0:2])//2
     half_height = SIZE_CROP//2
@@ -102,7 +114,10 @@ for features in features_list:
         NUMBER_OF_THREADS_COLUMNS
     )
     C = C.squeeze()
+ 
+    # Save segmentations
+    save_segmentation(FOLDER_RESULTS, 'K_means_' + str(features) + '_Pavia', C)
 
-    # Plotting
+    # Save plot segmentations
     plot_segmentation(C, aspect=RESOLUTION[0]/RESOLUTION[1])
-    save_figure('figures', 'fig_K_means_' + str(features) + '_Pavia')
+    save_figure(FOLDER_FIGURES, 'fig_K_means_' + str(features) + '_Pavia')
