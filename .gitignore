@@ -14,6 +14,7 @@ figures/*
 other/*
 
 # results
+results/*
 results_old/*
 
 # Byte-compiled / optimized / DLL files
