@@ -1,11 +1,8 @@
-from datetime import datetime
 import glob
 import numpy as np
 import os
-import random
 from scipy.io import loadmat
 import sys
-import time
 
 # The code is already multi threaded so we block OpenBLAS multi thread.
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
@@ -15,9 +12,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 temp = os.path.dirname(os.path.dirname(current_dir))
 sys.path.insert(1, temp)
 
-from clustering_SAR.cluster_datacube import K_means_datacube
-from clustering_SAR.features import center_vectors_estimation, Covariance, CovarianceEuclidean, CovarianceTexture
-from clustering_SAR.generic_functions import assign_classes_segmentation_to_gt, enable_latex_infigures, pca_and_save_variance, plot_segmentation, save_figure, save_segmentation
+from clustering_SAR.generic_functions import assign_classes_segmentation_to_gt, plot_segmentation
 
 #######################################################
 #######################################################
