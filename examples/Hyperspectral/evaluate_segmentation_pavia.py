@@ -67,8 +67,8 @@ print()
 print('################################################')
 print('Unsupervised metric')
 print('################################################')
-true = gt[gt!=0].reshape(-1)
-pred = segmentation[gt!=0].reshape(-1)
+true = gt[gt!=0]
+pred = segmentation[gt!=0]
 AMI = adjusted_mutual_info_score(true, pred)
 ARI = adjusted_rand_score(true, pred)
 print('AMI=', AMI)
