@@ -4,6 +4,7 @@ import os
 import scipy as sp
 import scipy.special
 from sklearn.decomposition import PCA
+import sys
 import tikzplotlib
 import warnings
 
@@ -436,26 +437,45 @@ def assign_classes_segmentation_to_gt(C, gt):
         Ouput:
             * segmented image with the right classes.
     """
+    # import Hungarian algorithm
     from scipy.optimize import linear_sum_assignment
-    
-    C = C + 1
+   
+    # if class 0 of gt is used for unnotated pixels then we make the classes of C start from 1
+    if len(np.unique(gt)) == (len(np.unique(C))+1):
+        C = C + 1
+        classes = np.unique(gt)[1:]
+    elif len(np.unique(gt)) == len(np.unique(C)):
+        classes = np.unique(gt)
+    else:
+        print('Error: wrong number of classes...')
+        sys.exit(1)
+    assert (classes == np.unique(C)).all()
 
-    classes = np.unique(gt)[1:]
     nb_classes = len(classes)
 
     cost_matrix = np.zeros((nb_classes, nb_classes))
 
-    for i in classes:
-        mask = (gt == i)
-        #nb_pixels = np.sum(mask)
-        for j in classes:
-            cost_matrix[i-1, j-1] = -np.sum(C[mask] == j)#/nb_pixels
-            
+    for i, class_gt in enumerate(classes):
+        mask = (gt == class_gt)
+        nb_pixels = np.sum(mask)
+        for j, class_C in enumerate(classes):
+            cost = -np.sum(C[mask] == class_C)#/nb_pixels
+            if cost != 0:
+                print('i', i, 'j', j, 'cost=', cost)
+            cost_matrix[i, j] = cost
+
     row_ind, col_ind = linear_sum_assignment(cost_matrix)
-    row_ind += 1
-    col_ind += 1
+    
+    if len(np.unique(gt)) == (len(np.unique(C))+1):
+        row_ind += 1
+        col_ind += 1
+    
+    print('row_ind', row_ind)
+    print('col_ind', col_ind)
+    
     new_C = np.zeros(C.shape)
-    for i, j in zip(row_ind, col_ind):
+    for i, j in zip(col_ind, row_ind):
+        print(i, 'becomes', j)
         new_C[C==i] = j
 
     return new_C
