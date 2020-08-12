@@ -1,6 +1,8 @@
+import copy
 import glob
 import numpy as np
 import os
+import matplotlib.pyplot as plt
 from scipy.io import loadmat
 import sys
 
@@ -12,7 +14,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 temp = os.path.dirname(os.path.dirname(current_dir))
 sys.path.insert(1, temp)
 
-from clustering_SAR.generic_functions import assign_classes_segmentation_to_gt, plot_segmentation
+from clustering_SAR.generic_functions import assign_classes_segmentation_to_gt, compute_mIoU, plot_segmentation, plot_TP_FP_FN_segmentation
 
 #######################################################
 #######################################################
@@ -49,10 +51,19 @@ print('################################################')
 print('Computing performances')
 print('################################################')
 
-new_segmentation = assign_classes_segmentation_to_gt(segmentation, gt)
+old_segmentation = copy.deepcopy(segmentation)
+IoU, mIoU = compute_mIoU(old_segmentation, gt, np.unique(segmentation))
+print('mIoU before Hungarian algo=', mIoU)
 
-import matplotlib.pyplot as plt
-plot_segmentation(segmentation, classes=np.unique(gt))
-plot_segmentation(new_segmentation, classes=np.unique(gt))
-plot_segmentation(gt)
+segmentation = assign_classes_segmentation_to_gt(segmentation, gt, normalize=True)
+IoU, mIoU = compute_mIoU(segmentation, gt, np.unique(segmentation))
+print('mIoU=', mIoU)
+classes = np.unique(segmentation).astype(np.int)
+for i, class_ in enumerate(classes):
+    print('class', class_, ': IoU=', round(IoU[i], 2))
+
+plot_segmentation(segmentation, classes=np.unique(gt).astype(np.int), title='Segmentation')
+plot_segmentation(gt, title='Ground truth')
+plot_TP_FP_FN_segmentation(segmentation, gt)
+
 plt.show()

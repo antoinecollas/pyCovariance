@@ -330,7 +330,6 @@ def unvech(v):
 
 
 def plot_Pauli_SAR(image, aspect=1):
-    import matplotlib.pyplot as plt
     """ 1st dimension =HH, 2nd dimnension = HV, 3rd dimension=VV"""
     R = np.abs(image[:,:,0] - image[:,:,2])
     G = np.abs(image[:,:,1])
@@ -343,13 +342,14 @@ def plot_Pauli_SAR(image, aspect=1):
     plt.axis('off')
     return fig
 
-def plot_segmentation(C, aspect=1, classes=None):
+def plot_segmentation(C, aspect=1, classes=None, title=None):
     """ Plot a segmentation map.
         Inputs:
             * C: a (height, width) numpy array of integers (classes.
             * aspect: aspect ratio of the image.
+            * classes: list of numbers of classes
+            * title: string used for the title of the figure
     """
-    import matplotlib.pyplot as plt
     if classes is not None:
         max_C, min_C = np.max(classes), np.min(classes)
     else:
@@ -363,6 +363,48 @@ def plot_segmentation(C, aspect=1, classes=None):
 
     #tell the colorbar to tick at integers
     cax = plt.colorbar(mat, ticks=np.arange(min_C,max_C+1))
+
+    #title
+    if title is not None:
+        plt.title(title)
+
+def plot_TP_FP_FN_segmentation(C, gt, aspect=1):
+    """ Plot True Positive, False Positive, False Negative for a segmetnation given a ground truth.
+        Inputs:
+            * C: a (height, width) numpy array of integers (classes).
+            * gt: a (height, width) numpy array of integers (classes).
+            * aspect: aspect ratio of the image.
+    """
+    # get classes
+    classes = np.unique(C).astype(np.int)
+    
+    # get discrete colormap
+    cmap = plt.get_cmap('RdBu', 4)
+    
+    for i in classes:
+        to_plot = np.zeros(C.shape)
+        # true positive
+        mask = np.logical_and((C == i), (gt == i))
+        to_plot[mask] = 3
+ 
+        # false positive
+        mask = np.logical_and(np.logical_and((C == i), (gt != i)), (gt != 0))
+        to_plot[mask] = 2
+
+        # false negative
+        mask = np.logical_and((C != i), (gt == i))
+        to_plot[mask] = 1
+ 
+        # set limits .5 outside true range
+        mat = plt.matshow(to_plot, aspect=aspect, cmap=cmap, vmin=-0.5, vmax=3.5)
+
+        #tell the colorbar to tick at integers
+        cax = plt.colorbar(mat)
+        cax.set_ticks(np.arange(0, 4))
+        cax.set_ticklabels(['Other', 'False negative', 'False positive', 'True positive'])
+ 
+        #title
+        plt.title('Class '+str(i))
 
 def pca_and_save_variance(folder, figname, image, nb_components):
     """ A function that centers data and applies PCA. It also saves a figure of the explained variance.
@@ -476,3 +518,20 @@ def assign_classes_segmentation_to_gt(C, gt, normalize=False):
         new_C[C==i] = j
 
     return new_C
+
+def compute_mIoU(C, gt, classes):
+    """ A function that computes the mean of Intersection over Union between a segmented image (c) and a ground truth (gt). BE CAREFUL, 0 is considered as no annotation available.
+        Inputs:
+            * C: segmented image.
+            * gt: ground truth.
+            * classes: list of classes used to compute the mIOU
+        Ouputs:
+            * IoU, mIOU
+    """
+    IoU = list()
+    for i in classes:
+        inter = np.sum(np.logical_and((C == i), (gt == i)))
+        union = np.sum(np.logical_and(np.logical_or((C == i), (gt == i)), (gt != 0)))
+        IoU.append(inter/union)
+    mIoU = np.mean(IoU)
+    return IoU, mIoU

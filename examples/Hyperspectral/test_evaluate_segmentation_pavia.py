@@ -12,7 +12,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 temp = os.path.dirname(os.path.dirname(current_dir))
 sys.path.insert(1, temp)
 
-from clustering_SAR.generic_functions import assign_classes_segmentation_to_gt, plot_segmentation
+from clustering_SAR.generic_functions import assign_classes_segmentation_to_gt, compute_mIoU, plot_segmentation
 
 #######################################################
 #######################################################
@@ -48,6 +48,8 @@ new_gt = np.zeros(gt.shape)
 for i, j in zip(classes, temp):
     new_gt[gt==i] = j
 back_to_gt = assign_classes_segmentation_to_gt(new_gt, gt)
+mIoU = compute_mIoU(back_to_gt, gt, np.unique(new_gt))
+print('mIoU=', mIoU)
 
 import matplotlib.pyplot as plt
 plot_segmentation(gt)
