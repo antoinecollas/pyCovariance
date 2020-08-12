@@ -429,24 +429,24 @@ def save_figure(folder, figname):
     path_tex = path + '.tex'
     tikzplotlib.save(path_tex)
 
-def assign_classes_segmentation_to_gt(C, gt):
+def assign_classes_segmentation_to_gt(C, gt, normalize=False):
     """ A function that assigns the classes of the segmentation to the ground truth.
         Inputs:
             * C: segmented image.
-            * gt: ground truth
+            * gt: ground truth.
+            * normalize: normalize each row of the cost matrix.
         Ouput:
             * segmented image with the right classes.
     """
     # import Hungarian algorithm
     from scipy.optimize import linear_sum_assignment
    
+    classes = np.unique(gt)
+    
     # if class 0 of gt is used for unnotated pixels then we make the classes of C start from 1
     if len(np.unique(gt)) == (len(np.unique(C))+1):
-        C = C + 1
-        classes = np.unique(gt)[1:]
-    elif len(np.unique(gt)) == len(np.unique(C)):
-        classes = np.unique(gt)
-    else:
+        classes = classes[1:]
+    elif len(np.unique(gt)) != len(np.unique(C)):
         print('Error: wrong number of classes...')
         sys.exit(1)
     assert (classes == np.unique(C)).all()
@@ -457,25 +457,22 @@ def assign_classes_segmentation_to_gt(C, gt):
 
     for i, class_gt in enumerate(classes):
         mask = (gt == class_gt)
-        nb_pixels = np.sum(mask)
+        if normalize:
+            nb_pixels = np.sum(mask)
         for j, class_C in enumerate(classes):
-            cost = -np.sum(C[mask] == class_C)#/nb_pixels
-            if cost != 0:
-                print('i', i, 'j', j, 'cost=', cost)
+            cost = -np.sum(C[mask] == class_C)
+            if normalize:
+                cost /= nb_pixels
             cost_matrix[i, j] = cost
-
+    
     row_ind, col_ind = linear_sum_assignment(cost_matrix)
     
     if len(np.unique(gt)) == (len(np.unique(C))+1):
         row_ind += 1
         col_ind += 1
     
-    print('row_ind', row_ind)
-    print('col_ind', col_ind)
-    
     new_C = np.zeros(C.shape)
     for i, j in zip(col_ind, row_ind):
-        print(i, 'becomes', j)
         new_C[C==i] = j
 
     return new_C

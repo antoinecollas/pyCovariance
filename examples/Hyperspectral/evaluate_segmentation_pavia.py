@@ -26,7 +26,7 @@ folder_result = glob.glob(FOLDER_REGEX)[0]
 segmentation = glob.glob(folder_result+'/*.npy')[0]
 print('Segmentation file used :', segmentation)
 segmentation = np.load(segmentation)
-print(segmentation.shape)
+segmentation += 1
 
 # ground truth path
 PATH_GT = 'data/Pavia/PaviaU_gt.mat'
