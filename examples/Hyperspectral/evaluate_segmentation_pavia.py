@@ -4,6 +4,7 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 from scipy.io import loadmat
+from sklearn.metrics import adjusted_mutual_info_score, adjusted_rand_score
 import sys
 
 # The code is already multi threaded so we block OpenBLAS multi thread.
@@ -47,14 +48,13 @@ assert segmentation.shape == gt.shape
 #######################################################
 #######################################################
 
+print()
 print('################################################')
-print('Computing performances')
+print('Supervised metric')
 print('################################################')
-
 old_segmentation = copy.deepcopy(segmentation)
 IoU, mIoU = compute_mIoU(old_segmentation, gt, np.unique(segmentation))
 print('mIoU before Hungarian algo=', mIoU)
-
 segmentation = assign_classes_segmentation_to_gt(segmentation, gt, normalize=True)
 IoU, mIoU = compute_mIoU(segmentation, gt, np.unique(segmentation))
 print('mIoU=', mIoU)
@@ -62,8 +62,23 @@ classes = np.unique(segmentation).astype(np.int)
 for i, class_ in enumerate(classes):
     print('class', class_, ': IoU=', round(IoU[i], 2))
 
+
+print()
+print('################################################')
+print('Unsupervised metric')
+print('################################################')
+true = gt[gt!=0].reshape(-1)
+pred = segmentation[gt!=0].reshape(-1)
+AMI = adjusted_mutual_info_score(true, pred)
+ARI = adjusted_rand_score(true, pred)
+print('AMI=', AMI)
+print('ARI=', ARI)
+
+print()
+print('################################################')
+print('Plot')
+print('################################################')
 plot_segmentation(segmentation, classes=np.unique(gt).astype(np.int), title='Segmentation')
 plot_segmentation(gt, title='Ground truth')
 plot_TP_FP_FN_segmentation(segmentation, gt)
-
 plt.show()
