@@ -1,4 +1,5 @@
 from functools import partial
+import numpy as np
 
 # import functions related to covariance features
 from .covariance_clustering_functions import center_vectors, covariance_arithmetic_mean, covariance_Euclidean_distance, Riemannian_distance_covariance, Riemannian_mean_covariance, vech_SCM
@@ -84,6 +85,26 @@ class BaseClassFeatures:
                 * mean = a (feature_size) array
             """
         raise NotImplementedError
+
+class PixelEuclidean(BaseClassFeatures):
+    def __init__(self):
+        super().__init__()
+    
+    def __str__(self):
+        return 'Pixel_Euclidean_features'
+    
+    def estimation(self, X):
+        center_pixel = X[:, X.shape[1]//2+1, :]
+        return center_pixel
+
+    def distance(self, x1, x2):
+        vec = x2-x1
+        dist = np.sqrt(np.conjugate(vec).T@vec)
+        dist = np.real(dist)
+        return dist 
+
+    def mean(self, X):
+        return np.mean(X, axis=1)
 
 class CovarianceEuclidean(BaseClassFeatures):
     def __init__(self):
