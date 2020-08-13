@@ -115,6 +115,7 @@ for features in features_list:
     )
     C = C.squeeze()
     C = C.astype(np.int)
+    C = C + 1
  
     # Save segmentations
     save_segmentation(FOLDER_RESULTS, 'K_means_' + str(features) + '_Pavia', C)
