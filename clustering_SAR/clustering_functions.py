@@ -99,7 +99,7 @@ def random_index_for_initialisation(K, N):
 def choose_center_from_indexes(𝐗, indexes):
     (p, N) = 𝐗.shape
     K = len(indexes)
-    𝛍 = np.empty((p, K)).astype(complex)
+    𝛍 = np.empty((p, K)).astype(𝐗.dtype)
     for k in range(K):
         𝛍[:, k] = 𝐗[:, indexes[k]]
     return 𝛍
