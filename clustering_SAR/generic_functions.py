@@ -368,12 +368,13 @@ def plot_segmentation(C, aspect=1, classes=None, title=None):
     if title is not None:
         plt.title(title)
 
-def plot_TP_FP_FN_segmentation(C, gt, aspect=1):
+def plot_TP_FP_FN_segmentation(C, gt, aspect=1, folder_save=None):
     """ Plot True Positive, False Positive, False Negative for a segmetnation given a ground truth.
         Inputs:
             * C: a (height, width) numpy array of integers (classes).
             * gt: a (height, width) numpy array of integers (classes).
             * aspect: aspect ratio of the image.
+            * folder_save: string representing the path of the folder where to save the plots. If not, plots are not saved.
     """
     # get classes
     classes = np.unique(C).astype(np.int)
@@ -405,6 +406,9 @@ def plot_TP_FP_FN_segmentation(C, gt, aspect=1):
  
         #title
         plt.title('Class '+str(i))
+
+        if folder_save is not None:
+            plt.savefig(os.path.join(folder_save, 'Class '+str(i)))
 
 def pca_and_save_variance(folder, figname, image, nb_components):
     """ A function that centers data and applies PCA. It also saves a figure of the explained variance.
