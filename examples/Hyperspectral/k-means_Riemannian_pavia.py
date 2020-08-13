@@ -100,7 +100,7 @@ if DEBUG:
 n_r, n_c, p = image.shape
 print('image.shape', image.shape)
 
-for features in features_list:
+for i, features in enumerate(features_list):
     print('Features:', str(features))
     print()
     C = K_means_datacube(
@@ -118,7 +118,7 @@ for features in features_list:
     C = C + 1
  
     # Save segmentations
-    save_segmentation(FOLDER_RESULTS, 'K_means_' + str(features) + '_Pavia', C)
+    save_segmentation(FOLDER_RESULTS, str(i) + '_K_means_' + str(features) + '_Pavia', C)
 
     # Save plot segmentations
     plot_segmentation(C, aspect=RESOLUTION[0]/RESOLUTION[1])
