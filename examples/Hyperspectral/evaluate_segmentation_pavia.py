@@ -29,6 +29,9 @@ folder_result = glob.glob(FOLDER_REGEX)[0]
 print('Folder used to get segmentations:', folder_result)
 segmentations_paths = glob.glob(folder_result+'/*.npy')
 segmentations_paths.sort()
+if len(segmentations_paths) == 0:
+    print('No npy files found ...')
+    sys.exit(1)
 
 # ground truth path
 PATH_GT = 'data/Pavia/PaviaU_gt.mat'
