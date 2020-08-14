@@ -103,7 +103,6 @@ def K_means_datacube(
             number_of_threads_columns=number_of_threads_columns
         )
         images = images[:,:,:,1:] # Freeing memory space
-        print(((n_r-m_r+1)*(n_c-m_c+1), int(p*(p+1)/2)+N))
         X.append(feature_temp.reshape(((n_r-m_r+1)*(n_c-m_c+1), -1)).T)
         feature_temp = None # Freeing memory space
     X = np.hstack(X)
