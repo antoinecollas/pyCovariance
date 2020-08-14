@@ -25,10 +25,13 @@ from clustering_SAR.generic_functions import assign_classes_segmentation_to_gt, 
 
 # segmentation path (by default: get last folder)
 FOLDER_REGEX = 'results/*'
-folder_result = glob.glob(FOLDER_REGEX)[0]
+folders_result = glob.glob(FOLDER_REGEX)
+folders_result.sort()
+folder_result = folders_result[-1]
 print('Folder used to get segmentations:', folder_result)
 segmentations_paths = glob.glob(folder_result+'/*.npy')
 segmentations_paths.sort()
+
 if len(segmentations_paths) == 0:
     print('No npy files found ...')
     sys.exit(1)

@@ -402,7 +402,7 @@ def plot_TP_FP_FN_segmentation(C, gt, aspect=1, folder_save=None):
         #tell the colorbar to tick at integers
         cax = plt.colorbar(mat)
         cax.set_ticks(np.arange(0, 4))
-        cax.set_ticklabels(['Other', 'False negative', 'False positive', 'True positive'])
+        cax.set_ticklabels(['Other', 'FN', 'FP', 'TP'])
  
         #title
         plt.title('Class '+str(i))
