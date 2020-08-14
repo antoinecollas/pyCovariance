@@ -177,8 +177,7 @@ def Riemannian_distance_covariance(𝐱_1, 𝐱_2, params=None):
     𝚺_1 = unvech(𝐱_1)
     𝚺_2 = unvech(𝐱_2)
     i𝚺_1_sqm = invsqrtm(𝚺_1)
-    d = np.linalg.norm( logm( i𝚺_1_sqm @ 𝚺_2 @ i𝚺_1_sqm ) )**2
-
+    d = np.linalg.norm(logm(i𝚺_1_sqm @ 𝚺_2 @ i𝚺_1_sqm))
     return np.real(d)
 
 

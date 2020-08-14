@@ -73,7 +73,9 @@ def Riemannian_distance_covariance_texture(𝐱_1, 𝐱_2, params=None):
     
     τ_1 = 𝐱_1[int(p*(p+1)/2):]
     τ_2 = 𝐱_2[int(p*(p+1)/2):]
-    d = dist_cov + np.linalg.norm(np.log(𝛕_1) - np.log(𝛕_2))**2
+    dist_τ = np.linalg.norm(np.log(𝛕_1)-np.log(𝛕_2))
+
+    d = np.sqrt((1/p)*(dist_cov**2)+(1/n)*(dist_τ**2))
 
     return np.real(d)
 

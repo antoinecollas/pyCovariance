@@ -98,10 +98,9 @@ class PixelEuclidean(BaseClassFeatures):
         return center_pixel
 
     def distance(self, x1, x2):
-        vec = x2-x1
-        dist = np.sqrt(np.conjugate(vec).T@vec)
-        dist = np.real(dist)
-        return dist 
+        d = np.linalg.norm(x2-x1)
+        d = np.real(d)
+        return d
 
     def mean(self, X):
         return np.mean(X, axis=1)
