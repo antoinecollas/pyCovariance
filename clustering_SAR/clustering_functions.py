@@ -11,16 +11,16 @@ from .generic_functions import *
 # 1) K-means algorithm in a general multivariate context with an arbitary 
 #    distance and an arbitrary way to chose clusters center
 # ----------------------------------------------------------------------------
-def compute_distance_k_means(𝐗, 𝛍, distance, enable_multi=False, queue=None):
+def compute_distance_k_means(X, mu, distance, enable_multi=False, queue=None):
     # -----------------------------------------------------------
     # Definition of function to be executed in parallel (or not)
     # -----------------------------------------------------------
-    (p, N) = 𝐗.shape
-    (p, K) = 𝛍.shape
-    𝐝 = np.empty((N, K))  # To store distance from each class
+    (p, N) = X.shape
+    (p, K) = mu.shape
+    d = np.empty((N, K))  # To store distance from each class
     for n in tqdm(range(N)):  # Looping on all samples
         for k in range(K):  # Looping on al classes
-            𝐝[n, k] = distance(𝛍[:, k], 𝐗[:, n])
+            d[n, k] = distance(mu[:, k], X[:, n])
     if enable_multi:
         queue.put(𝐝)
     else:
@@ -106,19 +106,20 @@ def choose_center_from_indexes(𝐗, indexes):
 
 
 def compute_mean_k_means(
-    𝐗_class,
+    X_class,
     mean_function,
     enable_multi=False,
     queue=None,
     jobno=None
 ):
-    𝛍 = mean_function(𝐗_class)
+    mu = mean_function(X_class)
     if enable_multi:
         # Because we want to keep teh order of the means, we have to know which index it corresponds to
         # So we return it
-        queue.put([𝛍, jobno]) 
+        queue.put([mu, jobno])
+        print('Mean of class', jobno+1, 'computed !')
     else:
-        return 𝛍
+        return mu
 
  
 def wrapper_compute_all_mean_parallel(
@@ -158,7 +159,7 @@ def wrapper_compute_all_mean_parallel(
         𝛍 = np.empty((p,K), dtype=complex)
         number_of_effective_threads = K
         queues = [Queue() for i in range(number_of_effective_threads)]  # Serves to obtain result for each thread
-        args = [(𝐗[:, np.where(𝓒 == i)[0]], mean_function, True, queues[i], i) for i in range(number_of_effective_threads)]
+        args = [(𝐗[:, 𝓒 == i], mean_function, True, queues[i], i) for i in range(number_of_effective_threads)]
         jobs = [Process(target=compute_mean_k_means, args=a) for a in args]
         # Starting parallel computation
         for j in jobs: j.start()
@@ -175,12 +176,27 @@ def wrapper_compute_all_mean_parallel(
         𝛍 = np.empty((p,K), dtype=complex)
         for k in range(K):  # Looping on all classes
             print("Computing mean of class %d/%d " % (k+1,K))
-            indexes = np.where(𝓒 == k)[0]  # Finding all samples belonging to class
-            𝐗_class = 𝐗[:, indexes]
+            𝐗_class = 𝐗[:, 𝓒==k]
             𝛍[:,k] = compute_mean_k_means(𝐗_class, mean_function)
  
     return 𝛍
 
+def compute_objective_function(distances):
+    """ Compute the value of the objective function of K-means algorithm.
+        See https://en.wikipedia.org/wiki/K-means_clustering
+        ----------------------------------------------------------------------
+        Inputs:
+        --------
+            * distances = distances between points and center of classes. np array of size (N, C) where N is the number of samples and C is the number of clusters.
+        Outputs:
+        ---------
+            * result = value of the objective function
+    """
+    C = np.argmin(distances, axis=1)
+    result = 0
+    for k in np.unique(C):
+        result += np.sum(distances[C==k, k])
+    return result/distances.shape[0]
 
 def K_means_clustering_algorithm(
     X,
@@ -242,18 +258,18 @@ def K_means_clustering_algorithm(
             enable_multi=enable_multi_mean
         )
 
-    # -------------------------------
-    # Managing Algorithm convergence
-    # -------------------------------
-    delta = np.inf  # Distance between previous and present mean
+    criterion_value = np.inf
+    delta = np.inf  # Difference between previous value of criterion and new value
     i = 0  # Iteration
     C = np.empty(N)  # To store clustering results
     time_distances = 0
     time_means = 0
-    while delta > eps and i < iter_max:
+    
+    for i in range(iter_max):
         print("K-mean algorithm iteration %d" % i)
+
         # -----------------------------------------
-        # Computing distance and assigning classes
+        # Computing distance
         # -----------------------------------------   
         print("Computing distances of %d samples to %d classes' means" % (N,K))
         tb = time.time()
@@ -266,17 +282,32 @@ def K_means_clustering_algorithm(
         )
         te = time.time()
         time_distances += te-tb
-        
-        for n in range(N):  # Looping on all samples to select the closest class
-            index = np.argmin(d[n, :])
-            C[n] = index
+
+        # -----------------------------------------
+        # Assigning classes
+        # -----------------------------------------   
+        C = np.argmin(d, axis=1)
+ 
+        # ---------------------------------------------
+        # Managing algorithm convergence
+        # ---------------------------------------------
+        print('############################################')
+        new_criterion_value = compute_objective_function(d)
+        print('K-means criterion:', round(new_criterion_value, 2))
+        if criterion_value != np.inf:
+            delta = np.abs(criterion_value-new_criterion_value) / criterion_value
+            if delta < eps:
+                print('Convergence reached:', delta)
+                break
+        criterion_value = new_criterion_value
+        print('############################################')
         
         # -----------------------------------------
         # Computing new means using assigned samples
         # -----------------------------------------
         print("Computing means of %d classes" % K)
         tb = time.time()
-        mu_new = wrapper_compute_all_mean_parallel(
+        mu = wrapper_compute_all_mean_parallel(
             X,
             K,
             C,
@@ -285,18 +316,7 @@ def K_means_clustering_algorithm(
         )
         te = time.time()
         time_means += te-tb
- 
-        # ---------------------------------------------
-        # Managing criterion for convergence on means
-        # ---------------------------------------------
-        delta = - np.inf
-        for k in range(K):  # Looping on all classes
-            delta = max(delta, distance(mu_new[:,k], mu[:, k]))
-        mu = mu_new
- 
-        # Updating iteration
-        i = i + 1
-
+  
         print()
 
     print('Total time to compute distances between samples and classes:', int(time_distances), 's.')

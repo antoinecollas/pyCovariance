@@ -1,12 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-import scipy as sp
-import scipy.special
 from sklearn.decomposition import PCA
-import sys
 import tikzplotlib
-import warnings
+
 
 def matprint(mat, fmt="g"):
     col_maxes = [max([len(("{:"+fmt+"}").format(x)) for x in col]) for col in mat.T]
@@ -24,283 +21,15 @@ def enable_latex_infigures():
     __spec__ = "ModuleSpec(name='builtins', loader=<class '_frozen_importlib.BuiltinImporter'>)"
 
 
-def multivariate_complex_normal_samples(mean, covariance, N, pseudo_covariance=0):
-    """ A function to generate multivariate complex normal vectos as described in:
-        Picinbono, B. (1996). Second-order complex random vectors and normal
-        distributions. IEEE Transactions on Signal Processing, 44(10), 2637–2640.
-        Inputs:
-            * mean = vector of size p, mean of the distribution
-            * covariance = the covariance matrix of size p*p(Gamma in the paper)
-            * pseudo_covariance = the pseudo-covariance of size p*p (C in the paper)
-                for a circular distribution omit the parameter
-            * N = number of Samples
-        Outputs:
-            * Z = Samples from the complex Normal multivariate distribution, size p*N"""
-
-    (p, p) = covariance.shape
-    Gamma = covariance
-    C = pseudo_covariance
-
-    # Computing elements of matrix Gamma_2r
-    Gamma_x = 0.5 * np.real(Gamma + C)
-    Gamma_xy = 0.5 * np.imag(-Gamma + C)
-    Gamma_yx = 0.5 * np.imag(Gamma + C)
-    Gamma_y = 0.5 * np.real(Gamma - C)
-
-    # Matrix Gamma_2r as a block matrix
-    Gamma_2r = np.block([[Gamma_x, Gamma_xy], [Gamma_yx, Gamma_y]])
-
-    # Generating the real part and imaginary part
-    mu = np.hstack((mean.real, mean.imag))
-    v = np.random.multivariate_normal(mu, Gamma_2r, N).T
-    X = v[0:p, :]
-    Y = v[p:, :]
-    return X + 1j * Y
-
-
-def multivariate_complex_t_samples(mean, covariance, N, df, pseudo_covariance=0):
-    """ A function to generate multivariate complex t distributed vectors using the
-    definition with a product of a multivaraite normal with an inverse chi2 distributed samples. 
-    Inputs:
-        * mean = vector of size p, mean of the distribution
-        * covariance = the covariance matrix of size p*p
-        * pseudo_covariance = the pseudo-covariance of size p*p
-            for a circular distribution omit the parameter
-        * df = degrees of freedom of the chi-squared distribution
-        * N = number of Samples
-    Outputs:
-        * Z = Samples from the complex multivariate t distribution, size p*N"""
-
-
-    if df == np.inf:
-        x = 1
-    else:
-        x = np.random.chisquare(df, N)/df
-    z = multivariate_complex_normal_samples(np.zeros(mean.shape), covariance, N, pseudo_covariance)
-    return np.tile(mean.reshape((len(mean),1)),(1,N)) + z/np.sqrt(x)[None,:] 
-
-
-def multivariate_complex_K_samples(mean, covariance, N, mu, b, pseudo_covariance=0):
-    """ A function to generate multivariate complex K distributed vectors using the
-    definition provided at page 27 of the Pd.d thesis:
-    "Detection en environement non Gaussien", Emanuelle Jay. 
-    Inputs:
-        * mean = vector of size p, mean of the distribution
-        * covariance = the covariance matrix of size p*p
-        * pseudo_covariance = the pseudo-covariance of size p*p
-            for a circular distribution omit the parameter
-        * mu = Shape parameter
-        * b = Scale parameter
-        * N = number of Samples
-    Outputs:
-        * Z = Samples from the complex multivariate t distribution, size p*N"""
-
-    x = np.random.gamma(mu, 2/(b**2), N)
-    z = multivariate_complex_normal_samples(np.zeros(mean.shape), covariance, N, pseudo_covariance)
-    return np.tile(mean.reshape((len(mean),1)),(1,N)) + z*np.sqrt(x)[None,:]   
-
-
-def multivariate_complex_Cauchy_samples(mean, covariance, N, mu, b, pseudo_covariance=0):
-    """ A function to generate multivariate complex Cauchy distributed vectors using the
-    definition provided at page 26 of the Pd.d thesis:
-    "Detection en environement non Gaussien", Emanuelle Jay. 
-    Inputs:
-        * mean = vector of size p, mean of the distribution
-        * covariance = the covariance matrix of size p*p
-        * pseudo_covariance = the pseudo-covariance of size p*p
-            for a circular distribution omit the parameter
-        * mu = Shape parameter
-        * b = Scale parameter
-        * N = number of Samples
-    Outputs:
-        * Z = Samples from the complex multivariate t distribution, size p*N"""
-
-    x = np.random.gamma(mu, 2/(b**2), N)
-    z = multivariate_complex_normal_samples(np.zeros(mean.shape), covariance, N, pseudo_covariance)
-    return np.tile(mean.reshape((len(mean),1)),(1,N)) + z/np.sqrt(x)[None,:]    
-
-
-def multivariate_complex_Laplace_samples(mean, covariance, N, beta, pseudo_covariance=0):
-    """ A function to generate multivariate complex Cauchy distributed vectors using the
-    definition provided at page 27 of the Pd.d thesis:
-    "Detection en environement non Gaussien", Emanuelle Jay. 
-    Inputs:
-        * mean = vector of size p, mean of the distribution
-        * covariance = the covariance matrix of size p*p
-        * pseudo_covariance = the pseudo-covariance of size p*p
-            for a circular distribution omit the parameter
-        * beta = Scale parameter
-        * N = number of Samples
-    Outputs:
-        * Z = Samples from the complex multivariate t distribution, size p*N"""
-
-    x = np.random.exponential(beta, N)
-    z = multivariate_complex_normal_samples(np.zeros(mean.shape), covariance, N, pseudo_covariance)
-    return np.tile(mean.reshape((len(mean),1)),(1,N)) + z*np.sqrt(x)[None,:]    
-
-
-def SCM(x, *args):
-    """ A function that computes the SCM for covariance matrix estimation
-            Inputs:
-                * x = a matrix of size p*N with each observation along column dimension
-            Outputs:
-                * Sigma = the estimate"""
-
-    (p, N) = x.shape
-    return (x @ x.conj().T) / N
-
-
-def tyler_estimator_covariance(𝐗, tol=0.001, iter_max=20):
-    """ A function that computes the Tyler Fixed Point Estimator for covariance matrix estimation
-        Inputs:
-            * 𝐗 = a matrix of size p*N with each observation along column dimension
-            * tol = tolerance for convergence of estimator
-            * iter_max = number of maximum iterations
-        Outputs:
-            * 𝚺 = the estimate
-            * δ = the final distance between two iterations
-            * iteration = number of iterations til convergence """
-
-    # Initialisation
-    (p,N) = 𝐗.shape
-    δ = np.inf # Distance between two iterations
-    𝚺 = np.eye(p) # Initialise estimate to identity
-    iteration = 0
-
-    # Recursive algorithm
-    while (δ>tol) and (iteration<iter_max):
-        
-        # Computing expression of Tyler estimator (with matrix multiplication)
-        τ = np.diagonal(𝐗.conj().T@np.linalg.inv(𝚺)@𝐗)
-        𝐗_bis = 𝐗 / np.sqrt(τ)
-        𝚺_new = (p/N) * 𝐗_bis@𝐗_bis.conj().T
-
-        # Imposing trace constraint: Tr(𝚺) = p
-        𝚺_new = p*𝚺_new/np.trace(𝚺_new)
-
-        # Condition for stopping
-        δ = np.linalg.norm(𝚺_new - 𝚺, 'fro') / np.linalg.norm(𝚺, 'fro')
-        iteration = iteration + 1
-
-        # Updating 𝚺
-        𝚺 = 𝚺_new
-
-    if iteration == iter_max:
-        warnings.warn('Recursive algorithm did not converge')
-
-    return (𝚺, δ, iteration)
-
-
-def tyler_estimator_covariance_normalisedet(𝐗, tol=0.001, iter_max=20):
-    """ A function that computes the Tyler Fixed Point Estimator for covariance matrix estimation
-        and normalisation by determinant
-        Inputs:
-            * 𝐗 = a matrix of size p*N with each observation along column dimension
-            * tol = tolerance for convergence of estimator
-            * iter_max = number of maximum iterations
-        Outputs:
-            * 𝚺 = the estimate
-            * δ = the final distance between two iterations
-            * iteration = number of iterations til convergence """
-
-    # Initialisation
-    (p,N) = 𝐗.shape
-    δ = np.inf # Distance between two iterations
-    𝚺 = np.eye(p) # Initialise estimate to identity
-    iteration = 0
-
-    # Recursive algorithm
-    while (δ>tol) and (iteration<iter_max):
-        
-        # Computing expression of Tyler estimator (with matrix multiplication)
-        τ = np.diagonal(𝐗.conj().T@np.linalg.inv(𝚺)@𝐗)
-        𝐗_bis = 𝐗 / np.sqrt(τ)
-        𝚺_new = (p/N) * 𝐗_bis@𝐗_bis.conj().T
-
-        # # Imposing det constraint: det(𝚺) = 1 DOT NOT WORK HERE
-        # 𝚺 = 𝚺/(np.linalg.det(𝚺)**(1/p))
-
-        # Condition for stopping
-        δ = np.linalg.norm(𝚺_new - 𝚺, 'fro') / np.linalg.norm(𝚺, 'fro')
-        iteration = iteration + 1
-
-        # Updating 𝚺
-        𝚺 = 𝚺_new
-
-    # Imposing det constraint: det(𝚺) = 1
-    𝚺 = 𝚺/(np.linalg.det(𝚺)**(1/p))
-
-    if iteration == iter_max:
-        warnings.warn('Recursive algorithm did not converge')
-
-    return (𝚺, δ, iteration)
-
-
-def student_t_estimator_covariance_mle(𝐗, d, tol=0.001, iter_max=20):
-    """ A function that computes the MLE for covariance matrix estimation for a student t distribution
-        when the degree of freedom is known
-        Inputs:
-            * 𝐗 = a matrix of size p*N with each observation along column dimension
-            * tol = tolerance for convergence of estimator
-            * iter_max = number of maximum iterations
-        Outputs:
-            * 𝚺 = the estimate
-            * δ = the final distance between two iterations
-            * iteration = number of iterations til convergence """
-
-    # Initialisation
-    (p,N) = 𝐗.shape
-    δ = np.inf # Distance between two iterations
-    𝚺 = np.eye(p) # Initialise estimate to identity
-    iteration = 0
-
-    # Recursive algorithm
-    while (δ>tol) and (iteration<iter_max):
-        
-        # Computing expression of Tyler estimator (with matrix multiplication)
-        τ = d + np.diagonal(𝐗.conj().T@np.linalg.inv(𝚺)@𝐗)
-        𝐗_bis = 𝐗 / np.sqrt(τ)
-        𝚺_new = ((d+p)/N) * 𝐗_bis@𝐗_bis.conj().T
-
-        # Condition for stopping
-        δ = np.linalg.norm(𝚺_new - 𝚺, 'fro') / np.linalg.norm(𝚺, 'fro')
-        iteration = iteration + 1
-
-        # Updating 𝚺
-        𝚺 = 𝚺_new
-
-    if iteration == iter_max:
-        warnings.warn('Recursive algorithm did not converge')
-
-    return (𝚺, δ, iteration)
-
-def ToeplitzMatrix(rho, p):
-    """ A function that computes a Hermitian semi-positive matrix.
-            Inputs:
-                * rho = a scalar
-                * p = size of matrix
-            Outputs:
-                * the matrix """
-
-    return sp.linalg.toeplitz(np.power(rho, np.arange(0, p)))
-
 def vec(mat):
     return mat.ravel('F')
 
 
 def vech(mat):
     # Gets Fortran-order
-    return mat.T.take(_triu_indices(len(mat)))
-
-
-def _tril_indices(n):
-    rows, cols = np.tril_indices(n)
-    return rows * n + cols
-
-
-def _triu_indices(n):
-    rows, cols = np.triu_indices(n)
-    return rows * n + cols
+    rows, cols = np.triu_indices(len(mat))
+    vec = mat[rows, cols]
+    return vec
 
 
 def _diag_indices(n):
@@ -342,73 +71,23 @@ def plot_Pauli_SAR(image, aspect=1):
     plt.axis('off')
     return fig
 
-def plot_segmentation(C, aspect=1, classes=None, title=None):
-    """ Plot a segmentation map.
+
+def save_figure(folder, figname):
+    """ A function that save the current figure in '.png' and in '.tex'.
         Inputs:
-            * C: a (height, width) numpy array of integers (classes.
-            * aspect: aspect ratio of the image.
-            * classes: list of numbers of classes
-            * title: string used for the title of the figure
+            * folder: string corresponding to the folder's name where to save the actual figure.
+            * figname: string corresponding to the name of the figure to save.
     """
-    if classes is not None:
-        max_C, min_C = np.max(classes), np.min(classes)
-    else:
-        max_C, min_C = np.max(C), np.min(C) 
-
-    #get discrete colormap
-    cmap = plt.get_cmap('RdBu', max_C-min_C+1)
- 
-    # set limits .5 outside true range
-    mat = plt.matshow(C, aspect=aspect, cmap=cmap, vmin=min_C-.5, vmax=max_C+.5)
-
-    #tell the colorbar to tick at integers
-    cax = plt.colorbar(mat, ticks=np.arange(min_C,max_C+1))
-
-    #title
-    if title is not None:
-        plt.title(title)
-
-def plot_TP_FP_FN_segmentation(C, gt, aspect=1, folder_save=None):
-    """ Plot True Positive, False Positive, False Negative for a segmetnation given a ground truth.
-        Inputs:
-            * C: a (height, width) numpy array of integers (classes).
-            * gt: a (height, width) numpy array of integers (classes).
-            * aspect: aspect ratio of the image.
-            * folder_save: string representing the path of the folder where to save the plots. If not, plots are not saved.
-    """
-    # get classes
-    classes = np.unique(C).astype(np.int)
+    if not os.path.exists(folder):
+        os.makedirs(folder, exist_ok=True)
+    path = os.path.join(folder, figname)
     
-    # get discrete colormap
-    cmap = plt.get_cmap('RdBu', 4)
-    
-    for i in classes:
-        to_plot = np.zeros(C.shape)
-        # true positive
-        mask = np.logical_and((C == i), (gt == i))
-        to_plot[mask] = 3
- 
-        # false positive
-        mask = np.logical_and(np.logical_and((C == i), (gt != i)), (gt != 0))
-        to_plot[mask] = 2
+    path_png = path + '.png'
+    plt.savefig(path_png)
 
-        # false negative
-        mask = np.logical_and((C != i), (gt == i))
-        to_plot[mask] = 1
- 
-        # set limits .5 outside true range
-        mat = plt.matshow(to_plot, aspect=aspect, cmap=cmap, vmin=-0.5, vmax=3.5)
+    path_tex = path + '.tex'
+    tikzplotlib.save(path_tex)
 
-        #tell the colorbar to tick at integers
-        cax = plt.colorbar(mat)
-        cax.set_ticks(np.arange(0, 4))
-        cax.set_ticklabels(['Other', 'FN', 'FP', 'TP'])
- 
-        #title
-        plt.title('Class '+str(i))
-
-        if folder_save is not None:
-            plt.savefig(os.path.join(folder_save, 'Class '+str(i)))
 
 def pca_and_save_variance(folder, figname, image, nb_components):
     """ A function that centers data and applies PCA. It also saves a figure of the explained variance.
@@ -445,97 +124,3 @@ def pca_and_save_variance(folder, figname, image, nb_components):
     path_tex = path + '.tex'
     tikzplotlib.save(path_tex)
     return image
-
-def save_segmentation(folder, filename, np_array):
-    """ A function that saves a numpy array in a folder. The array and the folder are passed as arguments.
-        Inputs:
-            * folder: string.
-            * filename: string.
-            * np_array: numpy array to save.
-    """
-    if not os.path.exists(folder):
-        os.makedirs(folder, exist_ok=True)
-    path = os.path.join(folder, filename)
-
-    np.save(path, np_array)
-
-def save_figure(folder, figname):
-    """ A function that save the current figure in '.png' and in '.tex'.
-        Inputs:
-            * folder: string corresponding to the folder's name where to save the actual figure.
-            * figname: string corresponding to the name of the figure to save.
-    """
-    if not os.path.exists(folder):
-        os.makedirs(folder, exist_ok=True)
-    path = os.path.join(folder, figname)
-    
-    path_png = path + '.png'
-    plt.savefig(path_png)
-
-    path_tex = path + '.tex'
-    tikzplotlib.save(path_tex)
-
-def assign_classes_segmentation_to_gt(C, gt, normalize=False):
-    """ A function that assigns the classes of the segmentation to the ground truth.
-        Inputs:
-            * C: segmented image.
-            * gt: ground truth.
-            * normalize: normalize each row of the cost matrix.
-        Ouput:
-            * segmented image with the right classes.
-    """
-    # import Hungarian algorithm
-    from scipy.optimize import linear_sum_assignment
-   
-    classes = np.unique(gt)
-    
-    # if class 0 of gt is used for unnotated pixels then we make the classes of C start from 1
-    if len(np.unique(gt)) == (len(np.unique(C))+1):
-        classes = classes[1:]
-    elif len(np.unique(gt)) != len(np.unique(C)):
-        print('Error: wrong number of classes...')
-        sys.exit(1)
-    assert (classes == np.unique(C)).all()
-
-    nb_classes = len(classes)
-
-    cost_matrix = np.zeros((nb_classes, nb_classes))
-
-    for i, class_gt in enumerate(classes):
-        mask = (gt == class_gt)
-        if normalize:
-            nb_pixels = np.sum(mask)
-        for j, class_C in enumerate(classes):
-            cost = -np.sum(C[mask] == class_C)
-            if normalize:
-                cost /= nb_pixels
-            cost_matrix[i, j] = cost
-    
-    row_ind, col_ind = linear_sum_assignment(cost_matrix)
-    
-    if len(np.unique(gt)) == (len(np.unique(C))+1):
-        row_ind += 1
-        col_ind += 1
-    
-    new_C = np.zeros(C.shape)
-    for i, j in zip(col_ind, row_ind):
-        new_C[C==i] = j
-
-    return new_C
-
-def compute_mIoU(C, gt, classes):
-    """ A function that computes the mean of Intersection over Union between a segmented image (c) and a ground truth (gt). BE CAREFUL, 0 is considered as no annotation available.
-        Inputs:
-            * C: segmented image.
-            * gt: ground truth.
-            * classes: list of classes used to compute the mIOU
-        Ouputs:
-            * IoU, mIOU
-    """
-    IoU = list()
-    for i in classes:
-        inter = np.sum(np.logical_and((C == i), (gt == i)))
-        union = np.sum(np.logical_and(np.logical_or((C == i), (gt == i)), (gt != 0)))
-        IoU.append(inter/union)
-    mIoU = np.mean(IoU)
-    return IoU, mIoU

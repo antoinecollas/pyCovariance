@@ -28,6 +28,7 @@ def K_means_datacube(
     windows_shape,
     init,
     k_means_nb_iter_max,
+    eps,
     enable_multi,
     number_of_threads_rows,
     number_of_threads_columns
@@ -47,6 +48,7 @@ def K_means_datacube(
             * w: width of the window in pixels
         * init = initialisation of K-means. Either an integer or 'H-alpha'. An integer corresponds to a number of classes. In this case, center of classes are randomly chosen.
         * K_means_nb_iter_max = maximum number of iterations for the K-means algorithm
+        * eps = epsilon to stop K-means
         * enable_multi = enable or not parallel compuation
         * number_of_threads_rows = number of threads to be used to cut the image in height
         * number_of_threads_columns = number of threads to be used to cut the image in column
@@ -124,7 +126,7 @@ def K_means_datacube(
         features.distance,
         features.mean,
         init=C,
-        eps=1e-6,
+        eps=eps,
         iter_max = k_means_nb_iter_max,
         enable_multi_distance=enable_multi,
         enable_multi_mean=enable_multi,

@@ -15,7 +15,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 temp = os.path.dirname(os.path.dirname(current_dir))
 sys.path.insert(1, temp)
 
-from clustering_SAR.generic_functions import assign_classes_segmentation_to_gt, compute_mIoU, plot_segmentation, plot_TP_FP_FN_segmentation
+from clustering_SAR.evaluation import assign_classes_segmentation_to_gt, compute_mIoU, plot_segmentation, plot_TP_FP_FN_segmentation
 
 #######################################################
 #######################################################

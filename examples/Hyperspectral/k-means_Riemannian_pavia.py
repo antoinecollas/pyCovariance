@@ -16,7 +16,8 @@ sys.path.insert(1, temp)
 
 from clustering_SAR.cluster_datacube import K_means_datacube
 from clustering_SAR.features import center_vectors_estimation, Covariance, CovarianceEuclidean, CovarianceTexture, PixelEuclidean
-from clustering_SAR.generic_functions import enable_latex_infigures, pca_and_save_variance, plot_segmentation, save_figure, save_segmentation
+from clustering_SAR.generic_functions import enable_latex_infigures, pca_and_save_variance, save_figure
+from clustering_SAR.evaluation import plot_segmentation, save_segmentation
 
 #######################################################
 #######################################################
@@ -24,11 +25,10 @@ from clustering_SAR.generic_functions import enable_latex_infigures, pca_and_sav
 #######################################################
 #######################################################
 
-# DEBUG mode for faster debugging
 DEBUG = False
 if DEBUG:
-    print('DEBUG mode enabled !!!')
     print()
+    print('DEBUG mode enabled !!!')
     SIZE_CROP = 100
 
 # folder to save results
@@ -54,11 +54,11 @@ NUMBER_OF_THREADS = os.cpu_count()
 PATH = 'data/Pavia/PaviaU.mat'
 KEY_DICT_PAVIA = 'paviaU'
 NUMBER_CLASSES = 9
-NB_BANDS_TO_SELECT = 10
+NB_BANDS_TO_SELECT = 2
 RESOLUTION = [1.3, 1.3] # resolution in meters
 
 # Window size to compute features
-WINDOWS_SHAPE = (7,7)
+WINDOWS_SHAPE = (3,3)
 
 # features used to cluster the image
 features_list = [PixelEuclidean(), CovarianceEuclidean(), Covariance(), CovarianceTexture(p=NB_BANDS_TO_SELECT, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])]
@@ -67,7 +67,8 @@ features_list = [PixelEuclidean(), CovarianceEuclidean(), Covariance(), Covarian
 if DEBUG:
     K_MEANS_NB_ITER_MAX = 2
 else:
-    K_MEANS_NB_ITER_MAX = 10
+    K_MEANS_NB_ITER_MAX = 100
+EPS = 1e-3
 
 #######################################################
 #######################################################
@@ -109,6 +110,7 @@ for i, features in enumerate(features_list):
         WINDOWS_SHAPE,
         NUMBER_CLASSES,
         K_MEANS_NB_ITER_MAX,
+        EPS,
         ENABLE_MULTI,
         NUMBER_OF_THREADS_ROWS,
         NUMBER_OF_THREADS_COLUMNS
@@ -123,3 +125,6 @@ for i, features in enumerate(features_list):
     # Save plot segmentations
     plot_segmentation(C, aspect=RESOLUTION[0]/RESOLUTION[1])
     save_figure(FOLDER_FIGURES, 'fig_K_means_' + str(features) + '_Pavia')
+
+t_end = time.time()
+print('TOTAL TIME ELAPSED:', round(t_end-t_beginning, 1), 's')
