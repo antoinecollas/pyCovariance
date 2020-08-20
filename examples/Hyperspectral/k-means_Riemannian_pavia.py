@@ -58,7 +58,7 @@ NB_BANDS_TO_SELECT = 2
 RESOLUTION = [1.3, 1.3] # resolution in meters
 
 # Window size to compute features
-WINDOWS_SHAPE = (3,3)
+WINDOWS_SHAPE = (7,7)
 
 # features used to cluster the image
 features_list = [PixelEuclidean(), CovarianceEuclidean(), Covariance(), CovarianceTexture(p=NB_BANDS_TO_SELECT, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])]
