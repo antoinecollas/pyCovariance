@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+from scipy.optimize import linear_sum_assignment
+
 def assign_classes_segmentation_to_gt(C, gt, normalize=False):
     """ A function that assigns the classes of the segmentation to the ground truth.
         Inputs:
@@ -12,7 +14,6 @@ def assign_classes_segmentation_to_gt(C, gt, normalize=False):
             * segmented image with the right classes.
     """
     # import Hungarian algorithm
-    from scipy.optimize import linear_sum_assignment
    
     classes = np.unique(gt)
     
@@ -39,14 +40,12 @@ def assign_classes_segmentation_to_gt(C, gt, normalize=False):
             cost_matrix[i, j] = cost
     
     row_ind, col_ind = linear_sum_assignment(cost_matrix)
-    
-    if len(np.unique(gt)) == (len(np.unique(C))+1):
-        row_ind += 1
-        col_ind += 1
+    row_ind = classes[row_ind] 
+    col_ind = classes[col_ind] 
     
     new_C = np.zeros(C.shape)
     for i, j in zip(col_ind, row_ind):
-        new_C[C==classes[i]] = classes[j]
+        new_C[C==i] = j
 
     return new_C
 
