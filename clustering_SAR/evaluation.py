@@ -46,7 +46,7 @@ def assign_classes_segmentation_to_gt(C, gt, normalize=False):
     
     new_C = np.zeros(C.shape)
     for i, j in zip(col_ind, row_ind):
-        new_C[C==i] = j
+        new_C[C==classes[i]] = classes[j]
 
     return new_C
 
