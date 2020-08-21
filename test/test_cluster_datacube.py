@@ -18,8 +18,7 @@ from clustering_SAR.evaluation import plot_segmentation
 
 
 def test_K_means_datacube():
-    " Test function K_means_datacube on synthetic data.
-    "
+    " Test function K_means_datacube on synthetic data."
 
     p = 3
     h, w = 50, 50
