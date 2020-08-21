@@ -97,7 +97,7 @@ def pca_and_save_variance(folder, figname, image, nb_components):
             * image: numpy array to save.
     """
     # center pixels
-    h, w, _ = image.shape
+    h, w, p = image.shape
     image = image.reshape((-1, image.shape[-1]))
     mean = np.mean(image, axis=0)
     image = image - mean
@@ -105,15 +105,16 @@ def pca_and_save_variance(folder, figname, image, nb_components):
     assert (np.abs(np.mean(image, axis=0)) < 1e-9).all()
 
     # apply PCA
-    pca = PCA(nb_components)
+    pca = PCA()
     image = pca.fit_transform(image)
     # check pixels are still centered
     assert (np.abs(np.mean(image, axis=0)) < 1e-9).all()
     # reshape image
-    image = image.reshape((h, w, nb_components))
+    image = image.reshape((h, w, p))
+    image = image[:, :, :nb_components]
 
     # plot and save explained variance 
-    plt.plot(np.arange(1, nb_components+1), np.cumsum(pca.explained_variance_ratio_))
+    plt.plot(np.arange(1, p+1), np.cumsum(pca.explained_variance_ratio_))
     plt.xlabel('Number of components')
     plt.ylabel('Cumulative explained variance');
     if not os.path.exists(folder):
@@ -123,4 +124,5 @@ def pca_and_save_variance(folder, figname, image, nb_components):
     plt.savefig(path_png)
     path_tex = path + '.tex'
     tikzplotlib.save(path_tex)
+    
     return image
