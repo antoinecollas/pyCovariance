@@ -40,7 +40,7 @@ if len(segmentations_paths) == 0:
 PATH_GT = 'data/Pavia/PaviaU_gt.mat'
 gt = loadmat(PATH_GT)['paviaU_gt']
 # Window size used to compute features
-WINDOWS_SHAPE = (7,7)
+WINDOWS_SHAPE = (5,5)
 h = WINDOWS_SHAPE[0]//2
 w = WINDOWS_SHAPE[1]//2
 gt = gt[h:-h, w:-w]
@@ -99,7 +99,8 @@ for path in segmentations_paths:
     print('################################################')
     print('Plots saved in', folder_analyses)
 
-    plot_segmentation(segmentation, classes=np.unique(gt).astype(np.int), title='Segmentation')
+    title = 'mIoU='+str(round(mIoU, 2))+' ARI='+str(round(ARI, 2))
+    plot_segmentation(segmentation, classes=np.unique(gt).astype(np.int), title=title)
     plt.savefig(os.path.join(folder_analyses, 'segmentation.png'))
     plot_segmentation(gt, title='Ground truth')
     plt.savefig(os.path.join(folder_analyses, 'gt.png'))
