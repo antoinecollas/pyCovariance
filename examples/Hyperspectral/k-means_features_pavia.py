@@ -3,6 +3,7 @@ import numpy as np
 import os
 import random
 from scipy.io import loadmat
+from sklearn.cluster import KMeans as sklearn_K_means
 import sys
 import time
 
@@ -101,6 +102,27 @@ if DEBUG:
 n_r, n_c, p = image.shape
 print('image.shape', image.shape)
 
+print()
+print('K-means using Sklearn implementation ...') 
+print()
+
+# We use scikit-learn K-means implementation as a reference
+sklearn_K_means = sklearn_K_means(n_clusters=NUMBER_CLASSES)
+C = sklearn_K_means.fit_predict(image.reshape((-1, NB_BANDS_TO_SELECT)))
+C = C.reshape((n_r, n_c))
+h = WINDOWS_SHAPE[0]//2
+w = WINDOWS_SHAPE[1]//2
+C = C[h:-h, w:-w]
+C = C.astype(np.int)
+C = C + 1
+
+# Save segmentations
+save_segmentation(FOLDER_RESULTS, '0_K_means_sklearn_Pavia', C)
+
+# Save plot segmentations
+plot_segmentation(C, aspect=RESOLUTION[0]/RESOLUTION[1])
+save_figure(FOLDER_FIGURES, 'fig_K_means_sklearn_Pavia')
+
 for i, features in enumerate(features_list):
     print('Features:', str(features))
     print()
@@ -120,7 +142,7 @@ for i, features in enumerate(features_list):
     C = C + 1
  
     # Save segmentations
-    save_segmentation(FOLDER_RESULTS, str(i) + '_K_means_' + str(features) + '_Pavia', C)
+    save_segmentation(FOLDER_RESULTS, str(i+1) + '_K_means_' + str(features) + '_Pavia', C)
 
     # Save plot segmentations
     plot_segmentation(C, aspect=RESOLUTION[0]/RESOLUTION[1])
