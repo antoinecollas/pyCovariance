@@ -74,4 +74,4 @@ def test_K_means_datacube():
         
         C = assign_classes_segmentation_to_gt(C, gt)
         _, mIoU = compute_mIoU(C, gt, [1,2])
-        assert mIoU >= 0.9
+        assert mIoU >= 0.8
