@@ -54,11 +54,11 @@ NUMBER_OF_THREADS = os.cpu_count()
 PATH = 'data/Pavia/PaviaU.mat'
 KEY_DICT_PAVIA = 'paviaU'
 NUMBER_CLASSES = 9
-NB_BANDS_TO_SELECT = 2
+NB_BANDS_TO_SELECT = 4
 RESOLUTION = [1.3, 1.3] # resolution in meters
 
 # Window size to compute features
-WINDOWS_SHAPE = (7,7)
+WINDOWS_SHAPE = (3,3)
 
 # features used to cluster the image
 features_list = [PixelEuclidean(), CovarianceEuclidean(), Covariance(), CovarianceTexture(p=NB_BANDS_TO_SELECT, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])]
