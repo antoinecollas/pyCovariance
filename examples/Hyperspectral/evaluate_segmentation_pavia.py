@@ -47,7 +47,7 @@ gt = gt[h:-h, w:-w]
 
 for path in segmentations_paths:
     segmentation = np.load(path)
-    assert segmentation.shape == gt.shape
+    assert segmentation.shape == gt.shape, 'segmentation.shape:'+str(segmentation.shape)+', gt.shape:'+str(gt.shape)
 
 #######################################################
 #######################################################
