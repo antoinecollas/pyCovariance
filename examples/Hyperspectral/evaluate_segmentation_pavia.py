@@ -40,7 +40,7 @@ if len(segmentations_paths) == 0:
 PATH_GT = 'data/Pavia/PaviaU_gt.mat'
 gt = loadmat(PATH_GT)['paviaU_gt']
 # Window size used to compute features
-WINDOWS_SHAPE = (5,5)
+WINDOWS_SHAPE = (3,3)
 h = WINDOWS_SHAPE[0]//2
 w = WINDOWS_SHAPE[1]//2
 gt = gt[h:-h, w:-w]
