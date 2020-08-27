@@ -17,7 +17,7 @@ sns.set_style("darkgrid")
 # Dataset
 PATH = 'data/Pavia/PaviaU.mat'
 KEY_DICT_PAVIA = 'paviaU'
-NB_BANDS_TO_SELECT = 2
+NB_BANDS_TO_SELECT = 103
 RESOLUTION = [1.3, 1.3] # resolution in meters
 
 # ground truth path
@@ -76,20 +76,29 @@ for i in classes:
     fig = plt.figure(1, figsize=(10,5))
     ax = plt.subplot(121)
     
-    probplot = sm.ProbPlot(d, stats.chi2, distargs=(NB_BANDS_TO_SELECT,))
+    probplot = sm.ProbPlot(d, stats.chi2, fit=False, distargs=(NB_BANDS_TO_SELECT,))
     fig = probplot.ppplot(line='45', ax=ax)
-    plt.title('Probability-Probability plot')
+    plt.title('Probability-Probability plot.')
+    
+    #plt.subplot(132)
+
+    #d_full = np.sort(d)
+    #d = d_full[:int(len(d_full)*1)]
+    #x = np.linspace(np.min(d), np.max(d), num=1000)
+    #pdf = stats.chi2.pdf(x, df=NB_BANDS_TO_SELECT)
+    #plt.hist(d, bins='auto', density=True)
+    #plt.plot(x, pdf)
+    #plt.title('Histogram vs chi2 pdf. (90% des données)')
     
     plt.subplot(122)
-    
-    d_full = np.sort(d)
-    d = d_full[:int(len(d_full)*0.9)]
-    x = np.linspace(np.min(d), np.max(d), num=1000)
-    pdf = stats.chi2.pdf(x, df=NB_BANDS_TO_SELECT)
-    plt.hist(d, bins='auto', density=True)
-    plt.plot(x, pdf)
-    plt.title('Histogram vs chi2 pdf. (90% des données)')
-    
+
+    d = np.sort(d)
+    cumulative_d = np.cumsum(d)/np.sum(d)
+    plt.plot(d, cumulative_d, label='Empirical')
+    plt.plot(d, stats.chi2.cdf(d, df=NB_BANDS_TO_SELECT), label='Theoritical')
+    plt.legend()
+    plt.title('Cumulative Chi2('+str(NB_BANDS_TO_SELECT)+') vs empirical.')
+
     fig.savefig(os.path.join(DIRECTORY_RESULTS, 'class_'+str(i)+'.png'))
     
     plt.clf()
