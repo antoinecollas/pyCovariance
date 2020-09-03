@@ -59,80 +59,6 @@ def vech_tylerdet(𝐗, args):
     return list(vech(𝚺))
 
 
-def Wishart_distance(vh𝚺_1, vh𝚺_2, params=None):
-    """ Wishart distance as described in II.B. of:
-        P. Formont, F. Pascal, G. Vasile, J. Ovarlez and L. Ferro-Famil, 
-        "Statistical Classification for Heterogeneous Polarimetric SAR Images," 
-        in IEEE Journal of Selected Topics in Signal Processing, 
-        vol. 5, no. 3, pp. 567-576, June 2011.
-        doi: 10.1109/JSTSP.2010.2101579
-        ----------------------------------------------------------------------
-        Inputs:
-        --------
-            * vh𝚺_1 = a (p,) numpy array corresponding to the vech 
-                    of the covariance matrix 1
-            * vh𝚺_2 = a (p,) numpy array corresponding to the vech
-                    of the covariance matrix 2
-            * params = scale either 'linear' or anything else for log scale
-
-        Outputs:
-        ---------
-            * d = the Wishart distance between 𝚺_1 and 𝚺_2
-        """
-    𝚺_1 = unvech(vh𝚺_1)
-    𝚺_2 = unvech(vh𝚺_2)
-    d = np.log(np.abs(np.linalg.det(𝚺_2))) - np.log(np.abs(np.linalg.det(𝚺_1))) + \
-        np.trace(np.linalg.inv(𝚺_2) @ 𝚺_1)
-    if params=='linear':
-        np.exp(np.real(d))
-    else:
-        return np.real(d)
-
-
-def Wishart_affinity(vh𝚺_1, vh𝚺_2, params=None):
-    """ Wishart affinity distance obtained as the inverse of Wishart distance
-        ----------------------------------------------------------------------
-        Inputs:
-        --------
-            * vh𝚺_1 = a (p,) numpy array corresponding to the vech
-                    of the covariance matrix 1
-            * vh𝚺_2 = a (p,) numpy array corresponding to the vech
-                    of the covariance matrix 2
-            * params = scale either 'linear' or anything else for log scale
-
-        Outputs:
-        ---------
-            * a = the Wishart affinity between 𝚺_1 and 𝚺_2
-        """
-    
-    if params=='linear':
-        return 1/Wishart_distance(vh𝚺_1, vh𝚺_2, params)
-    else:
-        return -Wishart_distance(vh𝚺_1, vh𝚺_2, params)
-
-
-def covariance_arithmetic_mean(𝐗_class, mean_parameters=None):
-    """ Arithmetic mean as discribed in II.B. of:
-        P. Formont, F. Pascal, G. Vasile, J. Ovarlez and L. Ferro-Famil, 
-        "Statistical Classification for Heterogeneous Polarimetric SAR Images," 
-        in IEEE Journal of Selected Topics in Signal Processing, 
-        vol. 5, no. 3, pp. 567-576, June 2011.
-        doi: 10.1109/JSTSP.2010.2101579
-        ----------------------------------------------------------------------
-        Inputs:
-        --------
-            * 𝐗_class = array of shape (p, M) corresponding to 
-                        samples in class
-            * mean_parameters = unused here but needed for coherent coding
-
-        Outputs:
-        ---------
-            * 𝛍 = the arithmetic mean
-        """
-
-    return np.mean(𝐗_class, axis=1)
-
-
 # ----------------------------------------------------------------------------
 # 2) Euclidean classifier: Euclidean distance + arithmetic mean
 # ----------------------------------------------------------------------------
@@ -156,6 +82,29 @@ def covariance_Euclidean_distance(vh𝚺_1, vh𝚺_2, params='fro'):
     𝚺_2 = unvech(vh𝚺_2)
     d = np.linalg.norm(𝚺_2-𝚺_1, params)
     return np.real(d)
+
+
+def covariance_arithmetic_mean(𝐗_class, mean_parameters=None):
+    """ Arithmetic mean as discribed in II.B. of:
+        P. Formont, F. Pascal, G. Vasile, J. Ovarlez and L. Ferro-Famil, 
+        "Statistical Classification for Heterogeneous Polarimetric SAR Images," 
+        in IEEE Journal of Selected Topics in Signal Processing, 
+        vol. 5, no. 3, pp. 567-576, June 2011.
+        doi: 10.1109/JSTSP.2010.2101579
+        ----------------------------------------------------------------------
+        Inputs:
+        --------
+            * 𝐗_class = array of shape (p, M) corresponding to 
+                        samples in class
+            * mean_parameters = unused here but needed for coherent coding
+
+        Outputs:
+        ---------
+            * 𝛍 = the arithmetic mean
+        """
+
+    return np.mean(𝐗_class, axis=1)
+
 
 # ----------------------------------------------------------------------------
 # 3) Riemannian covariance classifier: Riemannian distance + mean

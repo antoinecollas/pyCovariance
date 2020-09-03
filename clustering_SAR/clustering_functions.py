@@ -7,10 +7,6 @@ import warnings
 
 from .generic_functions import *
 
-# ----------------------------------------------------------------------------
-# 1) K-means algorithm in a general multivariate context with an arbitary 
-#    distance and an arbitrary way to chose clusters center
-# ----------------------------------------------------------------------------
 def compute_distance_k_means(
     X,
     mu,
@@ -346,90 +342,3 @@ def K_means_clustering_algorithm(
         print('Total time to compute new means:', int(time_means), 's.')
 
     return (C, mu, i + 1, delta, criterion_value)
-
-
-# ----------------------------------------------------------------------------
-# 2) Spectral algorithm in a general multivariate context with an arbitary 
-#    distance
-# ----------------------------------------------------------------------------
-def compute_distance_one_sample(𝐗, distance, enable_multi=False, queue=None):
-    # -----------------------------------------------------------
-    # Definition of function to be executed in parallel (or not)
-    # -----------------------------------------------------------
-    (p, N) = 𝐗.shape
-    𝐝 = np.empty((N,))  # To store distance from each sample
-    for n in range(0, N):  # Looping on all samples
-        𝐝[n] = distance(𝐗[:, 0], 𝐗[:, n])
-    if enable_multi:
-        queue.put(𝐝)
-    else:
-        return 𝐝
-
-
-def compute_all_distance_matrix(
-    𝐗,
-    distance,
-    enable_multi=False,
-    number_of_threads=4,
-    number_operations_min=100,
-    verbose=False
-):
-    """ A simple function to compute all distances in parallel for spectral clustering
-        ----------------------------------------------------------------------
-        Inputs:
-        --------
-            * 𝐗 = a (p, N) numpy array with:
-                * p = dimension of vectors
-                * N = number of Samples
-            * distance = function to compute distance between two samples
-                     takes three arguments:
-                 ** 𝐱_1 = sample 1
-                 ** 𝐱_2 = sample 2
-            * enable_multi = enable or not parallel compuation
-            * number_of_threads = number of parallel threads (cores of machine)
-            * number_operations_min = number of operations done at minimum per each thread
-                                (if too low, there is no interest to do parallel computing)
-            * verbose = boolean
-
-        Outputs:
-        ---------
-            * 𝓐 = a (N,N) numpy array corresponding to the distance matrix
-        """
-
-    (p, N) = 𝐗.shape
-    𝓐 = np.zeros((N, N))
-    iterator = tqdm(range(0, N - 1)) if verbose else range(0, N - 1)
-    for n in iterator:
-
-        if enable_multi and (N - n - 1) > number_operations_min * number_of_threads:
-            𝐝_list = []  # Results container
-            indexes_split = np.hstack(
-                [n + 1, n + int((N - n - 1) / number_of_threads) * np.arange(1, number_of_threads), N])
-            # Separate data in subsets to be treated in parallel
-            𝐗_subsets = []
-            for t in range(1, number_of_threads + 1):
-                𝐗_subsets.append(np.hstack([𝐗[:, n].reshape((p, 1)), 𝐗[:, indexes_split[t - 1]:indexes_split[t]]]))
-            queues = [Queue() for i in range(number_of_threads)]  # Serves to obtain result for each thread
-            args = [(𝐗_subsets[i], distance, True, queues[i]) for i in range(number_of_threads)]
-            jobs = [Process(target=compute_distance_one_sample, args=a) for a in args]
-            # Starting parallel computation
-            for j in jobs: j.start()
-            # Obtaining result for each thread
-            for q in queues: 𝐝_list.append(q.get())
-            # Waiting for each thread to terminate
-            for j in jobs: j.join()
-
-            # Merging results
-            for i in range(1, len(𝐝_list)):
-                𝐝_list[i] = 𝐝_list[i][1:]
-            𝐝 = np.hstack(𝐝_list)
-
-        else:
-            𝐝 = compute_distance_one_sample(𝐗[:, n:], distance)
-
-        𝓐[n, n:] = 𝐝
-        𝓐[n:, n] = 𝐝
-
-    return 𝓐
-
-
