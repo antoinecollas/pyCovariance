@@ -62,12 +62,15 @@ RESOLUTION = [1.3, 1.3] # resolution in meters
 WINDOWS_SHAPE = (3,3)
 
 # features used to cluster the image
-features_list = [PixelEuclidean(), CovarianceEuclidean(), Covariance(), CovarianceTexture(p=NB_BANDS_TO_SELECT, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])]
+#features_list = [PixelEuclidean(), CovarianceEuclidean(), Covariance(), CovarianceTexture(p=NB_BANDS_TO_SELECT, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])]
+features_list = [PixelEuclidean()]
 
 # K-means parameter
 if DEBUG:
+    NUMBER_INIT = 1
     K_MEANS_NB_ITER_MAX = 2
 else:
+    NUMBER_INIT = 10
     K_MEANS_NB_ITER_MAX = 100
 EPS = 1e-3
 
@@ -107,7 +110,8 @@ print('K-means using Sklearn implementation ...')
 print()
 
 # We use scikit-learn K-means implementation as a reference
-sklearn_K_means = sklearn_K_means(n_clusters=NUMBER_CLASSES)
+n_jobs = NUMBER_OF_THREADS_ROWS*NUMBER_OF_THREADS_COLUMNS if ENABLE_MULTI else 1
+sklearn_K_means = sklearn_K_means(n_clusters=NUMBER_CLASSES, n_init=NUMBER_INIT)
 C = sklearn_K_means.fit_predict(image.reshape((-1, NB_BANDS_TO_SELECT)))
 C = C.reshape((n_r, n_c))
 h = WINDOWS_SHAPE[0]//2
@@ -131,6 +135,7 @@ for i, features in enumerate(features_list):
         features,
         WINDOWS_SHAPE,
         NUMBER_CLASSES,
+        NUMBER_INIT,
         K_MEANS_NB_ITER_MAX,
         EPS,
         ENABLE_MULTI,

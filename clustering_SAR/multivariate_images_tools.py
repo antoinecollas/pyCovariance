@@ -11,7 +11,8 @@ def sliding_windows_treatment_image_time_series(
     function_to_compute,
     multi=False,
     queue=0,
-    overlapping_windows=True
+    overlapping_windows=True,
+    verbose=False
 ):
     """ A function that allowing to compute a sliding windows treatment over a multivariate
         image time series.
@@ -24,6 +25,7 @@ def sliding_windows_treatment_image_time_series(
             * multi = True if parallel computing (use the parallel function not this one), False if not
             * queue = to obtain result for parralel computation
             * overlapping_windows = boolean to chosse between overlapping windows or not
+            * verbose = boolean
         Outputs:
             * a 3-d array corresponding to the results. First two dimensions are spatial while the third correspond
               to the output of function_to_compute."""
@@ -38,7 +40,10 @@ def sliding_windows_treatment_image_time_series(
     else:
         step_rows = m_r
         step_columns = m_c
-    for i_r in tqdm(range(int(m_r/2),n_r-int(m_r/2),step_rows)): # Iterate on rows
+    iterator = range(int(m_r/2),n_r-int(m_r/2),step_rows)
+    if verbose:
+        iterator = tqdm(iterator)
+    for i_r in iterator: # Iterate on rows
         result_line = []
         for i_c in range(int(m_c/2),n_c-int(m_c/2),step_columns): # Iterate on columns
 
@@ -69,7 +74,8 @@ def sliding_windows_treatment_image_time_series_parallel(
     multi=False,
     number_of_threads_rows=3,
     number_of_threads_columns=3, 
-    overlapping_windows=True
+    overlapping_windows=True,
+    verbose=False
 ):
     """ A function that is a prallelisation of sliding_windows_treatment_image_time_series
         Inputs:
@@ -84,6 +90,7 @@ def sliding_windows_treatment_image_time_series_parallel(
             * number_of_threads_rows = number of thread to use in columns 
                 (total threads = number of cores of the machine in general) 
             * overlapping_windows = boolean to chosse between overlapping windows or not
+            * verbose = boolean
         Outputs:
             * number_of_threads_columns = number of thread to use in columns 
                 (total threads = number of cores of the machine in general)"""
@@ -157,7 +164,10 @@ def sliding_windows_treatment_image_time_series_parallel(
         results_row_list = None
 
         # Waiting for each thread to terminate
-        for j in tqdm(jobs): j.join()
+        if verbose:
+            for j in tqdm(jobs): j.join()
+        else:
+            for j in jobs: j.join()
 
         # Now we reform the resulting image from the slices of results
         results = []

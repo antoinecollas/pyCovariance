@@ -2,7 +2,6 @@ import numpy as np
 import scipy as sp
 import warnings
 from multiprocessing import Process, Queue
-from tqdm import tqdm
 
 from .estimation import SCM
 from .generic_functions import *
