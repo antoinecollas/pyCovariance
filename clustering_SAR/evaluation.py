@@ -6,6 +6,7 @@ from scipy.optimize import linear_sum_assignment
 
 def assign_classes_segmentation_to_gt(C, gt, normalize=False):
     """ A function that assigns the classes of the segmentation to the ground truth.
+        BE CAREFUL : class 0 is always ignored, both in C and gt.
         Inputs:
             * C: segmented image.
             * gt: ground truth.
@@ -13,18 +14,15 @@ def assign_classes_segmentation_to_gt(C, gt, normalize=False):
         Ouput:
             * segmented image with the right classes.
     """
-    # import Hungarian algorithm
-   
-    classes = np.unique(gt)
+    classes_gt = np.unique(gt)
+    if classes_gt[0] == 0:
+        classes_gt = classes_gt[1:]
+    classes_C = np.unique(C)
+    if classes_C[0] == 0:
+        classes_C = classes_C[1:]
     
-    # if class 0 of gt is used for unnotated pixels then we make the classes of C start from 1
-    if len(np.unique(gt)) == (len(np.unique(C))+1):
-        classes = classes[1:]
-    elif len(np.unique(gt)) != len(np.unique(C)):
-        print('Error: wrong number of classes...')
-        sys.exit(1)
-    assert (classes == np.unique(C)).all()
-
+    assert (classes_gt == classes_C).all()
+    classes = classes_gt
     nb_classes = len(classes)
 
     cost_matrix = np.zeros((nb_classes, nb_classes))
@@ -42,7 +40,6 @@ def assign_classes_segmentation_to_gt(C, gt, normalize=False):
     row_ind, col_ind = linear_sum_assignment(cost_matrix)
     row_ind = classes[row_ind] 
     col_ind = classes[col_ind] 
-    
     new_C = np.zeros(C.shape)
     for i, j in zip(col_ind, row_ind):
         new_C[C==i] = j
@@ -134,7 +131,7 @@ def plot_TP_FP_FN_segmentation(C, gt, aspect=1, folder_save=None):
             plt.savefig(os.path.join(folder_save, 'Class '+str(i)))
 
 
-def compute_mIoU(C, gt, classes):
+def compute_mIoU(C, gt):
     """ A function that computes the mean of Intersection over Union between a segmented image (c) and a ground truth (gt). BE CAREFUL, 0 is considered as no annotation available.
         Inputs:
             * C: segmented image.
@@ -144,9 +141,18 @@ def compute_mIoU(C, gt, classes):
             * IoU, mIOU
     """
     IoU = list()
+    classes_gt = np.unique(gt)
+    if classes_gt[0] == 0:
+        classes_gt = classes_gt[1:]
+    classes_C = np.unique(C)
+    if classes_C[0] == 0:
+        classes_C = classes_C[1:]
+    assert (classes_gt == classes_C).all()
+    classes = classes_gt
+
     for i in classes:
-        inter = np.sum(np.logical_and((C == i), (gt == i)))
-        union = np.sum(np.logical_and(np.logical_or((C == i), (gt == i)), (gt != 0)))
+        inter = np.sum((C==i) & (gt==i))
+        union = np.sum(((C==i)|(gt==i)) & (gt!=0))
         IoU.append(inter/union)
     mIoU = np.mean(IoU)
     return IoU, mIoU

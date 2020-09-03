@@ -16,7 +16,7 @@ temp = os.path.dirname(os.path.dirname(current_dir))
 sys.path.insert(1, temp)
 
 from clustering_SAR.cluster_datacube import K_means_datacube
-from clustering_SAR.features import center_vectors_estimation, Covariance, CovarianceEuclidean, CovarianceTexture, PixelEuclidean
+from clustering_SAR.features import center_vectors_estimation, Covariance, CovarianceEuclidean, CovarianceTexture, MeanPixelEuclidean, PixelEuclidean
 from clustering_SAR.generic_functions import enable_latex_infigures, pca_and_save_variance, save_figure
 from clustering_SAR.evaluation import plot_segmentation, save_segmentation
 
@@ -57,12 +57,15 @@ KEY_DICT_PAVIA = 'paviaU'
 NUMBER_CLASSES = 9
 NB_BANDS_TO_SELECT = 4
 RESOLUTION = [1.3, 1.3] # resolution in meters
+MASK = True
+PATH_GT = 'data/Pavia/PaviaU_gt.mat'
+KEY_DICT_PAVIA_GT = 'paviaU_gt'
 
 # Window size to compute features
 WINDOWS_SHAPE = (3,3)
 
 # features used to cluster the image
-#features_list = [PixelEuclidean(), CovarianceEuclidean(), Covariance(), CovarianceTexture(p=NB_BANDS_TO_SELECT, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])]
+#features_list = [MeanPixelEuclidean(), PixelEuclidean(), CovarianceEuclidean(), Covariance(), CovarianceTexture(p=NB_BANDS_TO_SELECT, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])]
 features_list = [PixelEuclidean()]
 
 # K-means parameter
@@ -85,8 +88,9 @@ print('Reading dataset')
 print('################################################')
 t_beginning = time.time()
 
-# load image
+# load image and gt
 image = loadmat(PATH)[KEY_DICT_PAVIA]
+gt = loadmat(PATH_GT)[KEY_DICT_PAVIA_GT]
 
 # center image globally
 mean = np.mean(image, axis=0)
@@ -105,6 +109,15 @@ if DEBUG:
 n_r, n_c, p = image.shape
 print('image.shape', image.shape)
 
+# mask
+h = WINDOWS_SHAPE[0]//2
+w = WINDOWS_SHAPE[1]//2
+if MASK:
+    mask = (gt != 0)
+    mask = mask[h:-h, w:-w]
+else:
+    mask = None
+
 print()
 print('K-means using Sklearn implementation ...') 
 print()
@@ -112,13 +125,17 @@ print()
 # We use scikit-learn K-means implementation as a reference
 n_jobs = NUMBER_OF_THREADS_ROWS*NUMBER_OF_THREADS_COLUMNS if ENABLE_MULTI else 1
 sklearn_K_means = sklearn_K_means(n_clusters=NUMBER_CLASSES, n_init=NUMBER_INIT)
-C = sklearn_K_means.fit_predict(image.reshape((-1, NB_BANDS_TO_SELECT)))
-C = C.reshape((n_r, n_c))
-h = WINDOWS_SHAPE[0]//2
-w = WINDOWS_SHAPE[1]//2
-C = C[h:-h, w:-w]
-C = C.astype(np.int)
-C = C + 1
+image_sk = image[h:-h, w:-w].reshape((-1, NB_BANDS_TO_SELECT))
+if MASK:
+    image_sk = image_sk[mask.reshape(-1)]
+temp = sklearn_K_means.fit_predict(image_sk).astype(np.int)
+if MASK:
+    C = np.zeros(image.shape[:-1])[h:-h, w:-w] - 1
+    C[mask] = temp
+else:
+    C = temp
+C += 1
+C = C.reshape((n_r-2*h, n_c-2*w))
 
 # Save segmentations
 save_segmentation(FOLDER_RESULTS, '0_K_means_sklearn_Pavia', C)
@@ -132,6 +149,7 @@ for i, features in enumerate(features_list):
     print()
     C = K_means_datacube(
         image,
+        mask,
         features,
         WINDOWS_SHAPE,
         NUMBER_CLASSES,
@@ -144,7 +162,6 @@ for i, features in enumerate(features_list):
     )
     C = C.squeeze()
     C = C.astype(np.int)
-    C = C + 1
  
     # Save segmentations
     save_segmentation(FOLDER_RESULTS, str(i+1) + '_K_means_' + str(features) + '_Pavia', C)

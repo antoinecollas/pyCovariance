@@ -72,6 +72,24 @@ class PixelEuclidean(BaseClassFeatures):
     def mean(self, X):
         return np.mean(X, axis=1)
 
+class MeanPixelEuclidean(BaseClassFeatures):
+    def __init__(self):
+        super().__init__()
+    
+    def __str__(self):
+        return 'Mean_Pixel_Euclidean_features'
+    
+    def estimation(self, X):
+        return np.mean(X, 1)
+
+    def distance(self, x1, x2):
+        d = np.linalg.norm(x2-x1)
+        d = np.real(d)
+        return d
+
+    def mean(self, X):
+        return np.mean(X, axis=1)
+
 class CovarianceEuclidean(BaseClassFeatures):
     def __init__(self):
         super().__init__()

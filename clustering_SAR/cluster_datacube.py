@@ -25,6 +25,7 @@ from clustering_SAR.multivariate_images_tools import sliding_windows_treatment_i
 
 def K_means_datacube(
     images,
+    mask,
     features,
     windows_shape,
     init,
@@ -44,6 +45,10 @@ def K_means_datacube(
             * W = width of the image
             * p = size of each pixel
             * T = number of images (size of the time series)
+        * mask = (H, W, p) numpy array to select pixels to cluster:
+            * H = height of the image
+            * W = width of the image
+            * p = size of each pixel
         * features = an instance of the class BaseClassFeatures from clustering_SAR.features
         * windows_shape = (h, w) tuple:
             * h: height of the window in pixels
@@ -120,6 +125,10 @@ def K_means_datacube(
     print('################################################')
     t_beginning = time.time()
    
+    if mask is not None:
+        mask = mask.reshape((-1))
+        X = X[:, mask]
+
     best_criterion_value = np.inf
     for _ in tqdm(range(n_init)):
         if type(init) is int:
@@ -140,10 +149,13 @@ def K_means_datacube(
         )
 
         if criterion_value < best_criterion_value:
-            # Reformatting ITS in the form of images
-            C_its = np.empty(((n_r-m_r+1), (n_c-m_c+1), T))
-            for t in range(T):
-                C_its[:,:,t] = C[t*(n_r-m_r+1)*(n_c-m_c+1):(t+1)*(n_r-m_r+1)*(n_c-m_c+1)].reshape((n_r-m_r+1,n_c-m_c+1))
+            if mask is not None:
+                C_its = np.zeros((mask.shape[0], 1)) - 1
+                C_its[mask] = C.reshape((C.shape[0], 1))
+            else:
+                C_its = C.reshape((C.shape[0], 1))
+            C_its += 1
+            C_its = C_its.reshape((n_r-m_r+1, n_c-m_c+1, 1))
             C = None
     
     print("K-means done in %f s." % (time.time()-t_beginning))

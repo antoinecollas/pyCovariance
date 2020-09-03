@@ -76,15 +76,12 @@ for path in segmentations_paths:
     print('Supervised metric')
     print('################################################')
     old_segmentation = copy.deepcopy(segmentation)
-    IoU, mIoU = compute_mIoU(old_segmentation, gt, np.unique(segmentation))
-    print('mIoU before Hungarian algo=', mIoU)
     segmentation = assign_classes_segmentation_to_gt(segmentation, gt, normalize=False)
-    IoU, mIoU = compute_mIoU(segmentation, gt, np.unique(segmentation))
+    IoU, mIoU = compute_mIoU(segmentation, gt)
     print('mIoU=', mIoU)
-    classes = np.unique(segmentation).astype(np.int)
-    temp = ''
-    for i, class_ in enumerate(classes):
-        temp += 'class '+  str(class_) + ': IoU=' + str(round(IoU[i], 2)) + ' '
+    temp = 'IoU:'
+    for i in range(len(IoU)):
+        temp += ' class '+  str(i+1) + ': ' + str(round(IoU[i], 2))
     print(temp)
 
     print('################################################')

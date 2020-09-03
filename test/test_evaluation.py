@@ -46,5 +46,5 @@ def test_assign_classes_segmentation_to_gt_and_compute_mIoU():
 
     C = assign_classes_segmentation_to_gt(C, gt)
     assert f1_score(gt, C, average='macro') > 0.8
-    _, mIoU = compute_mIoU(C, gt, classes=np.unique(gt))
+    _, mIoU = compute_mIoU(C, gt)
     assert mIoU > 0.8

@@ -60,6 +60,7 @@ def test_K_means_datacube():
         sys.stderr = open(os.devnull, 'w')
         C = K_means_datacube(
             image,
+            None,
             features,
             WINDOWS_SHAPE,
             NUMBER_CLASSES,
@@ -70,10 +71,9 @@ def test_K_means_datacube():
             NUMBER_OF_THREADS_ROWS,
             NUMBER_OF_THREADS_COLUMNS,
         ).squeeze()
-        C = C + 1
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
         
         C = assign_classes_segmentation_to_gt(C, gt)
-        _, mIoU = compute_mIoU(C, gt, [1,2])
+        _, mIoU = compute_mIoU(C, gt)
         assert mIoU >= 0.8
