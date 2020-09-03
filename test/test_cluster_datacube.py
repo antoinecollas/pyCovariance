@@ -21,7 +21,7 @@ def test_K_means_datacube():
     " Test function K_means_datacube on synthetic data."
 
     p = 3
-    h, w = 50, 50
+    h, w = 30, 30
 
     # generation of two Toeplitz matrices
     rho = 0.1
@@ -44,6 +44,7 @@ def test_K_means_datacube():
     WINDOWS_SHAPE = (3, 3)
     FEATURES_LIST = [Covariance(), CovarianceTexture(p=p, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])]
     NUMBER_CLASSES = 2
+    NUMBER_INIT = 1
     K_MEANS_NB_ITER_MAX = 100
     EPS = 1e-3
     ENABLE_MULTI = True
@@ -62,6 +63,7 @@ def test_K_means_datacube():
             features,
             WINDOWS_SHAPE,
             NUMBER_CLASSES,
+            NUMBER_INIT,
             K_MEANS_NB_ITER_MAX,
             EPS,
             ENABLE_MULTI,
