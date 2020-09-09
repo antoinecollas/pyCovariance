@@ -74,3 +74,20 @@ def test_Riemannian_mean_covariance():
     mean_opt = unvech(Riemannian_mean_covariance(covs, params))
     
     np.testing.assert_almost_equal(mean, mean_opt, decimal=3)
+
+    # test that the gradient descent reaches global the minimum
+    n = 10
+    covs = np.zeros((int(p*(p+1)/2), n), dtype=np.complex)
+    for i in range(n):
+        covs[:, i] = vech(generate_covariance(p))
+    mean = unvech(Riemannian_mean_covariance(covs))
+
+    # check that minus the gradient of the cost function has a null norm
+    sqrt_mean = sqrtm(mean)
+    isqrt_mean = invsqrtm(mean)
+    minus_gradient = 0
+    for i in range(n):
+        minus_gradient += logm(isqrt_mean@unvech(covs[:, i])@isqrt_mean)
+    minus_gradient = sqrt_mean@minus_gradient@sqrt_mean
+    
+    np.testing.assert_almost_equal(np.linalg.norm(minus_gradient), 0, decimal=2)
