@@ -57,16 +57,18 @@ KEY_DICT_PAVIA = 'paviaU'
 NUMBER_CLASSES = 9
 NB_BANDS_TO_SELECT = 4
 RESOLUTION = [1.3, 1.3] # resolution in meters
-MASK = True
+MASK = False
 PATH_GT = 'data/Pavia/PaviaU_gt.mat'
 KEY_DICT_PAVIA_GT = 'paviaU_gt'
+
+# apply PCA or select bands randomly
+PCA = False
 
 # Window size to compute features
 WINDOWS_SHAPE = (3,3)
 
 # features used to cluster the image
-#features_list = [MeanPixelEuclidean(), PixelEuclidean(), CovarianceEuclidean(), Covariance(), CovarianceTexture(p=NB_BANDS_TO_SELECT, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])]
-features_list = [PixelEuclidean()]
+features_list = [MeanPixelEuclidean(), PixelEuclidean(), CovarianceEuclidean(), Covariance(), CovarianceTexture(p=NB_BANDS_TO_SELECT, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])]
 
 # K-means parameter
 if DEBUG:
@@ -99,7 +101,14 @@ image = image - mean
 assert (np.abs(np.mean(image, axis=0)) < 1e-9).all()
 
 # pca
-image = pca_and_save_variance(FOLDER_FIGURES, 'fig_explained_variance_Pavia', image, NB_BANDS_TO_SELECT)
+if PCA:
+    image = pca_and_save_variance(FOLDER_FIGURES, 'fig_explained_variance_Pavia', image, NB_BANDS_TO_SELECT)
+else:
+    print('Bands are selected randomly.')
+    random.seed(1234)
+    bands = random.sample(list(range(image.shape[2])), k=NB_BANDS_TO_SELECT)
+    bands.sort()
+    image = image[:, :, bands]
 
 if DEBUG:
     center = np.array(image.shape[0:2])//2
