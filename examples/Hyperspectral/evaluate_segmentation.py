@@ -17,14 +17,19 @@ sys.path.insert(1, temp)
 
 from clustering_SAR.evaluation import assign_classes_segmentation_to_gt, compute_mIoU, plot_segmentation, plot_TP_FP_FN_segmentation
 
+from examples.Hyperspectral.k_means import Dataset
+
 #######################################################
 #######################################################
 # BEGINNING OF HYPERPARAMETERS
 #######################################################
 #######################################################
 
+DATASET_NAME = 'Indian_Pines'
+dataset = Dataset(DATASET_NAME)
+
 # segmentation path (by default: get last folder)
-FOLDER_REGEX = 'results/*'
+FOLDER_REGEX = os.path.join('results', dataset.name, '*')
 folders_result = glob.glob(FOLDER_REGEX)
 folders_result.sort()
 folder_result = folders_result[-1]
@@ -37,10 +42,9 @@ if len(segmentations_paths) == 0:
     sys.exit(1)
 
 # ground truth path
-PATH_GT = 'data/Pavia/PaviaU_gt.mat'
-gt = loadmat(PATH_GT)['paviaU_gt']
+gt = loadmat(dataset.path_gt)[dataset.key_dict_gt]
 # Window size used to compute features
-WINDOWS_SHAPE = (3,3)
+WINDOWS_SHAPE = (5, 5)
 h = WINDOWS_SHAPE[0]//2
 w = WINDOWS_SHAPE[1]//2
 gt = gt[h:-h, w:-w]
