@@ -3,7 +3,7 @@ import numpy as np
 import os
 import random
 from scipy.io import loadmat
-from sklearn.cluster import KMeans as sklearn_K_means
+from sklearn.cluster import KMeans
 import sys
 import time
 
@@ -46,26 +46,15 @@ if __name__ == '__main__':
     #######################################################
     #######################################################
 
-    # DATASET = 'Pavia' or 'Indian_Pines'
-    DATASET_NAME = 'Indian_Pines'
-    dataset = Dataset(DATASET_NAME)
-
-    DEBUG = False
-    if DEBUG:
+    # Dataset
+    DATASET_LIST = ['Pavia', 'Indian_Pines']
+    CROP_IMAGE = False
+    if CROP_IMAGE:
         print()
-        print('DEBUG mode enabled !!!')
+        print('CROP_IMAGE mode enabled !!!')
         SIZE_CROP = 100
-
-    # folder to save results
-    date_str = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
-    FOLDER_RESULTS = os.path.join('results', dataset.name, date_str)
-    FOLDER_FIGURES = os.path.join(FOLDER_RESULTS, 'figures')
-
-    # Activate latex in figures (or not)
-    LATEX_IN_FIGURES = False
-    if LATEX_IN_FIGURES:
-      enable_latex_infigures()
-
+    NB_BANDS_TO_SELECT = 10
+    
     # Enable parallel processing (or not)
     ENABLE_MULTI = True
     NUMBER_OF_THREADS_ROWS = os.cpu_count()//2
@@ -75,26 +64,22 @@ if __name__ == '__main__':
         sys.exit(1)
     NUMBER_OF_THREADS = os.cpu_count() 
 
-    # Dataset
-    NB_BANDS_TO_SELECT = 10
-    MASK = False
-
-    # apply PCA or select bands randomly
+    # Apply PCA or select bands randomly
     PCA = False
+
+    # Cluster only the pixels only where there is a ground truth
+    MASK = False
 
     # Window size to compute features
     WINDOWS_SHAPE = (5,5)
 
-    # features used to cluster the image
-    features_list = [PixelEuclidean(), MeanPixelEuclidean(), Intensity(), CovarianceEuclidean(), Covariance(), CovarianceTexture(p=NB_BANDS_TO_SELECT, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])]
+    # Features used to cluster the image
+    FEATURES_LIST = [PixelEuclidean(), MeanPixelEuclidean(), Intensity(), CovarianceEuclidean(), Covariance(), CovarianceTexture(p=NB_BANDS_TO_SELECT, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])]
+    FEATURES_LIST = [PixelEuclidean()]
 
     # K-means parameter
-    if DEBUG:
-        NUMBER_INIT = 1
-        K_MEANS_NB_ITER_MAX = 2
-    else:
-        NUMBER_INIT = 10
-        K_MEANS_NB_ITER_MAX = 100
+    NUMBER_INIT = 1
+    K_MEANS_NB_ITER_MAX = 100
     EPS = 1e-3
 
     #######################################################
@@ -103,100 +88,108 @@ if __name__ == '__main__':
     #######################################################
     #######################################################
 
-    print('################################################')
-    print('Reading dataset') 
-    print('################################################')
-    t_beginning = time.time()
+    # Folder to save results
+    date_str = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
+ 
+    for dataset_name in DATASET_LIST:
+        dataset = Dataset(dataset_name)
+        FOLDER_RESULTS = os.path.join('results', dataset.name, date_str)
+        FOLDER_FIGURES = os.path.join(FOLDER_RESULTS, 'figures')
 
-    # load image and gt
-    image = loadmat(dataset.path)[dataset.key_dict]
-    gt = loadmat(dataset.path_gt)[dataset.key_dict_gt]
-    number_classes = len(np.unique(gt)) - 1
+        print('################################################')
+        print('Reading dataset', dataset.name) 
+        print('################################################')
+        t_beginning = time.time()
 
-    # center image globally
-    mean = np.mean(image, axis=0)
-    image = image - mean
-    # check pixels are centered
-    assert (np.abs(np.mean(image, axis=0)) < 1e-9).all()
+        # load image and gt
+        image = loadmat(dataset.path)[dataset.key_dict]
+        gt = loadmat(dataset.path_gt)[dataset.key_dict_gt]
+        number_classes = len(np.unique(gt)) - 1
 
-    # pca
-    if PCA:
-        image = pca_and_save_variance(FOLDER_FIGURES, 'fig_explained_variance', image, NB_BANDS_TO_SELECT)
-    else:
-        print('Bands are selected randomly.')
-        random.seed(2)
-        bands = random.sample(list(range(image.shape[2])), k=NB_BANDS_TO_SELECT)
-        bands.sort()
-        image = image[:, :, bands]
+        # center image globally
+        mean = np.mean(image, axis=0)
+        image = image - mean
+        # check pixels are centered
+        assert (np.abs(np.mean(image, axis=0)) < 1e-9).all()
 
-    if DEBUG:
-        center = np.array(image.shape[0:2])//2
-        half_height = SIZE_CROP//2
-        half_width = SIZE_CROP//2
-        image = image[center[0]-half_height:center[0]+half_height, center[1]-half_width:center[1]+half_width]
-    n_r, n_c, p = image.shape
-    print('image.shape', image.shape)
+        # pca
+        if PCA:
+            image = pca_and_save_variance(FOLDER_FIGURES, 'fig_explained_variance', image, NB_BANDS_TO_SELECT)
+        else:
+            print('Bands are selected randomly.')
+            random.seed(2)
+            bands = random.sample(list(range(image.shape[2])), k=NB_BANDS_TO_SELECT)
+            bands.sort()
+            image = image[:, :, bands]
 
-    # mask
-    h = WINDOWS_SHAPE[0]//2
-    w = WINDOWS_SHAPE[1]//2
-    if MASK:
-        mask = (gt != 0)
-        mask = mask[h:-h, w:-w]
-    else:
-        mask = None
+        if CROP_IMAGE:
+            center = np.array(image.shape[0:2])//2
+            half_height = SIZE_CROP//2
+            half_width = SIZE_CROP//2
+            image = image[center[0]-half_height:center[0]+half_height, center[1]-half_width:center[1]+half_width]
+        n_r, n_c, p = image.shape
+        print('image.shape', image.shape)
 
-    print()
-    print('K-means using Sklearn implementation ...') 
-    print()
+        # mask
+        h = WINDOWS_SHAPE[0]//2
+        w = WINDOWS_SHAPE[1]//2
+        if MASK:
+            mask = (gt != 0)
+            mask = mask[h:-h, w:-w]
+        else:
+            mask = None
 
-    # We use scikit-learn K-means implementation as a reference
-    n_jobs = NUMBER_OF_THREADS_ROWS*NUMBER_OF_THREADS_COLUMNS if ENABLE_MULTI else 1
-    sklearn_K_means = sklearn_K_means(n_clusters=number_classes, n_init=NUMBER_INIT)
-    image_sk = image[h:-h, w:-w].reshape((-1, NB_BANDS_TO_SELECT))
-    if MASK:
-        image_sk = image_sk[mask.reshape(-1)]
-    temp = sklearn_K_means.fit_predict(image_sk).astype(np.int)
-    if MASK:
-        C = np.zeros(image.shape[:-1])[h:-h, w:-w] - 1
-        C[mask] = temp
-    else:
-        C = temp
-    C += 1
-    C = C.reshape((n_r-2*h, n_c-2*w))
-
-    # Save segmentations
-    save_segmentation(FOLDER_RESULTS, '0_K_means_sklearn', C)
-
-    # Save plot segmentations
-    plot_segmentation(C, aspect=dataset.resolution[0]/dataset.resolution[1])
-    save_figure(FOLDER_FIGURES, 'fig_K_means_sklearn')
-
-    for i, features in enumerate(features_list):
-        print('Features:', str(features))
         print()
-        C = K_means_datacube(
-            image,
-            mask,
-            features,
-            WINDOWS_SHAPE,
-            number_classes,
-            NUMBER_INIT,
-            K_MEANS_NB_ITER_MAX,
-            EPS,
-            ENABLE_MULTI,
-            NUMBER_OF_THREADS_ROWS,
-            NUMBER_OF_THREADS_COLUMNS
-        )
-        C = C.squeeze()
-        C = C.astype(np.int)
-     
+        print('K-means using Sklearn implementation ...') 
+        print()
+
+        # We use scikit-learn K-means implementation as a reference
+        n_jobs = NUMBER_OF_THREADS_ROWS*NUMBER_OF_THREADS_COLUMNS if ENABLE_MULTI else 1
+        sklearn_K_means = KMeans(n_clusters=number_classes, n_init=NUMBER_INIT)
+        image_sk = image[h:-h, w:-w].reshape((-1, NB_BANDS_TO_SELECT))
+        if MASK:
+            image_sk = image_sk[mask.reshape(-1)]
+        temp = sklearn_K_means.fit_predict(image_sk).astype(np.int)
+        if MASK:
+            C = np.zeros(image.shape[:-1])[h:-h, w:-w] - 1
+            C[mask] = temp
+        else:
+            C = temp
+        C += 1
+        C = C.reshape((n_r-2*h, n_c-2*w))
+
         # Save segmentations
-        save_segmentation(FOLDER_RESULTS, str(i+1) + '_K_means_' + str(features), C)
+        save_segmentation(FOLDER_RESULTS, '0_K_means_sklearn', C)
 
         # Save plot segmentations
         plot_segmentation(C, aspect=dataset.resolution[0]/dataset.resolution[1])
-        save_figure(FOLDER_FIGURES, 'fig_K_means_' + str(features))
+        save_figure(FOLDER_FIGURES, 'fig_K_means_sklearn')
 
-    t_end = time.time()
-    print('TOTAL TIME ELAPSED:', round(t_end-t_beginning, 1), 's')
+        for i, features in enumerate(FEATURES_LIST):
+            print('Features:', str(features))
+            print()
+            C = K_means_datacube(
+                image,
+                mask,
+                features,
+                WINDOWS_SHAPE,
+                number_classes,
+                NUMBER_INIT,
+                K_MEANS_NB_ITER_MAX,
+                EPS,
+                ENABLE_MULTI,
+                NUMBER_OF_THREADS_ROWS,
+                NUMBER_OF_THREADS_COLUMNS
+            )
+            C = C.squeeze()
+            C = C.astype(np.int)
+         
+            # Save segmentations
+            save_segmentation(FOLDER_RESULTS, str(i+1) + '_K_means_' + str(features), C)
+
+            # Save plot segmentations
+            plot_segmentation(C, aspect=dataset.resolution[0]/dataset.resolution[1])
+            save_figure(FOLDER_FIGURES, 'fig_K_means_' + str(features))
+
+        t_end = time.time()
+        print('TOTAL TIME ELAPSED:', round(t_end-t_beginning, 1), 's')
