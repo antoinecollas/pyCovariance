@@ -75,10 +75,9 @@ if __name__ == '__main__':
 
     # Features used to cluster the image
     FEATURES_LIST = [PixelEuclidean(), MeanPixelEuclidean(), Intensity(), CovarianceEuclidean(), Covariance(), CovarianceTexture(p=NB_BANDS_TO_SELECT, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])]
-    FEATURES_LIST = [PixelEuclidean()]
 
     # K-means parameter
-    NUMBER_INIT = 1
+    NUMBER_INIT = 10
     K_MEANS_NB_ITER_MAX = 100
     EPS = 1e-3
 
