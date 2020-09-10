@@ -24,7 +24,7 @@ from clustering_SAR.H_alpha_functions import cluster_image_by_H_alpha
 from clustering_SAR.multivariate_images_tools import sliding_windows_treatment_image_time_series_parallel
 
 def K_means_datacube(
-    images,
+    image,
     mask,
     features,
     windows_shape,
@@ -36,15 +36,14 @@ def K_means_datacube(
     number_of_threads_rows,
     number_of_threads_columns
 ):
-    """ K-means algorithm applied on a image time series datacube. It uses distances and means on locally computed features (e.g covariances or covariances with textures).
+    """ K-means algorithm applied on an image datacube. It uses distances and means on locally computed features (e.g covariances or covariances with textures).
     --------------------------------------------------------------
     Inputs:
     --------
-        * images = (H, W, p, T) numpy array with:
+        * images = (H, W, p) numpy array with:
             * H = height of the image
             * W = width of the image
             * p = size of each pixel
-            * T = number of images (size of the time series)
         * mask = (H, W, p) numpy array to select pixels to cluster:
             * H = height of the image
             * W = width of the image
@@ -65,8 +64,8 @@ def K_means_datacube(
     ---------
     * C_its
     """
-    if len(images.shape) == 3:
-        images = images.reshape(*images.shape, 1)
+    if len(image.shape) != 3:
+        raise ValueError('Error on image shape !')
     
     assert (type(init) is int and n_init>0) or (init=='H-alpha' and n_init==1), 'Error initialisation in K-means arguments'
     C_init = None
@@ -75,22 +74,16 @@ def K_means_datacube(
         print('Initialisation: H-alpha')
         print('################################################')
         windows_mask = np.ones(windows_shape)
-        n_r, n_c, p, T = images.shape
+        n_r, n_c, p = image.shape
         m_r, m_c = windows_mask.shape
         N = m_r*m_c
-        C_init = []
-        for t in range(T):
-            print("Treating image %d of %d" %(t+1,T))
-            C_tmp = cluster_image_by_H_alpha(
-                images[:,:,:,t],
-                windows_mask,
-                multi=enable_multi,
-                number_of_threads_rows=number_of_threads_rows,
-                number_of_threads_columns=number_of_threads_columns
-            )
-            C_init.append(C_tmp.reshape(C_tmp.size, 1).T)
-        C_init = np.squeeze(np.hstack(C_init))
-        C_tmp = None
+        C_init = cluster_image_by_H_alpha(
+            image,
+            windows_mask,
+            multi=enable_multi,
+            number_of_threads_rows=number_of_threads_rows,
+            number_of_threads_columns=number_of_threads_columns
+        )
         print()
 
     print('################################################')
@@ -100,23 +93,18 @@ def K_means_datacube(
     windows_mask = np.ones(windows_shape)
     m_r, m_c = windows_mask.shape
     N = m_r*m_c
-    n_r, n_c, p, T = images.shape
-    X = []
-    for t in range(T):
-        print("Treating image %d of %d" %(t+1,T))
-        feature_temp = sliding_windows_treatment_image_time_series_parallel(
-            images[:,:,:,t].reshape(n_r,n_c,p,1),
-            windows_mask,
-            features.estimation,
-            multi=enable_multi,
-            number_of_threads_rows=number_of_threads_rows,
-            number_of_threads_columns=number_of_threads_columns
-        )
-        images = images[:,:,:,1:] # Freeing memory space
-        X.append(feature_temp.reshape(((n_r-m_r+1)*(n_c-m_c+1), -1)).T)
-        feature_temp = None # Freeing memory space
-    X = np.hstack(X)
-    images = None
+    n_r, n_c, p = image.shape
+    feature_temp = sliding_windows_treatment_image_time_series_parallel(
+        image.reshape((n_r, n_c, p, 1)),
+        windows_mask,
+        features.estimation,
+        multi=enable_multi,
+        number_of_threads_rows=number_of_threads_rows,
+        number_of_threads_columns=number_of_threads_columns
+    )
+    X = feature_temp.reshape(((n_r-m_r+1)*(n_c-m_c+1), -1)).T
+    feature_temp = None # Freeing memory space
+    image = None
     print("Done in %f s." % (time.time()-t_beginning))
     print()
 
