@@ -124,7 +124,7 @@ if __name__ == '__main__':
         image = pca_and_save_variance(FOLDER_FIGURES, 'fig_explained_variance', image, NB_BANDS_TO_SELECT)
     else:
         print('Bands are selected randomly.')
-        random.seed(1234)
+        random.seed(2)
         bands = random.sample(list(range(image.shape[2])), k=NB_BANDS_TO_SELECT)
         bands.sort()
         image = image[:, :, bands]
