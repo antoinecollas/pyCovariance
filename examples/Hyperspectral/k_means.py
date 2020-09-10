@@ -16,7 +16,7 @@ temp = os.path.dirname(os.path.dirname(current_dir))
 sys.path.insert(1, temp)
 
 from clustering_SAR.cluster_datacube import K_means_datacube
-from clustering_SAR.features import center_vectors_estimation, Covariance, CovarianceEuclidean, CovarianceTexture, MeanPixelEuclidean, PixelEuclidean
+from clustering_SAR.features import center_vectors_estimation, Covariance, CovarianceEuclidean, CovarianceTexture, Intensity, MeanPixelEuclidean, PixelEuclidean
 from clustering_SAR.generic_functions import enable_latex_infigures, pca_and_save_variance, save_figure
 from clustering_SAR.evaluation import plot_segmentation, save_segmentation
 
@@ -86,8 +86,7 @@ if __name__ == '__main__':
     WINDOWS_SHAPE = (5,5)
 
     # features used to cluster the image
-    # features_list = [PixelEuclidean(), MeanPixelEuclidean(), CovarianceEuclidean(), Covariance(), CovarianceTexture(p=NB_BANDS_TO_SELECT, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])]
-    features_list = [PixelEuclidean()]
+    features_list = [PixelEuclidean(), MeanPixelEuclidean(), Intensity(), CovarianceEuclidean(), Covariance(), CovarianceTexture(p=NB_BANDS_TO_SELECT, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])]
 
     # K-means parameter
     if DEBUG:
