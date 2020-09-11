@@ -8,8 +8,8 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 temp = os.path.dirname(current_dir)
 sys.path.insert(1, temp)
 
-from clustering_SAR.covariance_clustering_functions import Riemannian_distance_covariance
-from clustering_SAR.covariance_and_texture_clustering_functions import compute_feature_Covariance_texture, Riemannian_mean_covariance_texture
+from clustering_SAR.covariance_clustering_functions import distance_covariance_Riemannian
+from clustering_SAR.covariance_and_texture_clustering_functions import compute_feature_covariance_texture, mean_covariance_texture_Riemannian
 from clustering_SAR.generation_data import generate_covariance, generate_texture, generate_Toeplitz, sample_complex_normal, sample_compound
 from clustering_SAR.generic_functions import unvech, vech
 from clustering_SAR.matrix_operators import sqrtm, invsqrtm, logm, expm
@@ -17,7 +17,7 @@ from clustering_SAR.matrix_operators import sqrtm, invsqrtm, logm, expm
 ###################################################
 # test estimation of covariance + texture
 ###################################################
-def test_compute_feature_Covariance_texture():
+def test_compute_feature_covariance_texture():
     N = 1000
     p = 3
     
@@ -37,16 +37,16 @@ def test_compute_feature_Covariance_texture():
  
     # estimate tau and sigma from X
     args_estimation = (-np.inf, 100)
-    param_est = compute_feature_Covariance_texture(X, args_estimation)
+    param_est = compute_feature_covariance_texture(X, args_estimation)
     sigma_est = unvech(param_est[:int(p*(p+1)/2)])
     tau_est = param_est[int(p*(p+1)/2):]
-    assert Riemannian_distance_covariance(vech(sigma), vech(sigma_est)) < 0.2
+    assert distance_covariance_Riemannian(vech(sigma), vech(sigma_est)) < 0.2
     
 
 ###################################################
 # test Riemannian geometry of covariance + texture
 ###################################################
-def test_Riemannian_mean_covariance_texture():
+def test_mean_covariance_texture_Riemannian():
     p = 3
     N = 25
     cov_0 = generate_covariance(p)
@@ -71,7 +71,7 @@ def test_Riemannian_mean_covariance_texture():
     temp_1 = np.concatenate([cov_1, tau_1], axis=0)
     features = np.concatenate([temp_0, temp_1], axis=1)
     params = [1.0, 0.95, 1e-3, 100, False, 0]
-    mean_opt = Riemannian_mean_covariance_texture(features, p, N, params)
+    mean_opt = mean_covariance_texture_Riemannian(features, p, N, params)
 
     mean_tau_opt = mean_opt[int(p*(p+1)/2):]
     mean_sigma_opt = unvech(mean_opt[:int(p*(p+1)/2)])

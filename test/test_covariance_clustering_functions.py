@@ -7,7 +7,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 temp = os.path.dirname(current_dir)
 sys.path.insert(1, temp)
 
-from clustering_SAR.covariance_clustering_functions import Riemannian_distance_covariance, Riemannian_mean_covariance, vech_SCM
+from clustering_SAR.covariance_clustering_functions import distance_covariance_Riemannian, mean_covariance_Riemannian, vech_SCM
 from clustering_SAR.generation_data import generate_covariance, sample_complex_normal
 from clustering_SAR.generic_functions import unvech, vech
 from clustering_SAR.matrix_operators import sqrtm, invsqrtm, logm, expm
@@ -29,13 +29,13 @@ def test_compute_feature_Covariance_texture():
     # estimate sigma from X
     sigma_est = vech_SCM(X)
 
-    assert Riemannian_distance_covariance(vech(sigma), sigma_est) < 0.2
+    assert distance_covariance_Riemannian(vech(sigma), sigma_est) < 0.2
 
 
 #################################################
 # test Riemannian geometry of covariance matrices
 #################################################
-def test_Riemannian_distance_covariance():
+def test_distance_covariance_Riemannian():
     p = 3
     cov_0 = generate_covariance(p)
     cov_1 = generate_covariance(p)
@@ -45,12 +45,12 @@ def test_Riemannian_distance_covariance():
  
     cov_0 = vech(cov_0).reshape((-1,))
     cov_1 = vech(cov_1).reshape((-1,))
-    dist_2 = Riemannian_distance_covariance(cov_0, cov_1)
+    dist_2 = distance_covariance_Riemannian(cov_0, cov_1)
 
     np.testing.assert_almost_equal(dist_1, dist_2, decimal=3)
 
 
-def test_Riemannian_mean_covariance():
+def test_mean_covariance_Riemannian():
     p = 3
     cov_0 = generate_covariance(p)
     cov_1 = generate_covariance(p)
@@ -65,13 +65,13 @@ def test_Riemannian_mean_covariance():
     cov_1 = vech(cov_1).reshape((-1,1))
     covs = np.concatenate([cov_0, cov_1], axis=1)
     params = [1.0, 0.95, 1e-3, 100, False, 0]
-    mean_opt = unvech(Riemannian_mean_covariance(covs, params))
+    mean_opt = unvech(mean_covariance_Riemannian(covs, params))
     
     np.testing.assert_almost_equal(mean, mean_opt, decimal=3)
    
     # same test but with multi processing
     params = [1.0, 0.95, 1e-3, 100, True, 8]
-    mean_opt = unvech(Riemannian_mean_covariance(covs, params))
+    mean_opt = unvech(mean_covariance_Riemannian(covs, params))
     
     np.testing.assert_almost_equal(mean, mean_opt, decimal=3)
 
@@ -80,7 +80,7 @@ def test_Riemannian_mean_covariance():
     covs = np.zeros((int(p*(p+1)/2), n), dtype=np.complex)
     for i in range(n):
         covs[:, i] = vech(generate_covariance(p))
-    mean = unvech(Riemannian_mean_covariance(covs))
+    mean = unvech(mean_covariance_Riemannian(covs))
 
     # check that minus the gradient of the cost function has a null norm
     sqrt_mean = sqrtm(mean)

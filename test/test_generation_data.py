@@ -9,7 +9,7 @@ sys.path.insert(1, temp)
 
 from clustering_SAR.generation_data import generate_covariance, sample_complex_normal, sample_complex_standard_normal
 from clustering_SAR.generic_functions import vech
-from clustering_SAR.covariance_clustering_functions import Riemannian_distance_covariance
+from clustering_SAR.covariance_clustering_functions import distance_covariance_Riemannian
 
 
 def test_generate_covariance():
@@ -33,7 +33,7 @@ def test_sample_complex_standard_normal():
 
     # identity covariance
     SCM = (1/N)*X@X.conj().T
-    assert Riemannian_distance_covariance(vech(SCM), vech(np.eye(p))) < 0.2
+    assert distance_covariance_Riemannian(vech(SCM), vech(np.eye(p))) < 0.2
 
 
 def test_sample_complex_normal():
@@ -49,4 +49,4 @@ def test_sample_complex_normal():
 
     # sigma covariance
     SCM = (1/N)*X@X.conj().T
-    assert Riemannian_distance_covariance(vech(SCM), vech(sigma)) < 0.2
+    assert distance_covariance_Riemannian(vech(SCM), vech(sigma)) < 0.2

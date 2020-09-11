@@ -82,8 +82,8 @@ def distance_covariance_texture_Riemannian(x_1, x_2, p, N):
         ---------
             * d = the distance between samples
         """
-    dist_cov = Riemannian_distance_covariance(x_1[:int(p*(p+1)/2)], x_2[:int(p*(p+1)/2)])
-    dist_texture = Riemannian_distance_texture(x_1[int(p*(p+1)/2):], x_2[int(p*(p+1)/2):])
+    dist_cov = distance_covariance_Riemannian(x_1[:int(p*(p+1)/2)], x_2[:int(p*(p+1)/2)])
+    dist_texture = distance_texture_Riemannian(x_1[int(p*(p+1)/2):], x_2[int(p*(p+1)/2):])
 
     d = np.sqrt((1/p)*(dist_cov**2)+(1/N)*(dist_texture**2))
 
@@ -119,7 +119,7 @@ def mean_covariance_texture_Riemannian(X_class, p, N, mean_parameters=[1.0, 0.95
     X_tau = X_class[int(p*(p+1)/2):,:]
 
     # Computing Riemannian mean on PDH set
-    sigma_mean = Riemannian_mean_covariance(X_sigma, (eps, eps_step, tol, iter_max, enable_multi, number_of_threads))
+    sigma_mean = mean_covariance_Riemannian(X_sigma, (eps, eps_step, tol, iter_max, enable_multi, number_of_threads))
 
     tau_mean = np.exp((1.0/X_tau.shape[1])*np.sum(np.log(X_tau), axis=1))
 

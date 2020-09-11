@@ -168,16 +168,16 @@ class CovarianceTexture(BaseClassFeatures):
     
     def estimation(self, X):
         if self.estimation_args is not None:
-            return compute_feature_Covariance_texture(X, self.estimation_args)
-        return compute_feature_Covariance_texture(X)
+            return compute_feature_covariance_texture(X, self.estimation_args)
+        return compute_feature_covariance_texture(X)
 
     def distance(self, x1, x2):
-        return distance_covariance_Riemannian_texture(x1, x2, self.p, self.N)
+        return distance_covariance_texture_Riemannian(x1, x2, self.p, self.N)
 
     def mean(self, X):
         if self.mean_args:
-            return mean_covariance_Riemannian_texture(X, self.p, self.N, self.mean_args)
-        return mean_covariance_Riemannian_texture(X, self.p, self.N)
+            return mean_covariance_texture_Riemannian(X, self.p, self.N, self.mean_args)
+        return mean_covariance_texture_Riemannian(X, self.p, self.N)
 
 def center_vectors_estimation(features):
     """ Center vectors before estimating features.
