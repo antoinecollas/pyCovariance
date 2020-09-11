@@ -1,5 +1,18 @@
 import numpy as np
 
+def mean(X):
+    """ Compute mean of vectors
+        Inputs:
+        --------
+            * X = a (p, N) array where p is the dimension of data and N the number of samples used for estimation
+
+        Outputs:
+        ---------
+            * 𝐱 = the feature for classification
+        """
+    mean = np.mean(X, axis=1)
+    return mean
+
 def SCM(x, *args):
     """ A function that computes the SCM for covariance matrix estimation
             Inputs:

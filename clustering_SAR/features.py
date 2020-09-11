@@ -7,6 +7,9 @@ from .covariance_clustering_functions import center_vectors, distance_covariance
 # import functions related to covariance and texture features
 from .covariance_and_texture_clustering_functions import compute_feature_covariance_texture, distance_covariance_texture_Riemannian, mean_covariance_texture_Riemannian
 
+# import functions related to location and covariance features
+from .location_covariance_clustering_functions import compute_feature_location_covariance, distance_location_covariance_Euclidean, mean_location_covariance_Euclidean
+
 class BaseClassFeatures:
     def __init__(self):
         pass
@@ -178,6 +181,26 @@ class CovarianceTexture(BaseClassFeatures):
         if self.mean_args:
             return mean_covariance_texture_Riemannian(X, self.p, self.N, self.mean_args)
         return mean_covariance_texture_Riemannian(X, self.p, self.N)
+
+class LocationCovarianceEuclidean(BaseClassFeatures):
+    def __init__(
+        self,
+        p
+    ):
+        super().__init__()
+        self.p = p
+    
+    def __str__(self):
+        return 'Location_And_Covariance_Euclidean_features'
+
+    def estimation(self, X):
+        return compute_feature_location_covariance(X)
+
+    def distance(self, x1, x2):
+        return distance_location_covariance_Euclidean(x1, x2, self.p)
+
+    def mean(self, X):
+        return mean_location_covariance_Euclidean(X)
 
 def center_vectors_estimation(features):
     """ Center vectors before estimating features.
