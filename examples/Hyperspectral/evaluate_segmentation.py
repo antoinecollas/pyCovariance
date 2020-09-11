@@ -25,7 +25,7 @@ from examples.Hyperspectral.k_means import Dataset
 #######################################################
 #######################################################
 
-DATASET_LIST = ['Pavia', 'Indian_Pines']
+DATASET_LIST = ['Indian_Pines', 'Pavia']
 
 # Window size used to compute features
 WINDOWS_SHAPE = (5, 5)
