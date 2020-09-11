@@ -48,6 +48,9 @@ for dataset_name in DATASET_LIST:
     # segmentation path (by default: get last folder)
     folder_regex = os.path.join('results', dataset.name, '*')
     folders_result = glob.glob(folder_regex)
+    if len(folders_result)==0:
+        print('Warning: no results for dataset', dataset.name)
+        continue
     folders_result.sort()
     folder_result = folders_result[-1]
     print('Folder used to get segmentations:', folder_result)
