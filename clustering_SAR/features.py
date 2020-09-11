@@ -2,10 +2,10 @@ from functools import partial
 import numpy as np
 
 # import functions related to covariance features
-from .covariance_clustering_functions import center_vectors, covariance_arithmetic_mean, covariance_Euclidean_distance, Riemannian_distance_covariance, Riemannian_mean_covariance, vech_SCM
+from .covariance_clustering_functions import center_vectors, distance_covariance_Euclidean, distance_covariance_Riemannian, mean_covariance_Euclidean, mean_covariance_Riemannian, vech_SCM
 
 # import functions related to covariance and texture features
-from .covariance_and_texture_clustering_functions import compute_feature_Covariance_texture, Riemannian_distance_covariance_texture, Riemannian_mean_covariance_texture
+from .covariance_and_texture_clustering_functions import compute_feature_covariance_texture, distance_covariance_texture_Riemannian, mean_covariance_texture_Riemannian
 
 class BaseClassFeatures:
     def __init__(self):
@@ -121,10 +121,10 @@ class CovarianceEuclidean(BaseClassFeatures):
         return vech_SCM(X)
 
     def distance(self, x1, x2):
-        return covariance_Euclidean_distance(x1, x2)
+        return distance_covariance_Euclidean(x1, x2)
 
     def mean(self, X):
-        return covariance_arithmetic_mean(X)
+        return mean_covariance_Euclidean(X)
 
 class Covariance(BaseClassFeatures):
     def __init__(
@@ -141,12 +141,12 @@ class Covariance(BaseClassFeatures):
         return vech_SCM(X)
 
     def distance(self, x1, x2):
-        return Riemannian_distance_covariance(x1, x2)
+        return distance_covariance_Riemannian(x1, x2)
 
     def mean(self, X):
         if self.mean_args:
-            return Riemannian_mean_covariance(X, self.mean_args)
-        return Riemannian_mean_covariance(X)
+            return mean_covariance_Riemannian(X, self.mean_args)
+        return mean_covariance_Riemannian(X)
 
 class CovarianceTexture(BaseClassFeatures):
     def __init__(
@@ -172,12 +172,12 @@ class CovarianceTexture(BaseClassFeatures):
         return compute_feature_Covariance_texture(X)
 
     def distance(self, x1, x2):
-        return Riemannian_distance_covariance_texture(x1, x2, self.p, self.N)
+        return distance_covariance_Riemannian_texture(x1, x2, self.p, self.N)
 
     def mean(self, X):
         if self.mean_args:
-            return Riemannian_mean_covariance_texture(X, self.p, self.N, self.mean_args)
-        return Riemannian_mean_covariance_texture(X, self.p, self.N)
+            return mean_covariance_Riemannian_texture(X, self.p, self.N, self.mean_args)
+        return mean_covariance_Riemannian_texture(X, self.p, self.N)
 
 def center_vectors_estimation(features):
     """ Center vectors before estimating features.

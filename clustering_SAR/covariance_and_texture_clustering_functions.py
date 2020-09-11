@@ -2,11 +2,11 @@ import numpy as np
 import scipy as sp
 import warnings
 
-from .covariance_clustering_functions import Riemannian_distance_covariance, Riemannian_mean_covariance
+from .covariance_clustering_functions import distance_covariance_Riemannian, mean_covariance_Riemannian
 from .estimation import tyler_estimator_covariance_normalisedet
 from .generic_functions import *
 
-def compute_feature_Covariance_texture(X, args=(0.01, 20)):
+def compute_feature_covariance_texture(X, args=(0.01, 20)):
     """ Serve to compute feature for Covariance and texture classificaiton.
         We use vech opeartion to save memory space on covariance.
         ----------------------------------------------------------------------
@@ -53,7 +53,7 @@ def compute_feature_Covariance_texture_mean(𝐗, args):
     return list( np.hstack([vech(𝚺), np.mean(τ)]) )
 
 
-def Riemannian_distance_texture(tau_1, tau_2):
+def distance_texture_Riemannian(tau_1, tau_2):
     """ Riemannian distance on covariance + texture parameters
         ----------------------------------------------------------------------
         Inputs:
@@ -67,7 +67,7 @@ def Riemannian_distance_texture(tau_1, tau_2):
     return np.linalg.norm(np.log(tau_1)-np.log(tau_2))
 
 
-def Riemannian_distance_covariance_texture(x_1, x_2, p, N):
+def distance_covariance_texture_Riemannian(x_1, x_2, p, N):
     """ Riemannian distance on covariance + texture parameters
         ----------------------------------------------------------------------
         Inputs:
@@ -90,7 +90,7 @@ def Riemannian_distance_covariance_texture(x_1, x_2, p, N):
     return d
 
 
-def Riemannian_mean_covariance_texture(X_class, p, N, mean_parameters=[1.0, 0.95, 1e-3, 100, False, 0]):
+def mean_covariance_texture_Riemannian(X_class, p, N, mean_parameters=[1.0, 0.95, 1e-3, 100, False, 0]):
     """ Riemannian mean on covariance + texture manifold:
         ----------------------------------------------------------------------
         Inputs:

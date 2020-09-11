@@ -62,7 +62,7 @@ def vech_tylerdet(𝐗, args):
 # ----------------------------------------------------------------------------
 # 2) Euclidean classifier: Euclidean distance + arithmetic mean
 # ----------------------------------------------------------------------------
-def covariance_Euclidean_distance(vh𝚺_1, vh𝚺_2, params='fro'):
+def distance_covariance_Euclidean(vh𝚺_1, vh𝚺_2, params='fro'):
     """ Euclidean distance between covariance matrices in parameters
         ----------------------------------------------------------------------
         Inputs:
@@ -84,7 +84,7 @@ def covariance_Euclidean_distance(vh𝚺_1, vh𝚺_2, params='fro'):
     return np.real(d)
 
 
-def covariance_arithmetic_mean(𝐗_class, mean_parameters=None):
+def mean_covariance_Euclidean(𝐗_class, mean_parameters=None):
     """ Arithmetic mean as discribed in II.B. of:
         P. Formont, F. Pascal, G. Vasile, J. Ovarlez and L. Ferro-Famil, 
         "Statistical Classification for Heterogeneous Polarimetric SAR Images," 
@@ -109,7 +109,7 @@ def covariance_arithmetic_mean(𝐗_class, mean_parameters=None):
 # ----------------------------------------------------------------------------
 # 3) Riemannian covariance classifier: Riemannian distance + mean
 # ----------------------------------------------------------------------------
-def Riemannian_distance_covariance(x_1, x_2, params=None):
+def distance_covariance_Riemannian(x_1, x_2, params=None):
     """ Riemannian distance on covariance parameters
         ----------------------------------------------------------------------
         Inputs:
@@ -172,7 +172,7 @@ def wrapper_compute_J(𝐗_class, isqrtm_𝐌, enable_multi=False, number_of_thr
     return J
 
 
-def Riemannian_mean_covariance(X_class, mean_parameters=[1.0, 0.95, 1e-3, 30, False, 0]):
+def mean_covariance_Riemannian(X_class, mean_parameters=[1.0, 0.95, 1e-3, 30, False, 0]):
     """ Riemannian mean as discribed in section 3. of:
         P. Formont, J. P. Ovarlez, F. Pascal, G. Vasile and L. Ferro-Famil, 
         "On the extension of the product model in POLSAR processing for unsupervised 
