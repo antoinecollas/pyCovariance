@@ -84,7 +84,7 @@ def distance_covariance_Euclidean(vh𝚺_1, vh𝚺_2, params='fro'):
     return np.real(d)
 
 
-def mean_covariance_Euclidean(𝐗_class, mean_parameters=None):
+def mean_covariance_Euclidean(X_class, mean_parameters=None):
     """ Arithmetic mean as discribed in II.B. of:
         P. Formont, F. Pascal, G. Vasile, J. Ovarlez and L. Ferro-Famil, 
         "Statistical Classification for Heterogeneous Polarimetric SAR Images," 
@@ -94,16 +94,15 @@ def mean_covariance_Euclidean(𝐗_class, mean_parameters=None):
         ----------------------------------------------------------------------
         Inputs:
         --------
-            * 𝐗_class = array of shape (p, M) corresponding to 
+            * X_class = array of shape (p*(p+1)/2, M) corresponding to 
                         samples in class
             * mean_parameters = unused here but needed for coherent coding
 
         Outputs:
         ---------
-            * 𝛍 = the arithmetic mean
+            * the arithmetic mean
         """
-
-    return np.mean(𝐗_class, axis=1)
+    return np.mean(X_class, axis=1)
 
 
 # ----------------------------------------------------------------------------
@@ -241,3 +240,41 @@ def mean_covariance_Riemannian(X_class, mean_parameters=[1.0, 0.95, 1e-3, 30, Fa
             eps = .5 * eps
 
     return vech(mean)
+
+def mean_covariance_Riemannian_with_whitening(X_class, mean_parameters=[1.0, 0.95, 1e-3, 30, False, 0]):
+    """ Riemannian mean with whitening of covariances by Euclidean mean.
+        ----------------------------------------------------------------------
+        Inputs:
+        --------
+            * X_class = array of shape (p*(p+1)/2, M) corresponding to 
+                        samples in class
+            * mean_parameters = (eps, eps_step, tol, iter_max, enable_multi, number_of_threads) where
+                * eps_start controls the speed of the gradient descent at first step
+                * eps_update is the step of in line search: eps = eps_start * eps_update at each descending step
+                * tol is the tolerance to stop the gradient descent
+                * iter_max is the maximum number of iteration
+                * enable_multi is a boolean to activate parrallel computation
+                * number_of_threads is the number of threas for parrallel computation
+
+        Outputs:
+        ---------
+            * mu = the vech of Riemannian mean
+        """
+    (size_vech_cov, M) = X_class.shape
+    if M == 0:
+        raise ValueError('Can\'t compute mean with 0 value...')
+    p = int(np.round(.5 * (-1 + np.sqrt(1 + 8 * size_vech_cov)))) # Size of matrices when unvech
+
+    # whitening of data
+    euclidean_mean = unvech(mean_covariance_Euclidean(X_class))
+    isqrt_e_mean = invsqrtm(euclidean_mean)
+    covs = np.zeros((size_vech_cov, M), dtype=np.complex)
+    for i in range(M):
+        covs[:, i] =  vech(isqrt_e_mean@unvech(X_class[:, i])@isqrt_e_mean)
+
+    # Riemannian mean
+    m = mean_covariance_Riemannian(covs, mean_parameters)
+    sqrt_e_mean = sqrtm(euclidean_mean)
+    m = vech(sqrt_e_mean@unvech(m)@sqrt_e_mean)
+
+    return m
