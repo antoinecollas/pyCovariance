@@ -73,6 +73,7 @@ def plot_segmentation(C, aspect=1, classes=None, title=None):
     if title is not None:
         plt.title(title)
 
+    plt.grid(b=False)
 
 def save_segmentation(folder, filename, np_array):
     """ A function that saves a numpy array in a folder. The array and the folder are passed as arguments.
