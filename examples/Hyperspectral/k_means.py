@@ -53,7 +53,6 @@ if __name__ == '__main__':
         print()
         print('CROP_IMAGE mode enabled !!!')
         SIZE_CROP = 100
-    NB_BANDS_TO_SELECT = 10
     
     # Enable parallel processing (or not)
     ENABLE_MULTI = True
@@ -71,10 +70,18 @@ if __name__ == '__main__':
     MASK = False
 
     # Window size to compute features
-    WINDOWS_SHAPE = (5,5)
+    WINDOWS_SHAPE = (5, 5)
+    if (WINDOWS_SHAPE == (3, 3)):
+        nb_bands_to_select = 4
+    elif (WINDOWS_SHAPE == (5, 5)):
+        nb_bands_to_select = 10
+    elif (WINDOWS_SHAPE == (7, 7)):
+        nb_bands_to_select = 20
+    else:
+        raise NotImplementedError
 
     # Features used to cluster the image
-    FEATURES_LIST = [LocationCovarianceEuclidean(NB_BANDS_TO_SELECT)]
+    FEATURES_LIST = [PixelEuclidean(), MeanPixelEuclidean(), Intensity(), CovarianceEuclidean(), Covariance(), CovarianceTexture(p=nb_bands_to_select, N=WINDOWS_SHAPE[0]*WINDOWS_SHAPE[1])]
 
     # K-means parameter
     NUMBER_INIT = 10
@@ -113,11 +120,11 @@ if __name__ == '__main__':
 
         # pca
         if PCA:
-            image = pca_and_save_variance(FOLDER_FIGURES, 'fig_explained_variance', image, NB_BANDS_TO_SELECT)
+            image = pca_and_save_variance(FOLDER_FIGURES, 'fig_explained_variance', image, nb_bands_to_select)
         else:
             print('Bands are selected randomly.')
             random.seed(2)
-            bands = random.sample(list(range(image.shape[2])), k=NB_BANDS_TO_SELECT)
+            bands = random.sample(list(range(image.shape[2])), k=nb_bands_to_select)
             bands.sort()
             image = image[:, :, bands]
 
@@ -145,7 +152,7 @@ if __name__ == '__main__':
         # We use scikit-learn K-means implementation as a reference
         n_jobs = NUMBER_OF_THREADS_ROWS*NUMBER_OF_THREADS_COLUMNS if ENABLE_MULTI else 1
         sklearn_K_means = KMeans(n_clusters=number_classes, n_init=NUMBER_INIT)
-        image_sk = image[h:-h, w:-w].reshape((-1, NB_BANDS_TO_SELECT))
+        image_sk = image[h:-h, w:-w].reshape((-1, nb_bands_to_select))
         if MASK:
             image_sk = image_sk[mask.reshape(-1)]
         temp = sklearn_K_means.fit_predict(image_sk).astype(np.int)
