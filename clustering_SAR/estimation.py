@@ -43,6 +43,7 @@ def tyler_estimator_covariance(X, tol=0.001, iter_max=20):
     (p,N) = X.shape
     delta = np.inf # Distance between two iterations
     sigma = (1/N)*X@X.conj().T
+    sigma = p*sigma/np.trace(sigma)
     iteration = 0
 
     # Recursive algorithm
@@ -86,6 +87,7 @@ def tyler_estimator_covariance_normalisedet(X, tol=0.001, iter_max=20):
     (p,N) = X.shape
     delta = np.inf # Distance between two iterations
     sigma = (1/N)*X@X.conj().T
+    sigma = sigma/(np.linalg.det(sigma)**(1/p))
     iteration = 0
 
     while (delta>tol) and (iteration<iter_max):
@@ -95,19 +97,16 @@ def tyler_estimator_covariance_normalisedet(X, tol=0.001, iter_max=20):
         X_bis = X / np.sqrt(tau)
         sigma_new = (1/N) * X_bis@X_bis.conj().T
 
-        # Imposing det constraint: det(sigma) = 1 DOT NOT WORK HERE
-        # sigma = sigma/(np.linalg.det(sigma)**(1/p))
+        # imposing det constraint: det(sigma) = 1
+        sigma_new = sigma_new/(np.linalg.det(sigma_new)**(1/p))
 
-        # Condition for stopping
+        # condition for stopping
         delta = np.linalg.norm(sigma_new - sigma, 'fro') / np.linalg.norm(sigma, 'fro')
         iteration = iteration + 1
 
-        # Updating sigma
+        # updating sigma
         sigma = sigma_new
     
-    # Imposing det constraint: det(𝚺) = 1
-    sigma = sigma/(np.linalg.det(sigma)**(1/p))
-
     if iteration == iter_max:
         warnings.warn('Recursive algorithm did not converge')
 
@@ -129,35 +128,36 @@ def tyler_estimator_location_covariance_normalisedet(X, tol=0.001, iter_max=20):
     # Initialisation
     (p,N) = X.shape
     delta = np.inf # Distance between two iterations
-    mu = np.mean(X, axis=1) 
+    tau = np.ones((1, N))
+    mu = np.mean(X, axis=1).reshape((-1, 1))
     sigma = (1/N)*(X-mu)@(X-mu).conj().T
+    sigma = sigma/(np.linalg.det(sigma)**(1/p))
     iteration = 0
 
     while (delta>tol) and (iteration<iter_max):
         # compute tau
         v = np.linalg.inv(np.linalg.cholesky(sigma))@(X-mu)
-        tau = np.real(np.mean(v*v.conj(),axis=0))
+        tau_new = np.real(np.mean(v*v.conj(), axis=0))
         
         # compute mu (location)
-        mu = (1/np.sum(1/tau)) * np.sum(X/tau, axis=1)
+        mu_new = (1/np.sum(1/tau)) * np.sum(X/tau, axis=1).reshape((-1, 1))
 
         # compute sigma
         X_bis = (X-mu) / np.sqrt(tau)
         sigma_new = (1/N) * X_bis@X_bis.conj().T
 
-        # Imposing det constraint: det(sigma_new) = 1
-        #sigma_new = sigma_new/(np.linalg.det(sigma_new)**(1/p))
-
-        # Condition for stopping
+        # imposing det constraint: det(sigma_new) = 1
+        sigma_new = sigma_new/(np.linalg.det(sigma_new)**(1/p))
+        
+        # condition for stopping
         delta = np.linalg.norm(sigma_new - sigma, 'fro') / np.linalg.norm(sigma, 'fro')
         iteration = iteration + 1
 
-        # Updating 𝚺
+        # updating
+        tau = tau_new
+        mu = mu_new
         sigma = sigma_new
     
-    # Imposing det constraint: det(sigma) = 1
-    sigma = sigma/(np.linalg.det(sigma)**(1/p))
-
     if iteration == iter_max:
         warnings.warn('Recursive algorithm did not converge')
 
