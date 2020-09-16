@@ -36,10 +36,11 @@ def test_compute_feature_covariance_texture():
     X = sample_compound(tau, sigma)
  
     # estimate tau and sigma from X
-    args_estimation = (-np.inf, 100)
+    args_estimation = (1e-3, 100)
     param_est = compute_feature_covariance_texture(X, args_estimation)
     sigma_est = unvech(param_est[:int(p*(p+1)/2)])
     tau_est = param_est[int(p*(p+1)/2):]
+    assert np.abs(np.linalg.det(sigma)-1) < 1e-3
     assert distance_covariance_Riemannian(vech(sigma), vech(sigma_est)) < 0.2
     
 

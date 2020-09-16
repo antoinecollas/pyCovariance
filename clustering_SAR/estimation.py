@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 
 
 def mean(X):
@@ -26,93 +27,138 @@ def SCM(X, *args):
     return (X @ X.conj().T) / N
 
 
-def tyler_estimator_covariance(𝐗, tol=0.001, iter_max=20):
+def tyler_estimator_covariance(X, tol=0.001, iter_max=20):
     """ A function that computes the Tyler Fixed Point Estimator for covariance matrix estimation
         Inputs:
-            * 𝐗 = a matrix of size p*N with each observation along column dimension
+            * X = a matrix of size p*N with each observation along column dimension
             * tol = tolerance for convergence of estimator
             * iter_max = number of maximum iterations
         Outputs:
-            * 𝚺 = the estimate
-            * δ = the final distance between two iterations
+            * sigma
+            * tau
+            * delta = the final distance between two iterations
             * iteration = number of iterations til convergence """
 
     # Initialisation
-    (p,N) = 𝐗.shape
-    δ = np.inf # Distance between two iterations
-    𝚺 = np.eye(p) # Initialise estimate to identity
+    (p,N) = X.shape
+    delta = np.inf # Distance between two iterations
+    sigma = (1/N)*X@X.conj().T
     iteration = 0
 
     # Recursive algorithm
-    while (δ>tol) and (iteration<iter_max):
-        
-        # Computing expression of Tyler estimator (with matrix multiplication)
-        τ = np.diagonal(𝐗.conj().T@np.linalg.inv(𝚺)@𝐗)
-        𝐗_bis = 𝐗 / np.sqrt(τ)
-        𝚺_new = (p/N) * 𝐗_bis@𝐗_bis.conj().T
+    while (delta>tol) and (iteration<iter_max):
+        # compute expression of Tyler estimator
+        v = np.linalg.inv(np.linalg.cholesky(sigma))@X
+        tau = np.real(np.mean(v*v.conj(),axis=0))
+        X_bis = X / np.sqrt(tau)
+        sigma_new = (1/N) * X_bis@X_bis.conj().T
 
-        # Imposing trace constraint: Tr(𝚺) = p
-        𝚺_new = p*𝚺_new/np.trace(𝚺_new)
+        # imposing trace constraint: Tr(sigma) = p
+        sigma_new = p*sigma_new/np.trace(sigma_new)
 
-        # Condition for stopping
-        δ = np.linalg.norm(𝚺_new - 𝚺, 'fro') / np.linalg.norm(𝚺, 'fro')
+        # condition for stopping
+        delta = np.linalg.norm(sigma_new - sigma, 'fro') / np.linalg.norm(sigma, 'fro')
         iteration = iteration + 1
 
-        # Updating 𝚺
-        𝚺 = 𝚺_new
+        # updating sigma
+        sigma = sigma_new
 
     if iteration == iter_max:
         warnings.warn('Recursive algorithm did not converge')
 
-    return (𝚺, δ, iteration)
+    return (sigma, tau, delta, iteration)
 
 
-def tyler_estimator_covariance_normalisedet(𝐗, tol=0.001, iter_max=20, init=None):
+def tyler_estimator_covariance_normalisedet(X, tol=0.001, iter_max=20):
     """ A function that computes the Tyler Fixed Point Estimator for covariance matrix estimation
         and normalisation by determinant
         Inputs:
-            * 𝐗 = a matrix of size p*N with each observation along column dimension
+            * X = a matrix of size p*N with each observation along column dimension
             * tol = tolerance for convergence of estimator
             * iter_max = number of maximum iterations
-            * init = Initialisation point of the fixed-point, default is identity matrix
         Outputs:
-            * 𝚺 = the estimate
-            * δ = the final distance between two iterations
+            * sigma
+            * tau
+            * delta = the final distance between two iterations
             * iteration = number of iterations til convergence """
+
     # Initialisation
-    (p,N) = 𝐗.shape
-    δ = np.inf # Distance between two iterations
-    if init is None:
-        𝚺 = (1/N)*𝐗@𝐗.conj().T
-    else:
-        𝚺 = init
+    (p,N) = X.shape
+    delta = np.inf # Distance between two iterations
+    sigma = (1/N)*X@X.conj().T
     iteration = 0
 
-    τ=np.zeros((p,N))
-    # Recursive algorithm
-    while (δ>tol) and (iteration<iter_max):
-        # Computing expression of Tyler estimator (with matrix multiplication)
-        v=np.linalg.inv(np.linalg.cholesky(𝚺))@𝐗
-        a=np.mean(v*v.conj(),axis=0)
+    while (delta>tol) and (iteration<iter_max):
+        # compute expression of Tyler estimator
+        v = np.linalg.inv(np.linalg.cholesky(sigma))@X
+        tau = np.real(np.mean(v*v.conj(),axis=0))
+        X_bis = X / np.sqrt(tau)
+        sigma_new = (1/N) * X_bis@X_bis.conj().T
 
-        τ[0:p,:] = np.sqrt(np.real(a))
-        𝐗_bis = 𝐗 / τ
-        𝚺_new = (1/N) * 𝐗_bis@𝐗_bis.conj().T
-
-        # Imposing det constraint: det(𝚺) = 1 DOT NOT WORK HERE
-        #𝚺 = 𝚺/(np.linalg.det(𝚺)**(1/p))
+        # Imposing det constraint: det(sigma) = 1 DOT NOT WORK HERE
+        # sigma = sigma/(np.linalg.det(sigma)**(1/p))
 
         # Condition for stopping
-        δ = np.linalg.norm(𝚺_new - 𝚺, 'fro') / np.linalg.norm(𝚺, 'fro')
+        delta = np.linalg.norm(sigma_new - sigma, 'fro') / np.linalg.norm(sigma, 'fro')
+        iteration = iteration + 1
+
+        # Updating sigma
+        sigma = sigma_new
+    
+    # Imposing det constraint: det(𝚺) = 1
+    sigma = sigma/(np.linalg.det(sigma)**(1/p))
+
+    if iteration == iter_max:
+        warnings.warn('Recursive algorithm did not converge')
+
+    return (sigma, tau, delta, iteration)
+
+
+def tyler_estimator_location_covariance_normalisedet(X, tol=0.001, iter_max=20):
+    """ A function that computes the Tyler Fixed Point Estimator for location and covariance estimation.
+        Inputs:
+            * X = a matrix of size p*N with each observation along column dimension
+            * tol = tolerance for convergence of estimator
+            * iter_max = number of maximum iterations
+        Outputs:
+            * mu = estimate of location
+            * sigma = estimate of covariance
+            * delta = the final distance between two iterations
+            * iteration = number of iterations til convergence """
+    
+    # Initialisation
+    (p,N) = X.shape
+    delta = np.inf # Distance between two iterations
+    mu = np.mean(X, axis=1) 
+    sigma = (1/N)*(X-mu)@(X-mu).conj().T
+    iteration = 0
+
+    while (delta>tol) and (iteration<iter_max):
+        # compute tau
+        v = np.linalg.inv(np.linalg.cholesky(sigma))@(X-mu)
+        tau = np.real(np.mean(v*v.conj(),axis=0))
+        
+        # compute mu (location)
+        mu = (1/np.sum(1/tau)) * np.sum(X/tau, axis=1)
+
+        # compute sigma
+        X_bis = (X-mu) / np.sqrt(tau)
+        sigma_new = (1/N) * X_bis@X_bis.conj().T
+
+        # Imposing det constraint: det(sigma_new) = 1
+        #sigma_new = sigma_new/(np.linalg.det(sigma_new)**(1/p))
+
+        # Condition for stopping
+        delta = np.linalg.norm(sigma_new - sigma, 'fro') / np.linalg.norm(sigma, 'fro')
         iteration = iteration + 1
 
         # Updating 𝚺
-        𝚺 = 𝚺_new
+        sigma = sigma_new
     
-    # Imposing det constraint: det(𝚺) = 1
-    𝚺 = 𝚺/(np.linalg.det(𝚺)**(1/p))
+    # Imposing det constraint: det(sigma) = 1
+    sigma = sigma/(np.linalg.det(sigma)**(1/p))
 
-    # if iteration == iter_max:
-    #     warnings.warn('Recursive algorithm did not converge')
+    if iteration == iter_max:
+        warnings.warn('Recursive algorithm did not converge')
 
-    return (𝚺, δ, iteration)
+    return (mu, sigma, tau, delta, iteration)

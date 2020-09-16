@@ -1,6 +1,6 @@
 # From: https://github.com/alexandrebarachant/pyRiemann/blob/master/pyriemann/utils/base.py
 import numpy
-import scipy
+import scipy.linalg
 
 from numpy.core.numerictypes import typecodes
 

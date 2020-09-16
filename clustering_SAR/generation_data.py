@@ -4,11 +4,13 @@ import scipy as sp
 
 from .matrix_operators import sqrtm
 
+
 def generate_covariance(p):
     N = 3*p
     X = random.standard_normal((p, N)) + 1j*random.standard_normal((p, N))
     cov = X@X.conj().T
     return cov
+
 
 def generate_Toeplitz(rho, p):
     """ A function that computes a Hermitian semi-positive matrix.
@@ -19,6 +21,7 @@ def generate_Toeplitz(rho, p):
                 * the matrix """
 
     return sp.linalg.toeplitz(np.power(rho, np.arange(0, p)))
+
 
 def generate_texture(N):
     mu = 0.1

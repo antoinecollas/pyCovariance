@@ -23,34 +23,31 @@ def compute_feature_covariance_texture(X, args=(0.01, 20)):
             * 𝐱 = the feature for classification
         """
     eps, iter_max = args
-    sigma, _, _ = tyler_estimator_covariance_normalisedet(np.squeeze(X), eps, iter_max)
-    sigma = (sigma+sigma.conj().T)/2
-    tau = np.real(np.diagonal(np.squeeze(X).conj().T@np.linalg.inv(sigma)@np.squeeze(X)))
+    sigma, tau, _, _ = tyler_estimator_covariance_normalisedet(np.squeeze(X), eps, iter_max)
     return np.hstack([vech(sigma), tau])
 
 
-def compute_feature_Covariance_texture_mean(𝐗, args):
+def compute_feature_Covariance_texture_mean(X, args):
     """ Serve to compute feature for Covariance and texture classificaiton.
         We use vech opeartion to save memory space on covariance. Texture is
         computed as the mean over the window.
         ----------------------------------------------------------------------
         Inputs:
         --------
-            * 𝐗 = a (p, N) array where p is the dimension of data and N the number
+            * X = a (p, N) array where p is the dimension of data and N the number
                     of samples used for estimation
-            * args = (ϵ, iter_max) for Tyler estimator, where
-                ** ϵ = tolerance for convergence
+            * args = (eps, iter_max) for Tyler estimator, where
+                ** eps = tolerance for convergence
                 ** iter_max = number of iterations max
 
         Outputs:
         ---------
-            * 𝐱 = the feature for classification
+            * the feature for classification
         """
 
-    ϵ, iter_max = args
-    𝚺, δ, iteration = tyler_estimator_covariance_normalisedet(np.squeeze(𝐗), ϵ, iter_max)
-    τ = np.diagonal(np.squeeze(𝐗).conj().T@np.linalg.inv(𝚺)@np.squeeze(𝐗))
-    return list( np.hstack([vech(𝚺), np.mean(τ)]) )
+    eps, iter_max = args
+    sigma, tau, _, _ = tyler_estimator_covariance_normalisedet(np.squeeze(X), eps, iter_max)
+    return list(np.hstack([vech(sigma), np.mean(tau)]) )
 
 
 def distance_texture_Riemannian(tau_1, tau_2):

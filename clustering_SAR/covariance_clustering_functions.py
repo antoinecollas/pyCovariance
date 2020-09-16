@@ -38,27 +38,6 @@ def vech_SCM(X):
     return vech(SCM(np.squeeze(X)))
 
 
-def vech_tylerdet(𝐗, args):
-    """ Serve to compute feature for Covariance only classification but robust estimation.
-        We use vech opeartion to save memory space.
-        ----------------------------------------------------------------------
-        Inputs:
-        --------
-            * 𝐗 = a (p, N) array where p is the dimension of data and N the number
-                    of samples used for estimation
-            * args = (ϵ, iter_max) for Tyler estimator, where
-                ** ϵ = tolerance for convergence
-                ** iter_max = number of iterations max
-
-        Outputs:
-        ---------
-            * 𝐱 = the feature for classification
-        """
-    ϵ, iter_max = args
-    𝚺, δ, iteration = tyler_estimator_covariance_normalisedet(np.squeeze(𝐗), ϵ, iter_max)
-    return list(vech(𝚺))
-
-
 # ----------------------------------------------------------------------------
 # 2) Euclidean classifier: Euclidean distance + arithmetic mean
 # ----------------------------------------------------------------------------
