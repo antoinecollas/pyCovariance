@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def mean(X):
     """ Compute mean of vectors
         Inputs:
@@ -13,15 +14,16 @@ def mean(X):
     mean = np.mean(X, axis=1)
     return mean
 
-def SCM(x, *args):
+
+def SCM(X, *args):
     """ A function that computes the SCM for covariance matrix estimation
             Inputs:
-                * x = a matrix of size p*N with each observation along column dimension
+                * X = a matrix of size p*N with each observation along column dimension
             Outputs:
                 * Sigma = the estimate"""
 
-    (p, N) = x.shape
-    return (x @ x.conj().T) / N
+    (p, N) = X.shape
+    return (X @ X.conj().T) / N
 
 
 def tyler_estimator_covariance(𝐗, tol=0.001, iter_max=20):
