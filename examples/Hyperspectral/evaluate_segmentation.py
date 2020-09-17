@@ -15,7 +15,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 temp = os.path.dirname(os.path.dirname(current_dir))
 sys.path.insert(1, temp)
 
-from clustering_SAR.evaluation import assign_classes_segmentation_to_gt, compute_mIoU, plot_segmentation, plot_TP_FP_FN_segmentation
+from clustering_SAR.evaluation import assign_classes_segmentation_to_gt, compute_mIoU, compute_OA, plot_segmentation, plot_TP_FP_FN_segmentation
 
 from examples.Hyperspectral.k_means import Dataset
 
@@ -28,7 +28,7 @@ from examples.Hyperspectral.k_means import Dataset
 DATASET_LIST = ['Indian_Pines', 'Pavia']
 
 # Window size used to compute features
-WINDOWS_SHAPE = (5, 5)
+WINDOWS_SHAPE = (7, 7)
 
 #######################################################
 #######################################################
@@ -80,43 +80,47 @@ for dataset_name in DATASET_LIST:
     for path in segmentations_paths:
         segmentation = np.load(path)
         name = path.split('/')[-1].split('.')[0]
-        folder_analyses = os.path.join(folder, name)
-        if not os.path.isdir(folder_analyses):
-            os.mkdir(folder_analyses)
+        folder_detailed_analyses = os.path.join(folder, name)
+        if not os.path.isdir(folder_detailed_analyses):
+            os.mkdir(folder_detailed_analyses)
 
         print('################################################')
         print()
         print('Results from', name)
         
         print('################################################')
-        print('Supervised metric')
+        print('Metrics:')
         print('################################################')
         old_segmentation = copy.deepcopy(segmentation)
         segmentation = assign_classes_segmentation_to_gt(segmentation, gt, normalize=False)
+        
         IoU, mIoU = compute_mIoU(segmentation, gt)
-        print('mIoU=', mIoU)
+        mIoU = round(mIoU, 2)
         temp = 'IoU:'
         for i in range(len(IoU)):
             temp += ' class '+  str(i+1) + ': ' + str(round(IoU[i], 2))
         print(temp)
+        print('mIoU=', mIoU)
+        
+        OA = compute_OA(segmentation, gt)
+        OA = round(OA, 2)
+        print('OA=', OA)
 
-        print('################################################')
-        print('Unsupervised metric')
-        print('################################################')
         true = gt[gt!=0]
         pred = segmentation[gt!=0]
         AMI = adjusted_mutual_info_score(true, pred)
+        AMI = round(AMI, 2)
         ARI = adjusted_rand_score(true, pred)
+        ARI = round(ARI, 2)
         print('AMI=', AMI)
         print('ARI=', ARI)
-        print('################################################')
-        print('Plots saved in', folder_analyses)
+        print('Plots saved in', folder_detailed_analyses)
 
-        title = 'mIoU='+str(round(mIoU, 2))+' ARI='+str(round(ARI, 2))
+        title = 'mIoU='+str(round(mIoU, 2))+' OA='+str(round(OA, 2))
         plot_segmentation(segmentation, classes=np.unique(gt).astype(np.int), title=title)
-        plt.savefig(os.path.join(folder_analyses, 'segmentation.png'))
+        plt.savefig(os.path.join(folder, 'segmentation_'+name+'.png'))
         plot_segmentation(gt, title='Ground truth')
-        plt.savefig(os.path.join(folder_analyses, 'gt.png'))
-        plot_TP_FP_FN_segmentation(segmentation, gt, folder_save=folder_analyses)
+        plt.savefig(os.path.join(folder_detailed_analyses, 'gt.png'))
+        plot_TP_FP_FN_segmentation(segmentation, gt, folder_save=folder_detailed_analyses)
         
         plt.close('all')

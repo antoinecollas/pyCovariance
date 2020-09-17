@@ -157,3 +157,25 @@ def compute_mIoU(C, gt):
         IoU.append(inter/union)
     mIoU = np.mean(IoU)
     return IoU, mIoU
+
+def compute_OA(C, gt):
+    """ A function that computes the Overall Accuracy (OA) between a segmented image (c) and a ground truth (gt). BE CAREFUL, 0 is considered as no annotation available.
+        Inputs:
+            * C: segmented image.
+            * gt: ground truth.
+            * classes: list of classes used to compute the mIOU
+        Ouputs:
+            * OA
+    """
+    classes_gt = np.unique(gt)
+    if classes_gt[0] == 0:
+        classes_gt = classes_gt[1:]
+    classes_C = np.unique(C)
+    if classes_C[0] == 0:
+        classes_C = classes_C[1:]
+    assert (classes_gt == classes_C).all()
+    
+    mask = (gt != 0)
+    OA = np.sum(C[mask]==gt[mask]) / np.sum(mask)
+
+    return OA
