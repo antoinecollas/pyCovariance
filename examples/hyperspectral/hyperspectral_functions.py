@@ -157,6 +157,7 @@ def K_means_hyperspectral_image(dataset_name, hyperparams):
             max_iter = hyperparams.nb_iter_max,
             tol = hyperparams.eps
         ).fit_predict(X)
+        temp = temp+1
         if mask is not None:
             C = np.zeros((n_r-2*w, n_c-2*w))
             C[mask] = temp
@@ -177,7 +178,7 @@ def K_means_hyperspectral_image(dataset_name, hyperparams):
             hyperparams.nb_threads_columns
         )
         C = C.squeeze()
-        C = C.astype(np.int)
+    C = C.astype(np.int)
 
     t_end = time.time()
     print('TOTAL TIME ELAPSED:', round(t_end-t_beginning, 1), 's')
