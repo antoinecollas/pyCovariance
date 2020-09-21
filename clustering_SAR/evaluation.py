@@ -20,9 +20,8 @@ def assign_classes_segmentation_to_gt(C, gt, normalize=False):
     classes_C = np.unique(C)
     if classes_C[0] == 0:
         classes_C = classes_C[1:]
-    
-    assert (classes_gt == classes_C).all()
-    classes = classes_gt
+
+    classes = np.array(list(set().union(classes_C, classes_gt)), dtype=np.int)
     nb_classes = len(classes)
 
     cost_matrix = np.zeros((nb_classes, nb_classes))
@@ -98,7 +97,9 @@ def plot_TP_FP_FN_segmentation(C, gt, aspect=1, folder_save=None):
             * folder_save: string representing the path of the folder where to save the plots. If not, plots are not saved.
     """
     # get classes
-    classes = np.unique(C).astype(np.int)
+    classes_C = np.unique(C).astype(np.int)
+    classes_gt = np.unique(gt).astype(np.int)
+    classes = list(set().union(classes_C, classes_gt))
     
     # get discrete colormap
     cmap = plt.get_cmap('RdBu', 4)
@@ -142,14 +143,15 @@ def compute_mIoU(C, gt):
             * IoU, mIOU
     """
     IoU = list()
+
     classes_gt = np.unique(gt)
     if classes_gt[0] == 0:
         classes_gt = classes_gt[1:]
     classes_C = np.unique(C)
     if classes_C[0] == 0:
         classes_C = classes_C[1:]
-    assert (classes_gt == classes_C).all()
-    classes = classes_gt
+
+    classes = list(set().union(classes_C, classes_gt))
 
     for i in classes:
         inter = np.sum((C==i) & (gt==i))
@@ -173,7 +175,6 @@ def compute_OA(C, gt):
     classes_C = np.unique(C)
     if classes_C[0] == 0:
         classes_C = classes_C[1:]
-    assert (classes_gt == classes_C).all()
     
     mask = (gt != 0)
     OA = np.sum(C[mask]==gt[mask]) / np.sum(mask)
