@@ -63,7 +63,7 @@ class PixelEuclidean(BaseClassFeatures):
         super().__init__()
     
     def __str__(self):
-        return 'Pixel_Euclidean_features'
+        return 'Pixel_Euclidean'
     
     def estimation(self, X):
         center_pixel = X[:, X.shape[1]//2+1, :]
@@ -83,7 +83,7 @@ class MeanPixelEuclidean(BaseClassFeatures):
         super().__init__()
     
     def __str__(self):
-        return 'Mean_Pixel_Euclidean_features'
+        return 'Mean_Pixel_Euclidean'
     
     def estimation(self, X):
         return np.mean(X, 1)
@@ -102,7 +102,7 @@ class Intensity(BaseClassFeatures):
         super().__init__()
     
     def __str__(self):
-        return 'Intensity_features'
+        return 'Intensity'
     
     def estimation(self, X):
         center_pixel = X[:, X.shape[1]//2+1, :]
@@ -123,7 +123,7 @@ class CovarianceEuclidean(BaseClassFeatures):
         super().__init__()
     
     def __str__(self):
-        return 'Covariance_Euclidean_features'
+        return 'Covariance_Euclidean'
     
     def estimation(self, X):
         return vech_SCM(X)
@@ -144,7 +144,7 @@ class Covariance(BaseClassFeatures):
         self.mean_args = mean_args
     
     def __str__(self):
-        return 'Covariance_Riemannian_features'
+        return 'Covariance_Riemannian'
 
     def estimation(self, X):
         return vech_SCM(X)
@@ -173,7 +173,7 @@ class CovarianceTexture(BaseClassFeatures):
         self.mean_args = mean_args
     
     def __str__(self):
-        return 'Covariance_texture_Riemannian_features'
+        return 'Covariance_texture_Riemannian'
     
     def estimation(self, X):
         if self.estimation_args is not None:
@@ -197,7 +197,7 @@ class LocationCovarianceEuclidean(BaseClassFeatures):
         self.p = p
     
     def __str__(self):
-        return 'Location_And_Covariance_Euclidean_features'
+        return 'Location_And_Covariance_Euclidean'
 
     def estimation(self, X):
         return compute_feature_location_covariance(X)
