@@ -28,6 +28,7 @@ hyperparams = HyperparametersKMeans(
 )
 
 features_list = [
+    'sklearn',
     PixelEuclidean(),
     MeanPixelEuclidean(),
     Intensity(),

@@ -145,21 +145,39 @@ def K_means_hyperspectral_image(dataset_name, hyperparams):
     else:
         mask = None
 
-    C = K_means_datacube(
-        image,
-        mask,
-        hyperparams.features,
-        hyperparams.windows_shape,
-        nb_classes,
-        hyperparams.nb_init,
-        hyperparams.nb_iter_max,
-        hyperparams.eps,
-        hyperparams.enable_multi,
-        hyperparams.nb_threads_rows,
-        hyperparams.nb_threads_columns
-    )
-    C = C.squeeze()
-    C = C.astype(np.int)
+    if hyperparams.features == 'sklearn':
+        X = image[w:-w, h:-h, :]
+        if mask is not None:
+            X = X[mask]
+        else:
+            X = X.reshape((-1, hyperparams.nb_bands_to_select))
+        temp = k_means_sklearn = KMeans(
+            n_clusters = nb_classes,
+            n_init = hyperparams.nb_init,
+            max_iter = hyperparams.nb_iter_max,
+            tol = hyperparams.eps
+        ).fit_predict(X)
+        if mask is not None:
+            C = np.zeros((n_r-2*w, n_c-2*w))
+            C[mask] = temp
+        else:
+            C = temp
+    else:
+        C = K_means_datacube(
+            image,
+            mask,
+            hyperparams.features,
+            hyperparams.windows_shape,
+            nb_classes,
+            hyperparams.nb_init,
+            hyperparams.nb_iter_max,
+            hyperparams.eps,
+            hyperparams.enable_multi,
+            hyperparams.nb_threads_rows,
+            hyperparams.nb_threads_columns
+        )
+        C = C.squeeze()
+        C = C.astype(np.int)
 
     t_end = time.time()
     print('TOTAL TIME ELAPSED:', round(t_end-t_beginning, 1), 's')
