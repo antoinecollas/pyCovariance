@@ -89,12 +89,11 @@ def save_figure(folder, figname):
     tikzplotlib.save(path_tex)
 
 
-def pca_and_save_variance(folder, figname, image, nb_components):
-    """ A function that centers data and applies PCA. It also saves a figure of the explained variance.
+def pca(image, nb_components):
+    """ A function that centers data and applies PCA.
         Inputs:
-            * folder: string.
-            * figname: string.
-            * image: numpy array to save.
+            * image: numpy array of the image.
+            * nb_components: number of components to keep.
     """
     # center pixels
     h, w, p = image.shape
@@ -113,16 +112,4 @@ def pca_and_save_variance(folder, figname, image, nb_components):
     image = image.reshape((h, w, p))
     image = image[:, :, :nb_components]
 
-    # plot and save explained variance 
-    plt.plot(np.arange(1, p+1), np.cumsum(pca.explained_variance_ratio_))
-    plt.xlabel('Number of components')
-    plt.ylabel('Cumulative explained variance');
-    if not os.path.exists(folder):
-        os.makedirs(folder, exist_ok=True)
-    path = os.path.join(folder, figname)
-    path_png = path + '.png'
-    plt.savefig(path_png)
-    path_tex = path + '.tex'
-    tikzplotlib.save(path_tex)
-    
     return image

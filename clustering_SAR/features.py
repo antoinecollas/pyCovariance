@@ -10,6 +10,7 @@ from .covariance_and_texture_clustering_functions import compute_feature_covaria
 # import functions related to location and covariance features
 from .location_covariance_clustering_functions import compute_feature_location_covariance, distance_location_covariance_Euclidean, mean_location_covariance_Euclidean
 
+
 class BaseClassFeatures:
     def __init__(self):
         pass
@@ -56,6 +57,7 @@ class BaseClassFeatures:
             """
         raise NotImplementedError
 
+
 class PixelEuclidean(BaseClassFeatures):
     def __init__(self):
         super().__init__()
@@ -75,6 +77,7 @@ class PixelEuclidean(BaseClassFeatures):
     def mean(self, X):
         return np.mean(X, axis=1)
 
+
 class MeanPixelEuclidean(BaseClassFeatures):
     def __init__(self):
         super().__init__()
@@ -92,6 +95,7 @@ class MeanPixelEuclidean(BaseClassFeatures):
 
     def mean(self, X):
         return np.mean(X, axis=1)
+
 
 class Intensity(BaseClassFeatures):
     def __init__(self):
@@ -113,6 +117,7 @@ class Intensity(BaseClassFeatures):
     def mean(self, X):
         return np.mean(X, axis=1)
 
+
 class CovarianceEuclidean(BaseClassFeatures):
     def __init__(self):
         super().__init__()
@@ -128,6 +133,7 @@ class CovarianceEuclidean(BaseClassFeatures):
 
     def mean(self, X):
         return mean_covariance_Euclidean(X)
+
 
 class Covariance(BaseClassFeatures):
     def __init__(
@@ -201,6 +207,7 @@ class LocationCovarianceEuclidean(BaseClassFeatures):
 
     def mean(self, X):
         return mean_location_covariance_Euclidean(X)
+
 
 def center_vectors_estimation(features):
     """ Center vectors before estimating features.
