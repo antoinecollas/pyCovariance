@@ -100,7 +100,7 @@ def sliding_windows_treatment_image_time_series_parallel(
         n_r, n_c, p, T = image.shape
         m_r, m_c = windows_mask.shape
         image_slices_list = [] # Will contain each slice
-        for i_row in range(0,number_of_threads_rows):
+        for i_row in range(number_of_threads_rows):
             # Indexes for the sub_image for rows
             if i_row == 0:
                 index_row_start = 0
@@ -113,7 +113,7 @@ def sliding_windows_treatment_image_time_series_parallel(
 
             # Slices for each row
             image_slices_list_row = []
-            for i_column in range(0, number_of_threads_columns):
+            for i_column in range(number_of_threads_columns):
                 # Indexes for the sub_image for colums
                 if i_column == 0:
                     index_column_start = 0
@@ -156,9 +156,9 @@ def sliding_windows_treatment_image_time_series_parallel(
 
         # Obtaining result for each thread
         results_list = [] # Results container
-        for i_r in range(0,number_of_threads_rows):
+        for i_r in range(number_of_threads_rows):
             results_row_list = []
-            for i_c in range(0,number_of_threads_columns):
+            for i_c in range(number_of_threads_columns):
                 results_row_list.append( queues[i_r][i_c].get() )
             results_list.append(results_row_list)
         results_row_list = None
@@ -171,11 +171,12 @@ def sliding_windows_treatment_image_time_series_parallel(
 
         # Now we reform the resulting image from the slices of results
         results = []
-        for i_r in range(0,number_of_threads_rows):
+        for i_r in range(number_of_threads_rows):
             final_array_row = []
-            for i_c in range(0,number_of_threads_columns):
+            for i_c in range(number_of_threads_columns):
                 final_array_row.append(results_list[i_r][i_c])
             results.append(np.hstack(final_array_row))
+        
         results = np.vstack(results)
         final_array_row = None
 
