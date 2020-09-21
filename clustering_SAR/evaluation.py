@@ -121,13 +121,16 @@ def plot_TP_FP_FN_segmentation(C, gt, aspect=1, folder_save=None):
         # set limits .5 outside true range
         mat = plt.matshow(to_plot, aspect=aspect, cmap=cmap, vmin=-0.5, vmax=3.5)
 
-        #tell the colorbar to tick at integers
+        # tell the colorbar to tick at integers
         cax = plt.colorbar(mat)
         cax.set_ticks(np.arange(0, 4))
         cax.set_ticklabels(['Other', 'FN', 'FP', 'TP'])
  
-        #title
+        # title
         plt.title('Class '+str(i))
+
+        # remove grid
+        plt.grid(b=False)
 
         if folder_save is not None:
             plt.savefig(os.path.join(folder_save, 'Class '+str(i)))
