@@ -1,4 +1,7 @@
 from datetime import datetime
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import os
 import sys
 
@@ -10,28 +13,34 @@ sys.path.insert(1, temp)
 from clustering_SAR.features import Covariance, CovarianceEuclidean, CovarianceTexture, Intensity, LocationCovarianceEuclidean, MeanPixelEuclidean, PixelEuclidean
 from examples.hyperspectral.hyperspectral_functions import K_means_hyperspectral_image, Dataset, evaluate_and_save_clustering, HyperparametersKMeans
 
-#######################################################
-# BEGINNING OF HYPERPARAMETERS
-#######################################################
+
+dataset_name = 'Indian_Pines'
+
+# folder path to save files
+date_str = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
+folder = os.path.join('results', dataset_name, date_str)
+
+
+# EVALUATION OF PCA
 
 hyperparams = HyperparametersKMeans(
     crop_image = False,
     enable_multi = True,
-    pca = True,
+    pca = None,
     nb_bands_to_select = 10,
     mask = True,
-    windows_size = 5,
+    windows_size = 7,
     features = None,
     nb_init = 20,
-    nb_iter_max = 100,
+    nb_iter_max = 200,
     eps = 1e-3
 )
 
 features_list = [
+    Intensity(),
     'sklearn',
     PixelEuclidean(),
     MeanPixelEuclidean(),
-    Intensity(),
     CovarianceEuclidean(),
     Covariance(),
     CovarianceTexture(
@@ -40,26 +49,32 @@ features_list = [
     )
 ]
 
-dataset_name = 'Indian_Pines'
+for pca in [False, True]:
+    hyperparams.pca = pca
+    if pca:
+        prefix = '_pca'
+    else:
+        prefix = '_no_pca'
 
-#######################################################
-# END OF HYPERPARAMETERS
-#######################################################
+    # K means and evaluations
+    mIoUs = list()
+    features_str = list()
+    for i, features in enumerate(features_list):
+        hyperparams.features = features
+        print()
+        print('Features:', str(hyperparams.features))
+        C = K_means_hyperspectral_image(dataset_name, hyperparams)
+        print()
+        mIoU, _ = evaluate_and_save_clustering(C, dataset_name, hyperparams, folder, str(i)+prefix)
+        mIoUs.append(mIoU)
+        features_str.append(str(features))
 
-print('################################################')
-print('Dataset', dataset_name)
-print('################################################')
-print()
-
-# folder path to save files
-date_str = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
-folder = os.path.join('results', dataset_name, date_str)
-
-for i, features in enumerate(features_list):
-    hyperparams.features = features
-    print()
-    print('Features:', str(hyperparams.features))
-    C = K_means_hyperspectral_image(dataset_name, hyperparams)
-    print()
-    evaluate_and_save_clustering(C, dataset_name, hyperparams, folder, str(i))
-
+    # Bar plot of performances
+    fig, ax = plt.subplots(1)
+    ax.bar(features_str, mIoUs, align='center')
+    ax.set_ylim(0, 0.5)
+    plt.ylabel('mIoU')
+    plt.xticks(rotation=90)
+    plt.subplots_adjust(bottom=0.5)
+    path = os.path.join('results', dataset_name, date_str, 'perfs'+prefix)
+    plt.savefig(path)
