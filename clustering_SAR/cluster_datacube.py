@@ -70,9 +70,7 @@ def K_means_datacube(
     assert (type(init) is int and n_init>0) or (init=='H-alpha' and n_init==1), 'Error initialisation in K-means arguments'
     C_init = None
     if init=='H-alpha':
-        print('################################################')
-        print('Initialisation: H-alpha')
-        print('################################################')
+        print('###################### INITIALISATION: H-ALPHA ######################')
         windows_mask = np.ones(windows_shape)
         n_r, n_c, p = image.shape
         m_r, m_c = windows_mask.shape
@@ -86,9 +84,7 @@ def K_means_datacube(
         )
         print()
 
-    print('################################################')
-    print('Computing features')
-    print('################################################')
+    print('###################### COMPUTING FEATURES ######################')
     t_beginning = time.time()
     windows_mask = np.ones(windows_shape)
     m_r, m_c = windows_mask.shape
@@ -106,11 +102,8 @@ def K_means_datacube(
     feature_temp = None # Freeing memory space
     image = None
     print("Done in %f s." % (time.time()-t_beginning))
-    print()
 
-    print('################################################')
-    print('K-means clustering') 
-    print('################################################')
+    print('###################### K-MEANS CLUSTERING ######################')
     t_beginning = time.time()
    
     if mask is not None:
@@ -146,7 +139,6 @@ def K_means_datacube(
             C_its = C_its.reshape((n_r-m_r+1, n_c-m_c+1, 1))
             C = None
     
-    print("K-means done in %f s." % (time.time()-t_beginning))
-    print()
+    print('K-means done in %f s.' % (time.time()-t_beginning))
  
     return C_its
