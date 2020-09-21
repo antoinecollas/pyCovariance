@@ -248,3 +248,5 @@ def evaluate_and_save_clustering(segmentation, dataset_name, hyperparams, folder
     plot_TP_FP_FN_segmentation(segmentation, gt, folder_save=folder_detailed_analyses)
  
     plt.close('all')
+
+    return mIoU, OA
