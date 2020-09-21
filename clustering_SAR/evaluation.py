@@ -14,14 +14,12 @@ def assign_classes_segmentation_to_gt(C, gt, normalize=False):
         Ouput:
             * segmented image with the right classes.
     """
-    classes_gt = np.unique(gt)
-    if classes_gt[0] == 0:
-        classes_gt = classes_gt[1:]
-    classes_C = np.unique(C)
-    if classes_C[0] == 0:
-        classes_C = classes_C[1:]
-
+    # get classes
+    classes_C = np.unique(C).astype(np.int)
+    classes_gt = np.unique(gt).astype(np.int)
     classes = np.array(list(set().union(classes_C, classes_gt)), dtype=np.int)
+    if classes[0] == 0:
+        classes = classes[1:]
     nb_classes = len(classes)
 
     cost_matrix = np.zeros((nb_classes, nb_classes))
@@ -89,7 +87,7 @@ def save_segmentation(folder, filename, np_array):
 
 
 def plot_TP_FP_FN_segmentation(C, gt, aspect=1, folder_save=None):
-    """ Plot True Positive, False Positive, False Negative for a segmetnation given a ground truth.
+    """ Plot True Positive, False Positive, False Negative for a segmetnation given a ground truth. BE CAREFUL: class 0 is ignored !
         Inputs:
             * C: a (height, width) numpy array of integers (classes).
             * gt: a (height, width) numpy array of integers (classes).
@@ -100,6 +98,8 @@ def plot_TP_FP_FN_segmentation(C, gt, aspect=1, folder_save=None):
     classes_C = np.unique(C).astype(np.int)
     classes_gt = np.unique(gt).astype(np.int)
     classes = list(set().union(classes_C, classes_gt))
+    if classes[0] == 0:
+        classes = classes[1:]
     
     # get discrete colormap
     cmap = plt.get_cmap('RdBu', 4)
@@ -142,17 +142,14 @@ def compute_mIoU(C, gt):
         Ouputs:
             * IoU, mIOU
     """
-    IoU = list()
-
-    classes_gt = np.unique(gt)
-    if classes_gt[0] == 0:
-        classes_gt = classes_gt[1:]
-    classes_C = np.unique(C)
-    if classes_C[0] == 0:
-        classes_C = classes_C[1:]
-
+    # get classes
+    classes_C = np.unique(C).astype(np.int)
+    classes_gt = np.unique(gt).astype(np.int)
     classes = list(set().union(classes_C, classes_gt))
+    if classes[0] == 0:
+        classes = classes[1:]
 
+    IoU = list()
     for i in classes:
         inter = np.sum((C==i) & (gt==i))
         union = np.sum(((C==i)|(gt==i)) & (gt!=0))
@@ -169,12 +166,12 @@ def compute_OA(C, gt):
         Ouputs:
             * OA
     """
-    classes_gt = np.unique(gt)
-    if classes_gt[0] == 0:
-        classes_gt = classes_gt[1:]
-    classes_C = np.unique(C)
-    if classes_C[0] == 0:
-        classes_C = classes_C[1:]
+    # get classes
+    classes_C = np.unique(C).astype(np.int)
+    classes_gt = np.unique(gt).astype(np.int)
+    classes = list(set().union(classes_C, classes_gt))
+    if classes[0] == 0:
+        classes = classes[1:]
     
     mask = (gt != 0)
     OA = np.sum(C[mask]==gt[mask]) / np.sum(mask)
