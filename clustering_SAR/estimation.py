@@ -1,6 +1,12 @@
-import numpy as np
+import autograd
+import autograd.numpy as np
+import pymanopt
+from pymanopt import Problem
+from pymanopt.manifolds import ComplexEuclidean, Product, StrictlyPositiveVectors, SpecialHermitianPositiveDefinite
+from pymanopt.solvers import SteepestDescent
 import warnings
 
+from clustering_SAR.matrix_operators import invsqrtm
 
 def mean(X):
     """ Compute mean of vectors
@@ -49,8 +55,7 @@ def tyler_estimator_covariance(X, tol=0.001, iter_max=20):
     # Recursive algorithm
     while (delta>tol) and (iteration<iter_max):
         # compute expression of Tyler estimator
-        v = np.linalg.inv(np.linalg.cholesky(sigma))@X
-        tau = np.real(np.mean(v*v.conj(),axis=0))
+        tau = np.real(np.einsum('ij,ji->i', np.conjugate(X).T@np.linalg.inv(sigma), X))
         X_bis = X / np.sqrt(tau)
         sigma_new = (1/N) * X_bis@X_bis.conj().T
 
@@ -67,7 +72,7 @@ def tyler_estimator_covariance(X, tol=0.001, iter_max=20):
     if iteration == iter_max:
         warnings.warn('Recursive algorithm did not converge')
 
-    return (sigma, tau, delta, iteration)
+    return (tau, sigma, delta, iteration)
 
 
 def tyler_estimator_covariance_normalisedet(X, tol=0.001, iter_max=20):
@@ -92,8 +97,7 @@ def tyler_estimator_covariance_normalisedet(X, tol=0.001, iter_max=20):
 
     while (delta>tol) and (iteration<iter_max):
         # compute expression of Tyler estimator
-        v = np.linalg.inv(np.linalg.cholesky(sigma))@X
-        tau = np.real(np.mean(v*v.conj(),axis=0))
+        tau = np.real(np.einsum('ij,ji->i', np.conjugate(X).T@np.linalg.inv(sigma), X))
         X_bis = X / np.sqrt(tau)
         sigma_new = (1/N) * X_bis@X_bis.conj().T
 
@@ -110,7 +114,7 @@ def tyler_estimator_covariance_normalisedet(X, tol=0.001, iter_max=20):
     if iteration == iter_max:
         warnings.warn('Recursive algorithm did not converge')
 
-    return (sigma, tau, delta, iteration)
+    return (tau, sigma, delta, iteration)
 
 
 def tyler_estimator_location_covariance_normalisedet(X, tol=0.001, iter_max=20):
@@ -136,8 +140,7 @@ def tyler_estimator_location_covariance_normalisedet(X, tol=0.001, iter_max=20):
 
     while (delta>tol) and (iteration<iter_max):
         # compute tau
-        v = np.linalg.inv(np.linalg.cholesky(sigma))@(X-mu)
-        tau_new = np.real(np.mean(v*v.conj(), axis=0))
+        tau_new = np.real(np.einsum('ij,ji->i', np.conjugate(X-mu).T@np.linalg.inv(sigma), X-mu))
         
         # compute mu (location)
         mu_new = (1/np.sum(1/tau)) * np.sum(X/tau, axis=1).reshape((-1, 1))
@@ -148,7 +151,7 @@ def tyler_estimator_location_covariance_normalisedet(X, tol=0.001, iter_max=20):
 
         # imposing det constraint: det(sigma_new) = 1
         sigma_new = sigma_new/(np.linalg.det(sigma_new)**(1/p))
-        
+ 
         # condition for stopping
         delta = np.linalg.norm(sigma_new - sigma, 'fro') / np.linalg.norm(sigma, 'fro')
         iteration = iteration + 1
@@ -161,4 +164,79 @@ def tyler_estimator_location_covariance_normalisedet(X, tol=0.001, iter_max=20):
     if iteration == iter_max:
         warnings.warn('Recursive algorithm did not converge')
 
-    return (mu, sigma, tau, delta, iteration)
+    return (mu, tau, sigma, delta, iteration)
+
+
+def create_cost_egrad_location_covariance_texture(X, autodiff=False):
+    @pymanopt.function.Callable
+    def cost(mu, tau, sigma):
+        p, N = X.shape
+        
+        # compute quadratic form
+        mu = mu.reshape((-1, 1))
+        X_bis = X-mu
+        Q = np.real(np.einsum('ij,ji->i', np.conjugate(X_bis).T@np.linalg.inv(sigma), X_bis))
+    
+        tau = np.squeeze(tau)
+        L = p*np.log(tau) + Q/tau
+        L = np.real(np.sum(L))
+
+        return L
+
+    @pymanopt.function.Callable
+    def egrad(mu, tau, sigma):
+        p, N = X.shape
+        sigma_inv = np.linalg.inv(sigma)
+
+        # grad mu
+        mu = mu.reshape((-1, 1))
+        grad_mu = (X-mu)/tau.T
+        grad_mu = np.sum(grad_mu, axis=1, keepdims=True)
+        grad_mu = -2*sigma_inv@grad_mu
+
+        # grad tau
+        v = np.linalg.inv(np.linalg.cholesky(sigma))@(X-mu)
+        a = np.sum(v*v.conj(), axis=0).reshape((-1, 1))
+        grad_tau = np.real((p*tau-a) * (tau**(-2)))
+
+        # grad sigma
+        X_bis = (X-mu) / np.sqrt(tau).T
+        grad_sigma = X_bis@X_bis.conj().T
+        grad_sigma = -sigma_inv@grad_sigma@sigma_inv
+
+        # grad
+        grad = (np.squeeze(grad_mu), grad_tau, grad_sigma)
+
+        return grad
+
+    @pymanopt.function.Callable
+    def auto_egrad(mu, tau, sigma):
+        res = tuple(np.conjugate(autograd.grad(cost, argnum=[0, 1, 2])(mu, tau, sigma)))
+        return res
+
+    if autodiff:
+        return cost, auto_egrad
+    else:
+        return cost, egrad
+
+
+def gradient_descent_location_covariance_texture(X, autodiff):
+    """ A function that estimates parameters of a compound Gaussian distribution.
+        Inputs:
+            * X = a matrix of size p*N with each observation along column dimension
+            * autodiff = use or not autodiff
+        Outputs:
+            * mu = estimate of location
+            * sigma = estimate of covariance
+            * tau = estimate of covariance """
+    
+    # The estimation is done using Riemannian geometry. The manifold is: C^p x (R++)^n x SHp++
+ 
+    p, N = X.shape
+    cost, egrad = create_cost_egrad_location_covariance_texture(X, autodiff)
+    manifold = Product([ComplexEuclidean(p), StrictlyPositiveVectors(N), SpecialHermitianPositiveDefinite(p)])
+    problem = Problem(manifold=manifold, cost=cost, egrad=egrad, verbosity=0)
+    solver = SteepestDescent()
+    Xopt = solver.solve(problem)
+    Xopt[0] = Xopt[0].reshape((-1, 1))
+    return Xopt

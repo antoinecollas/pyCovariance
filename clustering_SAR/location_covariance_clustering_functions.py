@@ -1,8 +1,7 @@
-import numpy as np
-import scipy as sp
-import warnings
+import autograd.numpy as np
 from multiprocessing import Process, Queue
 from tqdm import tqdm
+import warnings
 
 from .estimation import mean, SCM
 from .generic_functions import *

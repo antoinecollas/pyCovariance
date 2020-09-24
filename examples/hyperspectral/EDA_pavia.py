@@ -1,5 +1,5 @@
+import autograd.numpy as np
 import matplotlib.pyplot as plt
-import numpy as np
 import os
 from scipy.io import loadmat
 import scipy.stats as stats

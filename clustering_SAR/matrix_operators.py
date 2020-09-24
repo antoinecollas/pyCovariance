@@ -1,17 +1,12 @@
 # From: https://github.com/alexandrebarachant/pyRiemann/blob/master/pyriemann/utils/base.py
-import numpy
-import scipy.linalg
-
-from numpy.core.numerictypes import typecodes
+import autograd.numpy as np
 
 
 def _matrix_operator(Ci, operator):
     """matrix equivalent of an operator."""
-    if Ci.dtype.char in typecodes['AllFloat'] and not numpy.isfinite(Ci).all():
-        raise ValueError("Covariance matrices must be positive definite. Add regularization to avoid this error.")
-    eigvals, eigvects = scipy.linalg.eigh(Ci, check_finite=False)
-    eigvals = numpy.diag(operator(eigvals))
-    Out = numpy.dot(numpy.dot(eigvects, eigvals), eigvects.conj().T)
+    eigvals, eigvects = np.linalg.eigh(Ci)
+    eigvals = np.diag(operator(eigvals))
+    Out = np.dot(np.dot(eigvects, eigvals), np.conjugate(eigvects).T)
     return Out
 
 
@@ -28,7 +23,7 @@ def sqrtm(Ci):
     :returns: the matrix square root
 
     """
-    return _matrix_operator(Ci, numpy.sqrt)
+    return _matrix_operator(Ci, np.sqrt)
 
 
 def logm(Ci):
@@ -44,7 +39,7 @@ def logm(Ci):
     :returns: the matrix logarithm
 
     """
-    return _matrix_operator(Ci, numpy.log)
+    return _matrix_operator(Ci, np.log)
 
 
 def expm(Ci):
@@ -60,7 +55,7 @@ def expm(Ci):
     :returns: the matrix exponential
 
     """
-    return _matrix_operator(Ci, numpy.exp)
+    return _matrix_operator(Ci, np.exp)
 
 
 def invsqrtm(Ci):
@@ -76,7 +71,7 @@ def invsqrtm(Ci):
     :returns: the inverse matrix square root
 
     """
-    isqrt = lambda x: 1. / numpy.sqrt(x)
+    isqrt = lambda x: 1. / np.sqrt(x)
     return _matrix_operator(Ci, isqrt)
 
 

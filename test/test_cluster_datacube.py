@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
-import numpy as np
-from numpy import random
+import autograd.numpy as np
+from autograd.numpy import random
 import pytest
 import os, sys, time
 

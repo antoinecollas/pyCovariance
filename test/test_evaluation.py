@@ -1,6 +1,6 @@
+import autograd.numpy as np
+from autograd.numpy import random
 import glob
-import numpy as np
-from numpy import random
 import os
 from scipy.io import loadmat
 from sklearn.metrics import f1_score

@@ -1,5 +1,5 @@
+import autograd.numpy as np
 from multiprocessing import Process, Queue
-import numpy as np
 import time
 from tqdm import tqdm
 

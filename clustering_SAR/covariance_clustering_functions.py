@@ -1,5 +1,4 @@
-import numpy as np
-import scipy as sp
+import autograd.numpy as np
 import warnings
 from multiprocessing import Process, Queue
 
@@ -103,7 +102,7 @@ def distance_covariance_Riemannian(x_1, x_2, params=None):
         """
     sigma_1 = unvech(x_1)
     sigma_2 = unvech(x_2)
-    eigvals = sp.linalg.eigh(sigma_2, sigma_1, eigvals_only=True)
+    eigvals = np.linalg.eigvals(np.linalg.inv(sigma_1)@sigma_2)
     d = np.linalg.norm(np.log(eigvals))
     return np.real(d)
 

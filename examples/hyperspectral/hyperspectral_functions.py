@@ -1,6 +1,6 @@
+import autograd.numpy as np
 import copy
 import glob
-import numpy as np
 import os
 import matplotlib.pyplot as plt
 import random

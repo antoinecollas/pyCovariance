@@ -1,5 +1,6 @@
-import numpy as np
-from numpy import random
+import autograd.numpy as np
+from autograd.numpy import random
+from numpy import testing as np_test
 import pytest
 import os, sys, time
 
@@ -47,7 +48,7 @@ def test_distance_covariance_Riemannian():
     cov_1 = vech(cov_1).reshape((-1,))
     dist_2 = distance_covariance_Riemannian(cov_0, cov_1)
 
-    np.testing.assert_almost_equal(dist_1, dist_2, decimal=3)
+    np_test.assert_almost_equal(dist_1, dist_2, decimal=3)
 
 
 def test_mean_covariance_Riemannian():
@@ -67,13 +68,13 @@ def test_mean_covariance_Riemannian():
     params = [1.0, 0.95, 1e-3, 100, False, 0]
     mean_opt = unvech(mean_covariance_Riemannian(covs, params))
     
-    np.testing.assert_almost_equal(mean, mean_opt, decimal=3)
+    np_test.assert_almost_equal(mean, mean_opt, decimal=3)
    
     # same test but with multi processing
     params = [1.0, 0.95, 1e-3, 100, True, 8]
     mean_opt = unvech(mean_covariance_Riemannian(covs, params))
     
-    np.testing.assert_almost_equal(mean, mean_opt, decimal=3)
+    np_test.assert_almost_equal(mean, mean_opt, decimal=3)
 
     # test that the gradient descent reaches global the minimum
     n = 10
@@ -90,7 +91,7 @@ def test_mean_covariance_Riemannian():
         minus_gradient += logm(isqrt_mean@unvech(covs[:, i])@isqrt_mean)
     minus_gradient = sqrt_mean@minus_gradient@sqrt_mean
     
-    np.testing.assert_almost_equal(np.linalg.norm(minus_gradient), 0, decimal=2)
+    np_test.assert_almost_equal(np.linalg.norm(minus_gradient), 0, decimal=2)
 
 def test_mean_covariance_Riemannian_with_whitening():
     p = 3
@@ -109,7 +110,7 @@ def test_mean_covariance_Riemannian_with_whitening():
     params = [1.0, 0.95, 1e-3, 100, False, 0]
     mean_opt = unvech(mean_covariance_Riemannian_with_whitening(covs, params))
     
-    np.testing.assert_almost_equal(mean, mean_opt, decimal=3)
+    np_test.assert_almost_equal(mean, mean_opt, decimal=3)
    
     # test that the gradient descent reaches global the minimum
     n = 10
@@ -126,4 +127,4 @@ def test_mean_covariance_Riemannian_with_whitening():
         minus_gradient += logm(isqrt_mean@unvech(covs[:, i])@isqrt_mean)
     minus_gradient = sqrt_mean@minus_gradient@sqrt_mean
     
-    np.testing.assert_almost_equal(np.linalg.norm(minus_gradient), 0, decimal=2)
+    np_test.assert_almost_equal(np.linalg.norm(minus_gradient), 0, decimal=2)

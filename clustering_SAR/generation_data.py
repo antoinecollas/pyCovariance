@@ -1,15 +1,20 @@
-import numpy as np
-from numpy import random
+import autograd.numpy as np
+from autograd.numpy import random
 import scipy as sp
 
 from .matrix_operators import sqrtm
 
 
 def generate_covariance(p):
-    N = 3*p
-    X = random.standard_normal((p, N)) + 1j*random.standard_normal((p, N))
-    cov = X@X.conj().T
-    return cov
+    #Generate eigenvalues between 1 and 2
+    # (eigenvalues of a symmetric matrix are always real).
+    D = np.diag(np.ones((p)) + random.rand(p))
+
+    # Generate an orthogonal matrix.
+    Q, _ = np.linalg.qr(random.randn(p, p)+1j*random.randn(p, p))
+    
+    sigma = Q@D@Q.conj().T
+    return sigma
 
 
 def generate_Toeplitz(rho, p):

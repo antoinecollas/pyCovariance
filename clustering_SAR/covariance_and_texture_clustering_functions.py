@@ -1,5 +1,4 @@
-import numpy as np
-import scipy as sp
+import autograd.numpy as np
 import warnings
 
 from .covariance_clustering_functions import distance_covariance_Riemannian, mean_covariance_Riemannian
@@ -23,7 +22,7 @@ def compute_feature_covariance_texture(X, args=(0.01, 20)):
             * 𝐱 = the feature for classification
         """
     eps, iter_max = args
-    sigma, tau, _, _ = tyler_estimator_covariance_normalisedet(np.squeeze(X), eps, iter_max)
+    tau, sigma, _, _ = tyler_estimator_covariance_normalisedet(np.squeeze(X), eps, iter_max)
     return np.hstack([vech(sigma), tau])
 
 
@@ -46,7 +45,7 @@ def compute_feature_Covariance_texture_mean(X, args):
         """
 
     eps, iter_max = args
-    sigma, tau, _, _ = tyler_estimator_covariance_normalisedet(np.squeeze(X), eps, iter_max)
+    tau, sigma, _, _ = tyler_estimator_covariance_normalisedet(np.squeeze(X), eps, iter_max)
     return list(np.hstack([vech(sigma), np.mean(tau)]) )
 
 

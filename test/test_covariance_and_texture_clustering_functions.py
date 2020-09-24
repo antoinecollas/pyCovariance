@@ -1,7 +1,7 @@
-import numpy as np
-from numpy import random
+import autograd.numpy as np
+from autograd.numpy import random
+from numpy import testing as np_test
 import pytest
-import scipy as sp
 import os, sys, time
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -24,7 +24,7 @@ def test_compute_feature_covariance_texture():
     # generate sigma
     sigma = generate_covariance(p)
     sigma = sigma / (np.linalg.det(sigma)**(1/p))
-    np.testing.assert_almost_equal(np.linalg.det(sigma), 1, decimal=3)
+    np_test.assert_almost_equal(np.linalg.det(sigma), 1, decimal=3)
 
     # generate tau
     tau = generate_texture(N)
@@ -77,5 +77,5 @@ def test_mean_covariance_texture_Riemannian():
     mean_tau_opt = mean_opt[int(p*(p+1)/2):]
     mean_sigma_opt = unvech(mean_opt[:int(p*(p+1)/2)])
 
-    np.testing.assert_almost_equal(mean_sigma, mean_sigma_opt, decimal=3)
-    np.testing.assert_almost_equal(mean_tau, mean_tau_opt, decimal=3)
+    np_test.assert_almost_equal(mean_sigma, mean_sigma_opt, decimal=3)
+    np_test.assert_almost_equal(mean_tau, mean_tau_opt, decimal=3)

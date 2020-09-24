@@ -1,5 +1,5 @@
+import autograd.numpy as np
 from functools import partial
-import numpy as np
 
 # import functions related to covariance features
 from .covariance_clustering_functions import center_vectors, distance_covariance_Euclidean, distance_covariance_Riemannian, mean_covariance_Euclidean, mean_covariance_Riemannian, vech_SCM

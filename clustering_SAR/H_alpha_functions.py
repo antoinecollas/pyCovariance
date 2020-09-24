@@ -1,5 +1,4 @@
-import numpy as np
-import scipy as sp
+import autograd.numpy as np
 import warnings
 
 from .clustering_functions import wrapper_compute_all_mean_parallel
@@ -52,7 +51,7 @@ def compute_h_alpha_class(X):
     N = (1/np.sqrt(2)) * np.array([[1, 0, 1], [1, 0, -1], [0, np.sqrt(2), 0]])
     T = N @ cov @ N.T
 
-    eigvalues, eigvectors = sp.linalg.eigh(T)
+    eigvalues, eigvectors = np.linalg.eigh(T)
     eigvalues = eigvalues/np.sum(eigvalues)
 
     α_vector = np.degrees(np.arccos(np.abs(eigvectors[0,:])))

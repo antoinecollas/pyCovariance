@@ -1,5 +1,6 @@
-import numpy as np
-from numpy import random
+import autograd.numpy as np
+from autograd.numpy import random
+from numpy import testing as np_test
 import pytest
 import os, sys, time
 
@@ -17,7 +18,7 @@ def test_generate_covariance():
     sigma = generate_covariance(p)
     
     # test if sigma is SPD
-    np.testing.assert_almost_equal(sigma, sigma.conj().T, decimal=3)
+    np_test.assert_almost_equal(sigma, sigma.conj().T, decimal=3)
     eigvals, _  = np.linalg.eigh(sigma)
     assert (eigvals > 0).all()
 
