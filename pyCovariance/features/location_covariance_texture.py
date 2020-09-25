@@ -6,7 +6,7 @@ from pymanopt.solvers import SteepestDescent
 import warnings
 
 from .base import BaseClassFeatures
-from .vectorization import *
+from ..vectorization import *
 
 ########## ESTIMATION ##########
 
