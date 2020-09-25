@@ -1,17 +1,12 @@
 import autograd.numpy as np
 from autograd.numpy import random
 from numpy import testing as np_test
-import pytest
 import os, sys, time
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-temp = os.path.dirname(current_dir)
-sys.path.insert(1, temp)
-
-from clustering_SAR.covariance_clustering_functions import distance_covariance_Riemannian, mean_covariance_Riemannian, mean_covariance_Riemannian_with_whitening, vech_SCM
-from clustering_SAR.generation_data import generate_covariance, sample_complex_normal
-from clustering_SAR.generic_functions import unvech, vech
-from clustering_SAR.matrix_operators import sqrtm, invsqrtm, logm, expm
+from pyCovariance.covariance_clustering_functions import distance_covariance_Riemannian, mean_covariance_Riemannian, mean_covariance_Riemannian_with_whitening, vech_SCM
+from pyCovariance.generation_data import generate_covariance, sample_complex_normal
+from pyCovariance.utils import unvech, vech
+from pyCovariance.matrix_operators import sqrtm, invsqrtm, logm, expm
 
 
 ###################################################

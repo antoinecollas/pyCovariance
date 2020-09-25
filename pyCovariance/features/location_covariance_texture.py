@@ -1,4 +1,3 @@
-import autograd
 import autograd.numpy as np
 import pymanopt
 from pymanopt import Problem
@@ -6,116 +5,10 @@ from pymanopt.manifolds import ComplexEuclidean, Product, StrictlyPositiveVector
 from pymanopt.solvers import SteepestDescent
 import warnings
 
-from clustering_SAR.matrix_operators import invsqrtm
+from .base import BaseClassFeatures
+from .vectorization import *
 
-def mean(X):
-    """ Compute mean of vectors
-        Inputs:
-        --------
-            * X = a (p, N) array where p is the dimension of data and N the number of samples used for estimation
-
-        Outputs:
-        ---------
-            * 𝐱 = the feature for classification
-        """
-    mean = np.mean(X, axis=1)
-    return mean
-
-
-def SCM(X, *args):
-    """ A function that computes the SCM for covariance matrix estimation
-            Inputs:
-                * X = a matrix of size p*N with each observation along column dimension
-            Outputs:
-                * Sigma = the estimate"""
-
-    (p, N) = X.shape
-    return (X @ X.conj().T) / N
-
-
-def tyler_estimator_covariance(X, tol=0.001, iter_max=20):
-    """ A function that computes the Tyler Fixed Point Estimator for covariance matrix estimation
-        Inputs:
-            * X = a matrix of size p*N with each observation along column dimension
-            * tol = tolerance for convergence of estimator
-            * iter_max = number of maximum iterations
-        Outputs:
-            * sigma
-            * tau
-            * delta = the final distance between two iterations
-            * iteration = number of iterations til convergence """
-
-    # Initialisation
-    (p,N) = X.shape
-    delta = np.inf # Distance between two iterations
-    sigma = (1/N)*X@X.conj().T
-    sigma = p*sigma/np.trace(sigma)
-    iteration = 0
-
-    # Recursive algorithm
-    while (delta>tol) and (iteration<iter_max):
-        # compute expression of Tyler estimator
-        tau = np.real(np.einsum('ij,ji->i', np.conjugate(X).T@np.linalg.inv(sigma), X))
-        X_bis = X / np.sqrt(tau)
-        sigma_new = (1/N) * X_bis@X_bis.conj().T
-
-        # imposing trace constraint: Tr(sigma) = p
-        sigma_new = p*sigma_new/np.trace(sigma_new)
-
-        # condition for stopping
-        delta = np.linalg.norm(sigma_new - sigma, 'fro') / np.linalg.norm(sigma, 'fro')
-        iteration = iteration + 1
-
-        # updating sigma
-        sigma = sigma_new
-
-    if iteration == iter_max:
-        warnings.warn('Recursive algorithm did not converge')
-
-    return (tau, sigma, delta, iteration)
-
-
-def tyler_estimator_covariance_normalisedet(X, tol=0.001, iter_max=20):
-    """ A function that computes the Tyler Fixed Point Estimator for covariance matrix estimation
-        and normalisation by determinant
-        Inputs:
-            * X = a matrix of size p*N with each observation along column dimension
-            * tol = tolerance for convergence of estimator
-            * iter_max = number of maximum iterations
-        Outputs:
-            * sigma
-            * tau
-            * delta = the final distance between two iterations
-            * iteration = number of iterations til convergence """
-
-    # Initialisation
-    (p,N) = X.shape
-    delta = np.inf # Distance between two iterations
-    sigma = (1/N)*X@X.conj().T
-    sigma = sigma/(np.linalg.det(sigma)**(1/p))
-    iteration = 0
-
-    while (delta>tol) and (iteration<iter_max):
-        # compute expression of Tyler estimator
-        tau = np.real(np.einsum('ij,ji->i', np.conjugate(X).T@np.linalg.inv(sigma), X))
-        X_bis = X / np.sqrt(tau)
-        sigma_new = (1/N) * X_bis@X_bis.conj().T
-
-        # imposing det constraint: det(sigma) = 1
-        sigma_new = sigma_new/(np.linalg.det(sigma_new)**(1/p))
-
-        # condition for stopping
-        delta = np.linalg.norm(sigma_new - sigma, 'fro') / np.linalg.norm(sigma, 'fro')
-        iteration = iteration + 1
-
-        # updating sigma
-        sigma = sigma_new
-    
-    if iteration == iter_max:
-        warnings.warn('Recursive algorithm did not converge')
-
-    return (tau, sigma, delta, iteration)
-
+########## ESTIMATION ##########
 
 def tyler_estimator_location_covariance_normalisedet(X, tol=0.001, iter_max=20):
     """ A function that computes the Tyler Fixed Point Estimator for location and covariance estimation.
@@ -240,3 +133,10 @@ def gradient_descent_location_covariance_texture(X, autodiff):
     Xopt = solver.solve(problem)
     Xopt[0] = Xopt[0].reshape((-1, 1))
     return Xopt
+
+##########  DISTANCE  ##########
+
+##########   MEAN     ##########
+
+##########  CLASSES   ##########
+

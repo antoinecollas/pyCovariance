@@ -6,14 +6,9 @@ import time
 # The code is already multi threaded so we block OpenBLAS multi thread.
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
-# import path of root repo
-current_dir = os.path.dirname(os.path.abspath(__file__))
-temp = os.path.dirname(os.path.dirname(current_dir))
-sys.path.insert(1, temp)
-
-from clustering_SAR.cluster_datacube import K_means_datacube
-from clustering_SAR.features import Covariance, CovarianceEuclidean, CovarianceTexture
-from clustering_SAR.generic_functions import enable_latex_infigures, plot_segmentation, save_figure
+from pyCovariance.cluster_datacube import K_means_datacube
+from pyCovariance.features import Covariance, CovarianceEuclidean, CovarianceTexture
+from pyCovariance.utils import enable_latex_infigures, plot_segmentation, save_figure
 
 # DEBUG mode for faster debugging
 DEBUG = True

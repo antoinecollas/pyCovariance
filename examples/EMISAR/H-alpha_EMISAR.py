@@ -6,13 +6,8 @@ import time
 # The code is already multi threaded so we block OpenBLAS multi thread.
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
-# import path of root repo
-current_dir = os.path.dirname(os.path.abspath(__file__))
-temp = os.path.dirname(os.path.dirname(current_dir))
-sys.path.insert(1, temp)
-
-from clustering_SAR.H_alpha_functions import cluster_image_by_H_alpha
-from clustering_SAR.generic_functions import enable_latex_infigures, plot_segmentation, save_figure
+from pyCovariance.H_alpha_functions import cluster_image_by_H_alpha
+from pyCovariance.utils import enable_latex_infigures, plot_segmentation, save_figure
 
 # DEBUG mode for faster debugging
 DEBUG = True

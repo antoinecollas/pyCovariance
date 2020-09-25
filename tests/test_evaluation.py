@@ -9,12 +9,7 @@ import sys
 # The code is already multi threaded so we block OpenBLAS multi thread.
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
-# import path of root repo
-current_dir = os.path.dirname(os.path.abspath(__file__))
-temp = os.path.dirname(os.path.dirname(current_dir))
-sys.path.insert(1, temp)
-
-from clustering_SAR.evaluation import assign_classes_segmentation_to_gt, compute_mIoU
+from pyCovariance.evaluation import assign_classes_segmentation_to_gt, compute_mIoU
 
 def test_assign_classes_segmentation_to_gt_and_compute_mIoU():
     # generation of ground truth

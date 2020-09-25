@@ -1,15 +1,10 @@
 import autograd.numpy as np
 from autograd.numpy import random
 from numpy import testing as np_test
-import pytest
 import os, sys, time
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-temp = os.path.dirname(current_dir)
-sys.path.insert(1, temp)
-
-from clustering_SAR.generic_functions import unvec, unvech, vec, vech
-from clustering_SAR.generation_data import generate_covariance
+from pyCovariance.utils import unvec, unvech, vec, vech
+from pyCovariance.generation_data import generate_covariance
 
 
 def test_vec_unvec():

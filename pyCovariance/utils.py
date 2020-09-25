@@ -21,43 +21,6 @@ def enable_latex_infigures():
     __spec__ = "ModuleSpec(name='builtins', loader=<class '_frozen_importlib.BuiltinImporter'>)"
 
 
-def vec(mat):
-    return mat.ravel('F')
-
-
-def vech(mat):
-    # Gets Fortran-order
-    rows, cols = np.triu_indices(len(mat))
-    vec = mat[rows, cols]
-    return vec
-
-
-def _diag_indices(n):
-    rows, cols = np.diag_indices(n)
-    return rows * n + cols
-
-
-def unvec(v):
-    k = int(np.sqrt(len(v)))
-    assert(k * k == len(v))
-    return v.reshape((k, k), order='F')
-
-
-def unvech(v):
-    # quadratic formula, correct fp error
-    rows = .5 * (-1 + np.sqrt(1 + 8 * len(v)))
-    rows = int(np.round(rows))
-
-    result = np.zeros((rows, rows), dtype=v.dtype)
-    result[np.triu_indices(rows)] = v
-    result = result + result.conj().T
-
-    # divide diagonal elements by 2
-    result[np.diag_indices(rows)] /= 2
-
-    return result
-
-
 def plot_Pauli_SAR(image, aspect=1):
     """ 1st dimension =HH, 2nd dimnension = HV, 3rd dimension=VV"""
     R = np.abs(image[:,:,0] - image[:,:,2])
@@ -87,29 +50,3 @@ def save_figure(folder, figname):
 
     path_tex = path + '.tex'
     tikzplotlib.save(path_tex)
-
-
-def pca(image, nb_components):
-    """ A function that centers data and applies PCA.
-        Inputs:
-            * image: numpy array of the image.
-            * nb_components: number of components to keep.
-    """
-    # center pixels
-    h, w, p = image.shape
-    image = image.reshape((-1, image.shape[-1]))
-    mean = np.mean(image, axis=0)
-    image = image - mean
-    # check pixels are centered
-    assert (np.abs(np.mean(image, axis=0)) < 1e-9).all()
-
-    # apply PCA
-    pca = PCA()
-    image = pca.fit_transform(image)
-    # check pixels are still centered
-    assert (np.abs(np.mean(image, axis=0)) < 1e-9).all()
-    # reshape image
-    image = image.reshape((h, w, p))
-    image = image[:, :, :nb_components]
-
-    return image

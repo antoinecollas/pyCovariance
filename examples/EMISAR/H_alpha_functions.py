@@ -3,7 +3,7 @@ import warnings
 
 from .clustering_functions import wrapper_compute_all_mean_parallel
 from .covariance_clustering_functions import vech_SCM
-from .generic_functions import * 
+from .utils import * 
 from .multivariate_images_tools import *
 
 def assign_class_H_α(H, α):

@@ -72,6 +72,7 @@ def plot_segmentation(C, aspect=1, classes=None, title=None):
 
     plt.grid(b=False)
 
+
 def save_segmentation(folder, filename, np_array):
     """ A function that saves a numpy array in a folder. The array and the folder are passed as arguments.
         Inputs:
@@ -133,7 +134,9 @@ def plot_TP_FP_FN_segmentation(C, gt, aspect=1, folder_save=None):
         plt.grid(b=False)
 
         if folder_save is not None:
-            plt.savefig(os.path.join(folder_save, 'Class '+str(i)))
+            path = os.path.join(folder_save, 'Class_'+str(int(i))+'.png')
+            print(path)
+            plt.savefig(path)
 
 
 def compute_mIoU(C, gt):

@@ -2,14 +2,7 @@
 *.swp
 
 # data
-data/EMISAR/EMISAR_data.npy
-data/Pavia
-data/Indian_Pines
-data/Snjoaq/data
-data/Snjoaq/Snjoaq.npy
-
-# figures
-figures/*
+data/*
 
 # other
 other/*
@@ -17,6 +10,9 @@ other/*
 # results
 results/*
 results_old/*
+
+# scripts
+scripts/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

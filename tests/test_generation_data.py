@@ -1,16 +1,11 @@
 import autograd.numpy as np
 from autograd.numpy import random
 from numpy import testing as np_test
-import pytest
 import os, sys, time
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-temp = os.path.dirname(current_dir)
-sys.path.insert(1, temp)
-
-from clustering_SAR.generation_data import generate_covariance, sample_complex_normal, sample_complex_standard_normal
-from clustering_SAR.generic_functions import vech
-from clustering_SAR.covariance_clustering_functions import distance_covariance_Riemannian
+from pyCovariance.generation_data import generate_covariance, sample_complex_normal, sample_complex_standard_normal
+from pyCovariance.vectorization import vech
+from pyCovariance.features.covariance import distance_covariance_Riemannian
 
 
 def test_generate_covariance():

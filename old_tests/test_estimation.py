@@ -2,15 +2,10 @@ from autograd import grad
 import autograd.numpy as np
 from autograd.numpy import random
 import numpy.testing as np_test
-import pytest
 import os, sys, time
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-temp = os.path.dirname(current_dir)
-sys.path.insert(1, temp)
-
-from clustering_SAR.estimation import create_cost_egrad_location_covariance_texture
-from clustering_SAR.generation_data import generate_covariance, generate_texture, generate_Toeplitz, sample_compound
+from pyCovariance.estimation import create_cost_egrad_location_covariance_texture
+from pyCovariance.generation_data import generate_covariance, generate_texture, generate_Toeplitz, sample_compound
 
 
 def test_cost_location_covariance_texture():

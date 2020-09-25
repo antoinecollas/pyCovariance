@@ -1,20 +1,15 @@
 import matplotlib.pyplot as plt
 import autograd.numpy as np
 from autograd.numpy import random
-import pytest
 import os, sys, time
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-temp = os.path.dirname(current_dir)
-sys.path.insert(1, temp)
+from pyCovariance.cluster_datacube import K_means_datacube
+from pyCovariance.evaluation import assign_classes_segmentation_to_gt, compute_mIoU
+from pyCovariance.features import Covariance, CovarianceEuclidean, CovarianceTexture, PixelEuclidean
+from pyCovariance.generation_data import generate_Toeplitz, sample_complex_normal
 
-from clustering_SAR.cluster_datacube import K_means_datacube
-from clustering_SAR.evaluation import assign_classes_segmentation_to_gt, compute_mIoU
-from clustering_SAR.features import Covariance, CovarianceEuclidean, CovarianceTexture, PixelEuclidean
-from clustering_SAR.generation_data import generate_Toeplitz, sample_complex_normal
-
-from clustering_SAR.generic_functions import plot_Pauli_SAR
-from clustering_SAR.evaluation import plot_segmentation
+from pyCovariance.utils import plot_Pauli_SAR
+from pyCovariance.evaluation import plot_segmentation
 
 
 def test_K_means_datacube():

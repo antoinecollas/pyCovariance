@@ -2,9 +2,7 @@ import autograd.numpy as np
 from multiprocessing import Process, Queue
 from tqdm import tqdm
 import time
-import warnings
 
-from .generic_functions import *
 
 def compute_distance_k_means(
     X,

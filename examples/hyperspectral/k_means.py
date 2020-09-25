@@ -5,13 +5,9 @@ import matplotlib.pyplot as plt
 import os
 import sys
 
-# import path of root repo
-current_dir = os.path.dirname(os.path.abspath(__file__))
-temp = os.path.dirname(os.path.dirname(current_dir))
-sys.path.insert(1, temp)
+from pyCovariance.features import Covariance, CovarianceEuclidean, CovarianceTexture, Intensity, LocationCovarianceEuclidean, MeanPixelEuclidean, PixelEuclidean
 
-from clustering_SAR.features import Covariance, CovarianceEuclidean, CovarianceTexture, Intensity, LocationCovarianceEuclidean, MeanPixelEuclidean, PixelEuclidean
-from examples.hyperspectral.hyperspectral_functions import K_means_hyperspectral_image, Dataset, evaluate_and_save_clustering, HyperparametersKMeans
+from hyperspectral_functions import K_means_hyperspectral_image, Dataset, evaluate_and_save_clustering, HyperparametersKMeans
 
 
 dataset_name = 'Indian_Pines'
@@ -24,15 +20,15 @@ folder = os.path.join('results', dataset_name, date_str)
 # EVALUATION OF PCA
 
 hyperparams = HyperparametersKMeans(
-    crop_image = False,
+    crop_image = True,
     enable_multi = True,
     pca = None,
-    nb_bands_to_select = 10,
+    nb_bands_to_select = 2,
     mask = True,
     windows_size = 7,
     features = None,
-    nb_init = 20,
-    nb_iter_max = 200,
+    nb_init = 1,
+    nb_iter_max = 2,
     eps = 1e-3
 )
 
