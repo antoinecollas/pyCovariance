@@ -1,9 +1,6 @@
-import autograd.numpy as np
-from autograd.numpy import random
 from numpy import testing as np_test
-import os, sys, time
 
-from pyCovariance.utils import unvec, unvech, vec, vech
+from pyCovariance.vectorization import unvec, unvech, vec, vech
 from pyCovariance.generation_data import generate_covariance
 
 
