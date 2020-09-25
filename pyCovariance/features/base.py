@@ -48,6 +48,23 @@ class BaseClassFeatures:
         raise NotImplementedError
 
 
+def center_vectors(X):
+    """ Serve to center vectors (e.g pixels).
+        ----------------------------------------------------------------------
+        Inputs:
+        --------
+            * X = a (p, N) array where p is the dimension of data and N the number of samples used for estimation
+
+        Outputs:
+        ---------
+            * 𝐱 = the feature for classification
+        """
+    mean = np.mean(X, axis=1)
+    mean = mean[:, np.newaxis]
+    X = X - mean
+    return X
+
+
 def center_vectors_estimation(features):
     """ Center vectors before estimating features.
     -------------------------------------
