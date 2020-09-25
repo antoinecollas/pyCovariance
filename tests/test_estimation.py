@@ -4,7 +4,7 @@ from autograd.numpy import random
 import numpy.testing as np_test
 import os, sys, time
 
-from pyCovariance.estimation import create_cost_egrad_location_covariance_texture
+from pyCovariance.features.location_covariance_texture import create_cost_egrad_location_covariance_texture
 from pyCovariance.generation_data import generate_covariance, generate_texture, generate_Toeplitz, sample_compound
 
 
@@ -50,7 +50,7 @@ def test_egrad_location_covariance_texture():
     tau = generate_texture(N)
     sigma = generate_covariance(p)
     X = sample_compound(tau, sigma)
-    cost, grad_close_form = create_cost_egrad_location_covariance_texture(X, autograd=False)
+    cost, grad_close_form = create_cost_egrad_location_covariance_texture(X, autodiff=False)
     
     grad_num = grad(cost, argnum=list(range(3)))
 
