@@ -26,7 +26,6 @@ def tyler_estimator_covariance(X, tol=0.001, iter_max=20):
     sigma = p*sigma/np.trace(sigma)
     iteration = 0
 
-    # Recursive algorithm
     while (delta>tol) and (iteration<iter_max):
         # compute expression of Tyler estimator
         tau = np.real(np.einsum('ij,ji->i', np.conjugate(X).T@np.linalg.inv(sigma), X))
@@ -44,7 +43,7 @@ def tyler_estimator_covariance(X, tol=0.001, iter_max=20):
         sigma = sigma_new
 
     if iteration == iter_max:
-        warnings.warn('Recursive algorithm did not converge')
+        warnings.warn('Estimation algorithm did not converge')
 
     return (tau, sigma, delta, iteration)
 
@@ -86,7 +85,7 @@ def tyler_estimator_covariance_normalisedet(X, tol=0.001, iter_max=20):
         sigma = sigma_new
     
     if iteration == iter_max:
-        warnings.warn('Recursive algorithm did not converge')
+        warnings.warn('Estimation algorithm did not converge')
 
     return (tau, sigma, delta, iteration)
 

@@ -2,6 +2,7 @@ import autograd.numpy as np
 from multiprocessing import Process, Queue
 from tqdm import tqdm
 import time
+import warnings
 
 
 def compute_distance_k_means(
@@ -333,6 +334,9 @@ def K_means_clustering_algorithm(
         
         if verbose:
             print()
+
+    if i == iter_max-1:
+        warnings.warn('K-means algorithm did not converge')
 
     if verbose:
         print('Total time to compute distances between samples and classes:', int(time_distances), 's.')

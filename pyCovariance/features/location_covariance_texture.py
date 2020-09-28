@@ -55,7 +55,7 @@ def tyler_estimator_location_covariance_normalisedet(X, tol=0.001, iter_max=20):
         sigma = sigma_new
     
     if iteration == iter_max:
-        warnings.warn('Recursive algorithm did not converge')
+        warnings.warn('Estimation algorithm did not converge')
 
     return (mu, tau, sigma, delta, iteration)
 

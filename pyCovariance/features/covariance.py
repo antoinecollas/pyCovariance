@@ -1,5 +1,6 @@
 import autograd.numpy as np
 from multiprocessing import Process, Queue
+import warnings
 
 from .base import BaseClassFeatures
 from ..matrix_operators import *
@@ -206,6 +207,9 @@ def mean_covariance_Riemannian(X_class, mean_parameters=[1.0, 0.95, 1e-3, 30, Fa
             delta = h
         else:
             eps = .5 * eps
+    
+    if iteration == iter_max:
+        warnings.warn('Mean computing algorithm did not converge')
 
     return vech(mean)
 
