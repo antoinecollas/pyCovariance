@@ -10,10 +10,10 @@ from pyCovariance.generation_data import generate_covariance, generate_texture, 
 from pyCovariance.vectorization import unvech, vech
 
 
-nb_MC = 10
-p = 3
+nb_MC = 100
+p = 5
 N_max = 1000
-nb_points = 3
+nb_points = 5
 
 mu = np.random.randn(p, 1) + 1j*np.random.randn(p, 1)
 tau_full = generate_texture(N_max)
@@ -70,5 +70,4 @@ plt.legend()
 plt.xlabel('Nombre de points')
 plt.ylabel('Erreur d\'estimation')
 plt.savefig('tyler.png')
-
 
