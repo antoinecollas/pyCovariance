@@ -1,13 +1,10 @@
 import autograd.numpy as np
-import copy
-import glob
 import os
 import matplotlib.pyplot as plt
 import random
 from scipy.io import loadmat
 from sklearn.cluster import KMeans
 from sklearn.metrics import adjusted_mutual_info_score, adjusted_rand_score
-import sys
 import time
 
 # The code is already multi threaded so we block OpenBLAS multi thread.
