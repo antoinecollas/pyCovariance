@@ -3,10 +3,10 @@ from autograd.numpy import random
 from numpy import testing as np_test
 import os, sys, time
 
-from pyCovariance.covariance_clustering_functions import distance_covariance_Riemannian
-from pyCovariance.covariance_and_texture_clustering_functions import compute_feature_covariance_texture, mean_covariance_texture_Riemannian
+from pyCovariance.features.covariance import distance_covariance_Riemannian
+from pyCovariance.features.covariance_texture import compute_feature_covariance_texture, mean_covariance_texture_Riemannian
 from pyCovariance.generation_data import generate_covariance, generate_texture, generate_Toeplitz, sample_complex_normal, sample_compound
-from pyCovariance.utils import unvech, vech
+from pyCovariance.vectorization import unvech, vech
 from pyCovariance.matrix_operators import sqrtm, invsqrtm, logm, expm
 
 ###################################################

@@ -1,4 +1,5 @@
 import autograd.numpy as np
+from multiprocessing import Process, Queue
 
 from .base import BaseClassFeatures
 from ..matrix_operators import *
