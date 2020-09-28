@@ -140,7 +140,7 @@ def wrapper_compute_J(𝐗_class, isqrtm_𝐌, enable_multi=False, number_of_thr
 
     return J
 
-def mean_covariance_Riemannian(X_class, mean_parameters=[1.0, 0.95, 1e-3, 30, False, 0]):
+def mean_covariance_Riemannian(X_class, mean_parameters=[1.0, 0.95, 1e-3, 100, False, 0]):
     """ Riemannian mean as discribed in section 3. of:
         P. Formont, J. P. Ovarlez, F. Pascal, G. Vasile and L. Ferro-Famil, 
         "On the extension of the product model in POLSAR processing for unsupervised 
@@ -178,7 +178,6 @@ def mean_covariance_Riemannian(X_class, mean_parameters=[1.0, 0.95, 1e-3, 30, Fa
     mean = expm(mean/M)
     
     # Initialise criterions of convergence
-    delta = np.inf
     criterion = np.inf
     eps = eps_start
     iteration = 0
@@ -201,19 +200,14 @@ def mean_covariance_Riemannian(X_class, mean_parameters=[1.0, 0.95, 1e-3, 30, Fa
 
         # Managing iterative algorithm
         criterion = np.linalg.norm(J, ord='fro')
-        h = eps * criterion
-        if h<delta:
-            eps = eps_start * eps_update
-            delta = h
-        else:
-            eps = .5 * eps
-    
+        eps = eps_update * eps
+ 
     if iteration == iter_max:
         warnings.warn('Mean computing algorithm did not converge')
 
     return vech(mean)
 
-def mean_covariance_Riemannian_with_whitening(X_class, mean_parameters=[1.0, 0.95, 1e-3, 30, False, 0]):
+def mean_covariance_Riemannian_with_whitening(X_class, mean_parameters=[1.0, 0.95, 1e-3, 100, False, 0]):
     """ Riemannian mean with whitening of covariances by Euclidean mean.
         ----------------------------------------------------------------------
         Inputs:

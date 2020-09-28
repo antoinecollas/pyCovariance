@@ -7,7 +7,7 @@ from ..vectorization import *
 
 ########## ESTIMATION ##########
 
-def tyler_estimator_covariance(X, tol=0.001, iter_max=20):
+def tyler_estimator_covariance(X, tol=0.001, iter_max=100):
     """ A function that computes the Tyler Fixed Point Estimator for covariance matrix estimation
         Inputs:
             * X = a matrix of size p*N with each observation along column dimension
@@ -48,7 +48,7 @@ def tyler_estimator_covariance(X, tol=0.001, iter_max=20):
     return (tau, sigma, delta, iteration)
 
 
-def tyler_estimator_covariance_normalisedet(X, tol=0.001, iter_max=20):
+def tyler_estimator_covariance_normalisedet(X, tol=0.001, iter_max=100):
     """ A function that computes the Tyler Fixed Point Estimator for covariance matrix estimation
         and normalisation by determinant
         Inputs:
@@ -90,7 +90,7 @@ def tyler_estimator_covariance_normalisedet(X, tol=0.001, iter_max=20):
     return (tau, sigma, delta, iteration)
 
 
-def compute_feature_covariance_texture(X, args=(0.01, 20)):
+def compute_feature_covariance_texture(X, args=(0.001, 100)):
     """ Serve to compute feature for Covariance and texture classificaiton.
         We use vech opeartion to save memory space on covariance.
         ----------------------------------------------------------------------
@@ -174,7 +174,7 @@ def distance_covariance_texture_Riemannian(x_1, x_2, p, N):
 
 ##########   MEAN     ##########
 
-def mean_covariance_texture_Riemannian(X_class, p, N, mean_parameters=[1.0, 0.95, 1e-3, 100, False, 0]):
+def mean_covariance_texture_Riemannian(X_class, p, N, mean_parameters=[1.0, 0.95, 1e-3, 1000, False, 0]):
     """ Riemannian mean on covariance + texture manifold:
         ----------------------------------------------------------------------
         Inputs:
