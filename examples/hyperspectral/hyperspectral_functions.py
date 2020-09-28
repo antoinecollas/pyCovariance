@@ -81,13 +81,27 @@ class HyperparametersKMeans():
         self.mask = mask
 
         # features
-        self.windows_shape = (windows_size, windows_size)
+        self.windows_size = windows_size
         self.features = features
 
         # K-means
         self.nb_init = nb_init
         self.nb_iter_max = nb_iter_max
         self.eps = eps
+
+    @property
+    def windows_size(self):
+        return self._windows_size
+
+    @windows_size.setter
+    def windows_size(self, value):
+        self._windows_size = value
+        self.windows_shape = (value, value)
+
+    @windows_size.deleter
+    def windows_size(self):
+        del self._windows_size
+        del self.windows_shape
 
 
 def K_means_hyperspectral_image(dataset_name, hyperparams):
