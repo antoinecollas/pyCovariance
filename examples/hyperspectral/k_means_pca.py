@@ -48,9 +48,9 @@ features_list = [
 for pca in [False, True]:
     hyperparams.pca = pca
     if pca:
-        prefix = '_pca'
+        prefix = 'pca'
     else:
-        prefix = '_no_pca'
+        prefix = 'no_pca'
 
     # K means and evaluations
     mIoUs = list()
@@ -62,7 +62,7 @@ for pca in [False, True]:
         print('Features:', str(hyperparams.features))
         C = K_means_hyperspectral_image(dataset_name, hyperparams)
         print()
-        mIoU, OA = evaluate_and_save_clustering(C, dataset_name, hyperparams, folder, str(i)+prefix)
+        mIoU, OA = evaluate_and_save_clustering(C, dataset_name, hyperparams, folder, str(i) + '_' + prefix)
         mIoUs.append(mIoU)
         OAs.append(OA)
         features_str.append(str(features))
