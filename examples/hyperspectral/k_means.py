@@ -54,6 +54,7 @@ for pca in [False, True]:
 
     # K means and evaluations
     mIoUs = list()
+    OAs = list()
     features_str = list()
     for i, features in enumerate(features_list):
         hyperparams.features = features
@@ -61,16 +62,27 @@ for pca in [False, True]:
         print('Features:', str(hyperparams.features))
         C = K_means_hyperspectral_image(dataset_name, hyperparams)
         print()
-        mIoU, _ = evaluate_and_save_clustering(C, dataset_name, hyperparams, folder, str(i)+prefix)
+        mIoU, OA = evaluate_and_save_clustering(C, dataset_name, hyperparams, folder, str(i)+prefix)
         mIoUs.append(mIoU)
+        OAs.append(OA)
         features_str.append(str(features))
 
-    # Bar plot of performances
+    # Bar plot of mIoUs
     fig, ax = plt.subplots(1)
     ax.bar(features_str, mIoUs, align='center')
     ax.set_ylim(0, 0.5)
     plt.ylabel('mIoU')
     plt.xticks(rotation=90)
     plt.subplots_adjust(bottom=0.5)
-    path = os.path.join('results', dataset_name, date_str, 'perfs'+prefix)
+    path = os.path.join('results', dataset_name, date_str, 'mIoU'+prefix)
+    plt.savefig(path)
+
+    # Bar plot of OAs
+    fig, ax = plt.subplots(1)
+    ax.bar(features_str, OAs, align='center')
+    ax.set_ylim(0, 1)
+    plt.ylabel('OA')
+    plt.xticks(rotation=90)
+    plt.subplots_adjust(bottom=0.5)
+    path = os.path.join('results', dataset_name, date_str, 'OA'+prefix)
     plt.savefig(path)
