@@ -20,19 +20,19 @@ folder = os.path.join('results', dataset_name, date_str)
 # EVALUATION ACCORDING TO WINDOW_SIZE AND NB_BANDS
 
 hyperparams = HyperparametersKMeans(
-    crop_image = True,
+    crop_image = False,
     enable_multi = True,
     pca = True,
     nb_bands_to_select = None,
     mask = True,
     windows_size = None,
     features = None,
-    nb_init = 1,
-    nb_iter_max = 1,
+    nb_init = 10,
+    nb_iter_max = 100,
     eps = 1e-3
 )
 
-pairs_w_p = [(3, 4), (5, 4), (5, 10)]
+pairs_w_p = [(3, 4), (5, 4), (5, 10), (7, 4), (7, 10), (7, 20), (9, 4), (9, 10), (9, 20), (9, 40)]
 
 for w, p in pairs_w_p:
     print('w=', w, 'p=', p)
