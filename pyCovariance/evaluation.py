@@ -135,7 +135,6 @@ def plot_TP_FP_FN_segmentation(C, gt, aspect=1, folder_save=None):
 
         if folder_save is not None:
             path = os.path.join(folder_save, 'Class_'+str(int(i))+'.png')
-            print(path)
             plt.savefig(path)
 
 
