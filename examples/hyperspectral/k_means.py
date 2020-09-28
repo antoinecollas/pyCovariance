@@ -20,15 +20,15 @@ folder = os.path.join('results', dataset_name, date_str)
 # EVALUATION OF PCA
 
 hyperparams = HyperparametersKMeans(
-    crop_image = True,
+    crop_image = False,
     enable_multi = True,
     pca = None,
-    nb_bands_to_select = 2,
+    nb_bands_to_select = 10,
     mask = True,
     windows_size = 7,
     features = None,
-    nb_init = 1,
-    nb_iter_max = 2,
+    nb_init = 10,
+    nb_iter_max = 100,
     eps = 1e-3
 )
 
