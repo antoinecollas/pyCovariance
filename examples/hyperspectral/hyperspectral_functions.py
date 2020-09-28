@@ -14,9 +14,9 @@ import time
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 from pyCovariance.cluster_datacube import K_means_datacube
-from pyCovariance.evaluation import assign_classes_segmentation_to_gt, compute_mIoU, compute_OA, plot_segmentation, plot_TP_FP_FN_segmentation
-from pyCovariance.utils import enable_latex_infigures, pca, save_figure
-from pyCovariance.evaluation import plot_segmentation, save_segmentation
+from pyCovariance.evaluation import assign_classes_segmentation_to_gt, compute_mIoU, compute_OA, plot_segmentation, plot_TP_FP_FN_segmentation, save_segmentation
+from pyCovariance.pca import pca
+from pyCovariance.utils import enable_latex_infigures, save_figure
 
 
 class Dataset():
