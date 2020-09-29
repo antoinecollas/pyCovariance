@@ -12,7 +12,7 @@ from pyCovariance.vectorization import unvech, vech
 
 nb_MC = 100
 p = 5
-N_max = 1000
+N_max = 10000
 nb_points = 5
 
 mu = np.random.randn(p, 1) + 1j*np.random.randn(p, 1)
@@ -23,7 +23,8 @@ sigma = (1/np.linalg.det(sigma))**(1/p) * sigma
 
 assert np.abs(np.linalg.det(sigma)-1) < 1e-5
 
-list_n_points = np.geomspace(10*p, N_max, num=nb_points, dtype=np.int)
+list_n_points = np.geomspace(2*p, N_max, num=nb_points, dtype=np.int)
+print(list_n_points)
 
 mu_errors_t = list()
 sigma_errors_t = list()

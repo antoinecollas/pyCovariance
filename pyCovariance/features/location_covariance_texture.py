@@ -130,7 +130,16 @@ def gradient_descent_location_covariance_texture(X, autodiff):
     manifold = Product([ComplexEuclidean(p), StrictlyPositiveVectors(N), SpecialHermitianPositiveDefinite(p)])
     problem = Problem(manifold=manifold, cost=cost, egrad=egrad, verbosity=0)
     solver = SteepestDescent()
-    Xopt = solver.solve(problem)
+    success = False
+    while not success:
+        try:
+            Xopt = solver.solve(problem)
+            success = True
+        except KeyboardInterrupt:
+            import sys
+            sys.exit(1)
+        except:
+            pass
     Xopt[0] = Xopt[0].reshape((-1, 1))
     return Xopt
 
