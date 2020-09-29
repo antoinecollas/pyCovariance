@@ -139,7 +139,7 @@ def gradient_descent_location_covariance_texture(X, autodiff):
             import sys
             sys.exit(1)
         except:
-            pass
+            warnings.warn('Begin new optimization...')
     Xopt[0] = Xopt[0].reshape((-1, 1))
     return Xopt
 
