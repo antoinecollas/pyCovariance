@@ -88,8 +88,8 @@ def create_cost_egrad_location_covariance_texture(X, autodiff=False):
         grad_mu = -2*sigma_inv@grad_mu
 
         # grad tau
-        v = np.linalg.inv(np.linalg.cholesky(sigma))@(X-mu)
-        a = np.sum(v*v.conj(), axis=0).reshape((-1, 1))
+        X_bis = X-mu
+        a = np.real(np.einsum('ij,ji->i', np.conjugate(X_bis).T@np.linalg.inv(sigma), X_bis)).reshape((-1, 1))
         grad_tau = np.real((p*tau-a) * (tau**(-2)))
 
         # grad sigma
