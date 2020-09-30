@@ -5,14 +5,14 @@ from tqdm import tqdm
 from pyCovariance.features.tau_UUH import distance_grass, estimation_tau_UUH, estimation_tau_UUH_gradient_descent, estimation_tau_UUH_SCM
 from pyCovariance.generation_data import generate_stiefel, generate_texture, sample_tau_UUH
 
-nb_MC = 100
+nb_MC = 500
 p = 15
 k = 3
 N_max = 1000
 nb_points = 10
 alpha = 10
 
-tau_full = generate_texture(N_max)
+tau_full = alpha*generate_texture(N_max)
 U = generate_stiefel(p, k)
 
 list_n_points = np.geomspace(p, N_max, num=nb_points, dtype=np.int)
@@ -20,6 +20,7 @@ list_n_points = np.geomspace(p, N_max, num=nb_points, dtype=np.int)
 U_errors_SCM = list()
 U_errors_alternate = list()
 U_errors_grad = list()
+bound = list()
 
 for n in tqdm(list_n_points):
     U_error_SCM = 0
@@ -27,6 +28,7 @@ for n in tqdm(list_n_points):
     U_error_grad = 0
  
     tau = tau_full[:n]
+
 
     for i in tqdm(range(nb_MC)):
         X = sample_tau_UUH(tau, U)
@@ -47,9 +49,13 @@ for n in tqdm(list_n_points):
     U_errors_alternate.append(U_error_alternate/nb_MC)
     U_errors_grad.append(U_error_grad/nb_MC)
 
+c_tau = np.mean((tau_full*tau_full)/(1+tau_full))
+bound = (((p-k)*k)/(list_n_points*c_tau))
+
 plt.loglog(list_n_points, U_errors_SCM, label='U - projected SCM')
 plt.loglog(list_n_points, U_errors_alternate, label='U - alternate')
 plt.loglog(list_n_points, U_errors_grad, label='U - Riemannian')
+plt.loglog(list_n_points, bound, label='CRB')
 plt.legend()
 plt.xlabel('Number of points')
 plt.ylabel('Estimation error')
