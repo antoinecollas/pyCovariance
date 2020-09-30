@@ -3,7 +3,7 @@ from autograd.numpy import random
 from numpy import testing as np_test
 import os, sys, time
 
-from pyCovariance.generation_data import generate_covariance, sample_complex_normal, sample_complex_standard_normal
+from pyCovariance.generation_data import generate_covariance, generate_stiefel, sample_complex_normal, sample_complex_standard_normal
 from pyCovariance.vectorization import vech
 from pyCovariance.features.covariance import distance_covariance_Riemannian
 
@@ -16,6 +16,13 @@ def test_generate_covariance():
     np_test.assert_almost_equal(sigma, sigma.conj().T, decimal=3)
     eigvals, _  = np.linalg.eigh(sigma)
     assert (eigvals > 0).all()
+
+
+def test_generate_stiefel():
+    p = 10
+    k = 3
+    U = generate_stiefel(p, k)
+    np_test.assert_allclose(U.conj().T@U, np.eye(k), atol=1e-10)
 
 
 def test_sample_complex_standard_normal():

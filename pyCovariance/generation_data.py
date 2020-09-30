@@ -34,6 +34,11 @@ def generate_texture(N):
     return texture
 
 
+def generate_stiefel(p, k):
+    Q, _ = np.linalg.qr(random.randn(p, k)+1j*random.randn(p, k))
+    return Q
+
+
 def sample_complex_standard_normal(p, N):
     X = (1/np.sqrt(2))*(random.standard_normal((p,N)) + 1j*random.standard_normal((p,N)))
     return X
@@ -49,4 +54,11 @@ def sample_compound(tau, sigma):
     N = tau.shape[0]
     p = sigma.shape[0]
     X = np.sqrt(tau).reshape((1, -1))*sample_complex_normal(N, sigma)
+    return X
+
+
+def sample_tau_UUH(tau, U):
+    N = tau.shape[0]
+    p, k = U.shape
+    X = np.sqrt(tau).reshape((1, -1))*(U@sample_complex_normal(N, np.eye(k))) + sample_complex_normal(N, np.eye(p))
     return X
