@@ -10,8 +10,8 @@ from pyCovariance.generation_data import generate_covariance, generate_texture, 
 from pyCovariance.vectorization import unvech, vech
 
 
-nb_MC = 100
-p = 5
+nb_MC = 1000
+p = 3
 N_max = 10000
 nb_points = 5
 
@@ -24,7 +24,6 @@ sigma = (1/np.linalg.det(sigma))**(1/p) * sigma
 assert np.abs(np.linalg.det(sigma)-1) < 1e-5
 
 list_n_points = np.geomspace(2*p, N_max, num=nb_points, dtype=np.int)
-print(list_n_points)
 
 mu_errors_t = list()
 sigma_errors_t = list()
