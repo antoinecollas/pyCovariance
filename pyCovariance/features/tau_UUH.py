@@ -98,7 +98,7 @@ def create_cost_egrad(backend, X):
     return cost, egrad
 
 
-def estimation_gradient_descent_tau_UUH(X, k, autodiff):
+def estimation_tau_UUH_gradient_descent(X, k, autodiff):
     """ A function that estimates parameters of a 'tau UUH' model.
         Inputs:
             * X = a matrix of size p*N with each observation along column dimension
@@ -135,7 +135,7 @@ def estimation_tau_UUH_SCM(X, k):
 
 ##########  DISTANCE  ##########
 
-def dist_grass(U1, U2):
+def distance_grass(U1, U2):
     return np.linalg.norm(np.arccos(np.linalg.svd(U1.conj().T@U2, full_matrices=False, compute_uv=False)))
 
 ##########   MEAN     ##########
