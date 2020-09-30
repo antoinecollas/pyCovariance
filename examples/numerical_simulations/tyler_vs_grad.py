@@ -69,5 +69,6 @@ plt.loglog(list_n_points, sigma_errors_g, label='sigma - Riemannien')
 plt.legend()
 plt.xlabel('Nombre de points')
 plt.ylabel('Erreur d\'estimation')
+plt.grid(b=True, which='both')
 plt.savefig('tyler.png')
 
