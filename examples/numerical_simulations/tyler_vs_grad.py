@@ -5,13 +5,13 @@ import sys
 from tqdm import tqdm
 
 from pyCovariance.features.covariance import distance_covariance_Riemannian
-from pyCovariance.features.location_covariance_texture import gradient_descent_location_covariance_texture, tyler_estimator_location_covariance_normalisedet
+from pyCovariance.features.location_covariance_texture import estimation_location_covariance_texture_RGD, tyler_estimator_location_covariance_normalisedet
 from pyCovariance.generation_data import generate_covariance, generate_texture, generate_Toeplitz, sample_compound
 from pyCovariance.vectorization import unvech, vech
 
 
-nb_MC = 100
-p = 5
+nb_MC = 1000
+p = 3
 N_max = 10000
 nb_points = 5
 
@@ -43,15 +43,21 @@ for n in tqdm(list_n_points):
     
     for i in tqdm(range(nb_MC)):
         X = sample_compound(tau, sigma) + mu
-        #print('np.linalg.norm(X-mu, axis=0)=', np.linalg.norm(X-mu, axis=0))
+
+        # Initialisation
+        mu_0 = np.mean(X, axis=1).reshape((-1, 1))
+        sigma_0 = (1/n)*(X-mu_0)@(X-mu_0).conj().T
+        tau_0 = np.real(np.linalg.det(sigma_0)**(1/p))*np.ones((n, 1))
+        sigma_0 = sigma_0/(np.linalg.det(sigma_0)**(1/p))
+        theta_0 = [mu_0, tau_0, sigma_0]
 
         # Tyler
-        mu_est, tau_est, sigma_est, _, _ = tyler_estimator_location_covariance_normalisedet(X)
+        mu_est, tau_est, sigma_est, _, _ = tyler_estimator_location_covariance_normalisedet(X, init=theta_0)
         mu_error_t += np.linalg.norm(mu-mu_est)**2
         sigma_error_t += distance_covariance_Riemannian(vech(sigma_est), vech(sigma))**2
         
         # gradient descent 
-        mu_est, tau_est, sigma_est = gradient_descent_location_covariance_texture(X, autodiff=False)
+        mu_est, tau_est, sigma_est = estimation_location_covariance_texture_RGD(X, init=theta_0, autodiff=False)
         mu_error_g += np.linalg.norm(mu-mu_est)**2
         sigma_error_g += distance_covariance_Riemannian(vech(sigma_est), vech(sigma))**2
 

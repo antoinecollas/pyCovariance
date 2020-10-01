@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from pyCovariance.features.tau_UUH import distance_grass, estimation_tau_UUH, estimation_tau_UUH_gradient_descent, estimation_tau_UUH_SCM
+from pyCovariance.features.tau_UUH import distance_grass, estimation_tau_UUH, estimation_tau_UUH_RGD, estimation_tau_UUH_SCM
 from pyCovariance.generation_data import generate_stiefel, generate_texture, sample_tau_UUH
 
 nb_MC = 500
@@ -42,7 +42,7 @@ for n in tqdm(list_n_points):
         U_error_alternate += distance_grass(U_est, U)**2
 
         # gradient descent tau UUH
-        U_est, _ = estimation_tau_UUH_gradient_descent(X, k, autodiff=False)
+        U_est, _ = estimation_tau_UUH_RGD(X, k, autodiff=False)
         U_error_grad += distance_grass(U_est, U)**2
 
     U_errors_SCM.append(U_error_SCM/nb_MC)

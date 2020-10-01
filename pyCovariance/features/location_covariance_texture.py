@@ -10,10 +10,11 @@ from ..vectorization import *
 
 ########## ESTIMATION ##########
 
-def tyler_estimator_location_covariance_normalisedet(X, tol=0.001, iter_max=20):
+def tyler_estimator_location_covariance_normalisedet(X, init=None, tol=0.001, iter_max=20):
     """ A function that computes the Tyler Fixed Point Estimator for location and covariance estimation.
         Inputs:
             * X = a matrix of size p*N with each observation along column dimension
+            * init = point on manifold to initliase estimation
             * tol = tolerance for convergence of estimator
             * iter_max = number of maximum iterations
         Outputs:
@@ -23,12 +24,19 @@ def tyler_estimator_location_covariance_normalisedet(X, tol=0.001, iter_max=20):
             * iteration = number of iterations til convergence """
     
     # Initialisation
-    (p,N) = X.shape
+    p, N = X.shape
+    if init is None:
+        mu = np.mean(X, axis=1).reshape((-1, 1))
+        sigma = (1/N)*(X-mu)@(X-mu).conj().T
+        tau = np.linalg.det(sigma)**(1/p)*np.ones((1, N))
+        sigma = sigma/(np.linalg.det(sigma)**(1/p))
+    else:
+        mu, tau, sigma = init
+
+    mu = mu.reshape((-1, 1))
+    tau = tau.reshape((1, -1))
+
     delta = np.inf # Distance between two iterations
-    tau = np.ones((1, N))
-    mu = np.mean(X, axis=1).reshape((-1, 1))
-    sigma = (1/N)*(X-mu)@(X-mu).conj().T
-    sigma = sigma/(np.linalg.det(sigma)**(1/p))
     iteration = 0
 
     while (delta>tol) and (iteration<iter_max):
@@ -113,10 +121,11 @@ def create_cost_egrad_location_covariance_texture(X, autodiff=False):
         return cost, egrad
 
 
-def gradient_descent_location_covariance_texture(X, autodiff):
+def estimation_location_covariance_texture_RGD(X, init=None, autodiff=False):
     """ A function that estimates parameters of a compound Gaussian distribution.
         Inputs:
             * X = a matrix of size p*N with each observation along column dimension
+            * init = point on manifold to initliase estimation
             * autodiff = use or not autodiff
         Outputs:
             * mu = estimate of location
@@ -124,22 +133,15 @@ def gradient_descent_location_covariance_texture(X, autodiff):
             * tau = estimate of covariance """
     
     # The estimation is done using Riemannian geometry. The manifold is: C^p x (R++)^n x SHp++
- 
     p, N = X.shape
+    init[0] = init[0].reshape(-1) 
+    init[1] = init[1].reshape((N, 1)) 
+
     cost, egrad = create_cost_egrad_location_covariance_texture(X, autodiff)
     manifold = Product([ComplexEuclidean(p), StrictlyPositiveVectors(N), SpecialHermitianPositiveDefinite(p)])
     problem = Problem(manifold=manifold, cost=cost, egrad=egrad, verbosity=0)
     solver = SteepestDescent()
-    success = False
-    while not success:
-        try:
-            Xopt = solver.solve(problem)
-            success = True
-        except KeyboardInterrupt:
-            import sys
-            sys.exit(1)
-        except:
-            warnings.warn('Begin new optimization...')
+    Xopt = solver.solve(problem, x=init)
     Xopt[0] = Xopt[0].reshape((-1, 1))
     return Xopt
 

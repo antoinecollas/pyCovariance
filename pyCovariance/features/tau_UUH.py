@@ -98,7 +98,7 @@ def create_cost_egrad(backend, X):
     return cost, egrad
 
 
-def estimation_tau_UUH_gradient_descent(X, k, autodiff):
+def estimation_tau_UUH_RGD(X, k, autodiff):
     """ A function that estimates parameters of a 'tau UUH' model.
         Inputs:
             * X = a matrix of size p*N with each observation along column dimension
