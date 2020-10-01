@@ -121,11 +121,15 @@ def create_cost_egrad_location_covariance_texture(X, autodiff=False):
         return cost, egrad
 
 
-def estimation_location_covariance_texture_RGD(X, init=None, autodiff=False):
+def estimation_location_covariance_texture_RGD(X, init=None, tol=1e-3, iter_max=1000, autodiff=False):
     """ A function that estimates parameters of a compound Gaussian distribution.
         Inputs:
             * X = a matrix of size p*N with each observation along column dimension
             * init = point on manifold to initliase estimation
+            * tol = minimum norm of gradient
+            * iter_max = maximum number of iterations
+            * tol = tolerance for convergence of estimator
+            * iter_max = number of maximum iterations
             * autodiff = use or not autodiff
         Outputs:
             * mu = estimate of location
@@ -140,7 +144,13 @@ def estimation_location_covariance_texture_RGD(X, init=None, autodiff=False):
     cost, egrad = create_cost_egrad_location_covariance_texture(X, autodiff)
     manifold = Product([ComplexEuclidean(p), StrictlyPositiveVectors(N), SpecialHermitianPositiveDefinite(p)])
     problem = Problem(manifold=manifold, cost=cost, egrad=egrad, verbosity=0)
-    solver = SteepestDescent()
+    solver = SteepestDescent(
+        maxtime=np.inf,
+        maxiter=iter_max,
+        mingradnorm=tol,
+        minstepsize=0,
+        maxcostevals=np.inf
+    )
     Xopt = solver.solve(problem, x=init)
     Xopt[0] = Xopt[0].reshape((-1, 1))
     return Xopt
