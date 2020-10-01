@@ -7,23 +7,29 @@ from ..vectorization import *
 
 ########## ESTIMATION ##########
 
-def tyler_estimator_covariance(X, tol=0.001, iter_max=100):
+def tyler_estimator_covariance(X, init=None, tol=0.001, iter_max=100):
     """ A function that computes the Tyler Fixed Point Estimator for covariance matrix estimation
         Inputs:
             * X = a matrix of size p*N with each observation along column dimension
+            * init = point on manifold to initialise estimation
             * tol = tolerance for convergence of estimator
             * iter_max = number of maximum iterations
         Outputs:
-            * sigma
             * tau
+            * sigma
             * delta = the final distance between two iterations
             * iteration = number of iterations til convergence """
 
     # Initialisation
-    (p,N) = X.shape
+    p, N = X.shape
+    if init is None:
+        sigma = (1/N)*X@X.conj().T
+        sigma = p*sigma/np.trace(sigma)
+    else:
+        tau, sigma = init
+        tau = tau.reshape((1, -1))
+
     delta = np.inf # Distance between two iterations
-    sigma = (1/N)*X@X.conj().T
-    sigma = p*sigma/np.trace(sigma)
     iteration = 0
 
     while (delta>tol) and (iteration<iter_max):
@@ -48,24 +54,29 @@ def tyler_estimator_covariance(X, tol=0.001, iter_max=100):
     return (tau, sigma, delta, iteration)
 
 
-def tyler_estimator_covariance_normalisedet(X, tol=0.001, iter_max=100):
+def tyler_estimator_covariance_normalisedet_old(X, init=None, tol=0.001, iter_max=100):
     """ A function that computes the Tyler Fixed Point Estimator for covariance matrix estimation
-        and normalisation by determinant
         Inputs:
             * X = a matrix of size p*N with each observation along column dimension
+            * init = point on manifold to initialise estimation
             * tol = tolerance for convergence of estimator
             * iter_max = number of maximum iterations
         Outputs:
-            * sigma
             * tau
+            * sigma
             * delta = the final distance between two iterations
             * iteration = number of iterations til convergence """
 
     # Initialisation
-    (p,N) = X.shape
+    p, N = X.shape
+    if init is None:
+        sigma = (1/N)*X@X.conj().T
+        sigma = p*sigma/np.trace(sigma)
+    else:
+        tau, sigma = init
+        tau = tau.reshape((1, -1))
+
     delta = np.inf # Distance between two iterations
-    sigma = (1/N)*X@X.conj().T
-    sigma = sigma/(np.linalg.det(sigma)**(1/p))
     iteration = 0
 
     while (delta>tol) and (iteration<iter_max):
@@ -90,6 +101,27 @@ def tyler_estimator_covariance_normalisedet(X, tol=0.001, iter_max=100):
     return (tau, sigma, delta, iteration)
 
 
+def tyler_estimator_covariance_normalisedet(X, init=None, tol=0.001, iter_max=100):
+    """ A function that computes the Tyler Fixed Point Estimator for covariance matrix estimation
+        Inputs:
+            * X = a matrix of size p*N with each observation along column dimension
+            * init = point on manifold to initialise estimation
+            * tol = tolerance for convergence of estimator
+            * iter_max = number of maximum iterations
+        Outputs:
+            * tau
+            * sigma
+            * delta = the final distance between two iterations
+            * iteration = number of iterations til convergence """
+    p, N = X.shape
+    tau, sigma, delta, iteration = tyler_estimator_covariance(X, init=init, tol=tol, iter_max=iter_max)
+    c = np.linalg.det(sigma)**(1/p)
+    tau = c*tau
+    sigma = sigma/c
+
+    return (tau, sigma, delta, iteration)
+
+
 def compute_feature_covariance_texture(X, args=(0.001, 100)):
     """ Serve to compute feature for Covariance and texture classificaiton.
         We use vech opeartion to save memory space on covariance.
@@ -107,7 +139,7 @@ def compute_feature_covariance_texture(X, args=(0.001, 100)):
             * 𝐱 = the feature for classification
         """
     eps, iter_max = args
-    tau, sigma, _, _ = tyler_estimator_covariance_normalisedet(np.squeeze(X), eps, iter_max)
+    tau, sigma, _, _ = tyler_estimator_covariance_normalisedet(np.squeeze(X), tol=eps, iter_max=iter_max)
     return np.hstack([vech(sigma), tau])
 
 
@@ -130,7 +162,7 @@ def compute_feature_covariance_texture_mean(X, args):
         """
 
     eps, iter_max = args
-    tau, sigma, _, _ = tyler_estimator_covariance_normalisedet(np.squeeze(X), eps, iter_max)
+    tau, sigma, _, _ = tyler_estimator_covariance_normalisedet(np.squeeze(X), tol=eps, iter_max=iter_max)
     return list(np.hstack([vech(sigma), np.mean(tau)]) )
 
 
