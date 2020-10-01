@@ -14,7 +14,7 @@ def tyler_estimator_location_covariance_normalisedet(X, init=None, tol=0.001, it
     """ A function that computes the Tyler Fixed Point Estimator for location and covariance estimation.
         Inputs:
             * X = a matrix of size p*N with each observation along column dimension
-            * init = point on manifold to initliase estimation
+            * init = point on manifold to initialise estimation
             * tol = tolerance for convergence of estimator
             * iter_max = number of maximum iterations
         Outputs:
