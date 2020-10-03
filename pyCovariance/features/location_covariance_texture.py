@@ -2,7 +2,7 @@ import autograd.numpy as np
 import pymanopt
 from pymanopt import Problem
 from pymanopt.manifolds import ComplexEuclidean, Product, StrictlyPositiveVectors, SpecialHermitianPositiveDefinite
-from pymanopt.solvers import SteepestDescent
+from pymanopt.solvers import ConjugateGradient, SteepestDescent
 import warnings
 
 from .base import BaseClassFeatures
@@ -128,8 +128,6 @@ def estimation_location_covariance_texture_RGD(X, init=None, tol=1e-3, iter_max=
             * init = point on manifold to initliase estimation
             * tol = minimum norm of gradient
             * iter_max = maximum number of iterations
-            * tol = tolerance for convergence of estimator
-            * iter_max = number of maximum iterations
             * autodiff = use or not autodiff
         Outputs:
             * mu = estimate of location
@@ -144,7 +142,7 @@ def estimation_location_covariance_texture_RGD(X, init=None, tol=1e-3, iter_max=
     cost, egrad = create_cost_egrad_location_covariance_texture(X, autodiff)
     manifold = Product([ComplexEuclidean(p), StrictlyPositiveVectors(N), SpecialHermitianPositiveDefinite(p)])
     problem = Problem(manifold=manifold, cost=cost, egrad=egrad, verbosity=0)
-    solver = SteepestDescent(
+    solver = ConjugateGradient(
         maxtime=np.inf,
         maxiter=iter_max,
         mingradnorm=tol,
