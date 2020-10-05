@@ -123,7 +123,7 @@ def create_cost_egrad_location_covariance_texture(X, autodiff=False):
         return cost, egrad
 
 
-def estimation_location_covariance_texture_RGD(X, init=None, tol=1e-3, iter_max=1000, autodiff=False):
+def estimation_location_covariance_texture_RGD(X, init=None, tol=1e-3, iter_max=1000, autodiff=False, solver='conjugate'):
     """ A function that estimates parameters of a compound Gaussian distribution.
         Inputs:
             * X = a matrix of size p*N with each observation along column dimension
@@ -131,6 +131,7 @@ def estimation_location_covariance_texture_RGD(X, init=None, tol=1e-3, iter_max=
             * tol = minimum norm of gradient
             * iter_max = maximum number of iterations
             * autodiff = use or not autodiff
+            * solver = steepest or conjugate
         Outputs:
             * mu = estimate of location
             * tau = estimate of tau
@@ -153,7 +154,11 @@ def estimation_location_covariance_texture_RGD(X, init=None, tol=1e-3, iter_max=
     cost, egrad = create_cost_egrad_location_covariance_texture(X, autodiff)
     manifold = Product([ComplexEuclidean(p), StrictlyPositiveVectors(N), SpecialHermitianPositiveDefinite(p)])
     problem = Problem(manifold=manifold, cost=cost, egrad=egrad, verbosity=1)
-    solver = ConjugateGradient(
+    if solver == 'steepest':
+        solver = SteepestDescent
+    elif solver == 'conjugate':
+        solver = ConjugateGradient
+    solver = solver(
         maxtime=np.inf,
         maxiter=iter_max,
         mingradnorm=tol,
