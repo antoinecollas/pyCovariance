@@ -54,7 +54,7 @@ def tyler_estimator_covariance(X, init=None, tol=0.001, iter_max=100):
     return (tau, sigma, delta, iteration)
 
 
-def tyler_estimator_covariance_normalisedet_old(X, init=None, tol=0.001, iter_max=100):
+def tyler_estimator_covariance_normalisedet(X, init=None, tol=0.001, iter_max=100):
     """ A function that computes the Tyler Fixed Point Estimator for covariance matrix estimation
         Inputs:
             * X = a matrix of size p*N with each observation along column dimension
@@ -101,7 +101,7 @@ def tyler_estimator_covariance_normalisedet_old(X, init=None, tol=0.001, iter_ma
     return (tau, sigma, delta, iteration)
 
 
-def tyler_estimator_covariance_normalisedet(X, init=None, tol=0.001, iter_max=100):
+def tyler_estimator_covariance_normalisedet_old(X, init=None, tol=0.001, iter_max=100):
     """ A function that computes the Tyler Fixed Point Estimator for covariance matrix estimation
         Inputs:
             * X = a matrix of size p*N with each observation along column dimension
