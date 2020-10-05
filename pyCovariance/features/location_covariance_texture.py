@@ -1,5 +1,6 @@
 import os, sys
 
+import autograd
 import autograd.numpy as np
 import pymanopt
 from pymanopt import Problem
@@ -144,7 +145,7 @@ def estimation_location_covariance_texture_RGD(X, init=None, tol=1e-3, iter_max=
     if init is None:
         mu = np.mean(X, axis=1).reshape((-1, 1))
         sigma = (1/N)*(X-mu)@(X-mu).conj().T
-        tau = np.linalg.det(sigma)**(1/p)*np.ones((1, N))
+        tau = np.real(np.linalg.det(sigma)**(1/p))*np.ones((1, N))
         sigma = sigma/(np.linalg.det(sigma)**(1/p))
         init = [mu, tau, sigma]
 
@@ -153,7 +154,7 @@ def estimation_location_covariance_texture_RGD(X, init=None, tol=1e-3, iter_max=
 
     cost, egrad = create_cost_egrad_location_covariance_texture(X, autodiff)
     manifold = Product([ComplexEuclidean(p), StrictlyPositiveVectors(N), SpecialHermitianPositiveDefinite(p)])
-    problem = Problem(manifold=manifold, cost=cost, egrad=egrad, verbosity=1)
+    problem = Problem(manifold=manifold, cost=cost, egrad=egrad, verbosity=0)
     if solver == 'steepest':
         solver = SteepestDescent
     elif solver == 'conjugate':
@@ -166,9 +167,7 @@ def estimation_location_covariance_texture_RGD(X, init=None, tol=1e-3, iter_max=
         maxcostevals=np.inf,
         logverbosity=2
     )
-    sys.stdout = open(os.devnull, 'w')
     Xopt, log = solver.solve(problem, x=init)
-    sys.stdout = sys.__stdout__
     Xopt[0] = Xopt[0].reshape((-1, 1))
 
     return Xopt[0], Xopt[1], Xopt[2], log
