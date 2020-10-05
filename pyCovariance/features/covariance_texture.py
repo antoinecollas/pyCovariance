@@ -71,7 +71,7 @@ def tyler_estimator_covariance_normalisedet(X, init=None, tol=0.001, iter_max=10
     p, N = X.shape
     if init is None:
         sigma = (1/N)*X@X.conj().T
-        sigma = p*sigma/np.trace(sigma)
+        sigma = sigma/(np.linalg.det(sigma)**(1/p))
     else:
         tau, sigma = init
         tau = tau.reshape((1, -1))
