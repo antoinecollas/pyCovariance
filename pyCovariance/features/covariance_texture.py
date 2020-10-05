@@ -34,7 +34,7 @@ def tyler_estimator_covariance(X, init=None, tol=0.001, iter_max=100):
 
     while (delta>tol) and (iteration<iter_max):
         # compute expression of Tyler estimator
-        tau = np.real(np.einsum('ij,ji->i', np.conjugate(X).T@np.linalg.inv(sigma), X))
+        tau = (1/p)*np.real(np.einsum('ij,ji->i', np.conjugate(X).T@np.linalg.inv(sigma), X))
         X_bis = X / np.sqrt(tau)
         sigma_new = (1/N) * X_bis@X_bis.conj().T
 
@@ -81,7 +81,7 @@ def tyler_estimator_covariance_normalisedet(X, init=None, tol=0.001, iter_max=10
 
     while (delta>tol) and (iteration<iter_max):
         # compute expression of Tyler estimator
-        tau = np.real(np.einsum('ij,ji->i', np.conjugate(X).T@np.linalg.inv(sigma), X))
+        tau = (1/p)*np.real(np.einsum('ij,ji->i', np.conjugate(X).T@np.linalg.inv(sigma), X))
         X_bis = X / np.sqrt(tau)
         sigma_new = (1/N) * X_bis@X_bis.conj().T
 

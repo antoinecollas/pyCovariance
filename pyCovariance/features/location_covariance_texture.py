@@ -44,7 +44,7 @@ def tyler_estimator_location_covariance_normalisedet(X, init=None, tol=0.001, it
 
     while (delta>tol) and (iteration<iter_max):
         # compute tau
-        tau_new = np.real(np.einsum('ij,ji->i', np.conjugate(X-mu).T@np.linalg.inv(sigma), X-mu))
+        tau_new = (1/p)*np.real(np.einsum('ij,ji->i', np.conjugate(X-mu).T@np.linalg.inv(sigma), X-mu))
         
         # compute mu (location)
         mu_new = (1/np.sum(1/tau)) * np.sum(X/tau, axis=1).reshape((-1, 1))
