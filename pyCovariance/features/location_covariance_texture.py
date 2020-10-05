@@ -1,3 +1,5 @@
+import os, sys
+
 import autograd.numpy as np
 import pymanopt
 from pymanopt import Problem
@@ -131,27 +133,41 @@ def estimation_location_covariance_texture_RGD(X, init=None, tol=1e-3, iter_max=
             * autodiff = use or not autodiff
         Outputs:
             * mu = estimate of location
-            * sigma = estimate of covariance
-            * tau = estimate of covariance """
-    
+            * tau = estimate of tau
+            * sigma = estimate of covariance """
+
     # The estimation is done using Riemannian geometry. The manifold is: C^p x (R++)^n x SHp++
     p, N = X.shape
-    init[0] = init[0].reshape(-1) 
-    init[1] = init[1].reshape((N, 1)) 
+
+    # Initialisation
+    if init is None:
+        mu = np.mean(X, axis=1).reshape((-1, 1))
+        sigma = (1/N)*(X-mu)@(X-mu).conj().T
+        tau = np.linalg.det(sigma)**(1/p)*np.ones((1, N))
+        sigma = sigma/(np.linalg.det(sigma)**(1/p))
+        init = [mu, tau, sigma]
+
+    init[0] = init[0].reshape(-1)
+    init[1] = init[1].reshape((-1, 1))
 
     cost, egrad = create_cost_egrad_location_covariance_texture(X, autodiff)
     manifold = Product([ComplexEuclidean(p), StrictlyPositiveVectors(N), SpecialHermitianPositiveDefinite(p)])
-    problem = Problem(manifold=manifold, cost=cost, egrad=egrad, verbosity=0)
+    problem = Problem(manifold=manifold, cost=cost, egrad=egrad, verbosity=1)
     solver = ConjugateGradient(
         maxtime=np.inf,
         maxiter=iter_max,
         mingradnorm=tol,
         minstepsize=0,
-        maxcostevals=np.inf
+        maxcostevals=np.inf,
+        logverbosity=2
     )
-    Xopt = solver.solve(problem, x=init)
+    sys.stdout = open(os.devnull, 'w')
+    Xopt, log = solver.solve(problem, x=init)
+    sys.stdout = sys.__stdout__
     Xopt[0] = Xopt[0].reshape((-1, 1))
-    return Xopt
+
+    return Xopt[0], Xopt[1], Xopt[2], log
+
 
 ##########  DISTANCE  ##########
 
