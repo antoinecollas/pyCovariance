@@ -5,13 +5,13 @@ import sys
 from tqdm import tqdm
 
 from pyCovariance.features.covariance import distance_covariance_Riemannian
-from pyCovariance.features.covariance_texture import tyler_estimator_covariance_normalisedet
+from pyCovariance.features.covariance_texture import distance_texture_Riemannian, tyler_estimator_covariance_normalisedet
 from pyCovariance.features.location_covariance_texture import estimation_location_covariance_texture_RGD, tyler_estimator_location_covariance_normalisedet
 from pyCovariance.generation_data import generate_covariance, generate_texture, generate_Toeplitz, sample_compound
 from pyCovariance.vectorization import unvech, vech
 
 
-nb_MC = 20
+nb_MC = 200
 p = 10
 N_max = 1000
 nb_points = 5
@@ -96,7 +96,7 @@ for n in tqdm(list_n_points):
         )
         mu_est = theta_0[0]
         mu_error_t.append(np.linalg.norm(mu-mu_est)**2)
-        tau_error_t.append((np.linalg.norm(tau-tau_est)**2)/n)
+        tau_error_t.append((distance_texture_Riemannian(tau, tau_est)**2)/n)
         sigma_error_t.append(distance_covariance_Riemannian(vech(sigma_est), vech(sigma))**2)
 
         X_centered = X-mu
@@ -108,7 +108,7 @@ for n in tqdm(list_n_points):
         )
         mu_est = mu
         mu_error_t2.append(np.linalg.norm(mu-mu_est)**2)
-        tau_error_t2.append((np.linalg.norm(tau-tau_est)**2)/n)
+        tau_error_t2.append((distance_texture_Riemannian(tau, tau_est)**2)/n)
         sigma_error_t2.append(distance_covariance_Riemannian(vech(sigma_est), vech(sigma))**2)
 
         # gradient descent 
@@ -120,7 +120,7 @@ for n in tqdm(list_n_points):
             autodiff=False
         )
         mu_error_rgd.append(np.linalg.norm(mu-mu_est)**2)
-        tau_error_rgd.append((np.linalg.norm(tau-tau_est)**2)/n)
+        tau_error_rgd.append((distance_texture_Riemannian(tau, tau_est)**2)/n)
         sigma_error_rgd.append(distance_covariance_Riemannian(vech(sigma_est), vech(sigma))**2)
 
     # Gaussian
@@ -146,7 +146,6 @@ for n in tqdm(list_n_points):
 path = 'results/location_tyler_vs_grad'
 
 plt.loglog(list_n_points, mu_errors_g, label='mu - Gaussian')
-plt.loglog(list_n_points, mu_errors_t, label='mu - Tyler')
 plt.loglog(list_n_points, mu_errors_rgd, label='mu - Riemannian')
 plt.legend()
 plt.xlabel('Number of data points')
@@ -156,8 +155,8 @@ plt.savefig(path+'_mu.png')
 plt.clf()
 
 plt.loglog(list_n_points, tau_errors_g, label='tau - Gaussian')
-plt.loglog(list_n_points, tau_errors_t, label='tau - Tyler')
-plt.loglog(list_n_points, tau_errors_t2, label='tau - Tyler (location known)')
+plt.loglog(list_n_points, tau_errors_t, label='tau - Tyler - location estimated')
+plt.loglog(list_n_points, tau_errors_t2, label='tau - Tyler - location known')
 plt.loglog(list_n_points, tau_errors_rgd, label='tau - Riemannian')
 plt.legend()
 plt.xlabel('Number of data points')
@@ -167,8 +166,8 @@ plt.savefig(path+'_tau.png')
 plt.clf()
 
 plt.loglog(list_n_points, sigma_errors_g, label='sigma - Gaussian')
-plt.loglog(list_n_points, sigma_errors_t, label='sigma - Tyler')
-plt.loglog(list_n_points, sigma_errors_t2, label='sigma - Tyler (location known)')
+plt.loglog(list_n_points, sigma_errors_t, label='sigma - Tyler - location estimated')
+plt.loglog(list_n_points, sigma_errors_t2, label='sigma - Tyler - location known')
 plt.loglog(list_n_points, sigma_errors_rgd, label='sigma - Riemannian')
 plt.legend()
 plt.xlabel('Number of data points')
