@@ -184,6 +184,8 @@ def distance_texture_Riemannian(tau_1, tau_2):
         ---------
             * d = the distance between samples
         """
+    tau_1 = tau_1.reshape(-1)
+    tau_2 = tau_2.reshape(-1)
     return np.linalg.norm(np.log(tau_1)-np.log(tau_2))
 
 def distance_covariance_texture_Riemannian(x_1, x_2, p, N):
