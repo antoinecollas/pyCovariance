@@ -42,7 +42,7 @@ def test_K_means_datacube():
     NUMBER_INIT = 1
     K_MEANS_NB_ITER_MAX = 100
     EPS = 1e-3
-    ENABLE_MULTI = True
+    ENABLE_MULTI = False
     NUMBER_OF_THREADS_ROWS = os.cpu_count()//2
     NUMBER_OF_THREADS_COLUMNS = 2
     
