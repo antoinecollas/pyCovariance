@@ -26,8 +26,7 @@ def tyler_estimator_covariance(X, init=None, tol=0.001, iter_max=100):
         sigma = (1/N)*X@X.conj().T
         sigma = p*sigma/np.trace(sigma)
     else:
-        tau, sigma = init
-        tau = tau.reshape((1, -1))
+        _, sigma = init
 
     delta = np.inf # Distance between two iterations
     iteration = 0
@@ -50,6 +49,8 @@ def tyler_estimator_covariance(X, init=None, tol=0.001, iter_max=100):
 
     if iteration == iter_max:
         warnings.warn('Estimation algorithm did not converge')
+    
+    tau = tau.reshape((-1, 1))
 
     return (tau, sigma, delta, iteration)
 
@@ -73,8 +74,7 @@ def tyler_estimator_covariance_normalisedet(X, init=None, tol=0.001, iter_max=10
         sigma = (1/N)*X@X.conj().T
         sigma = sigma/(np.linalg.det(sigma)**(1/p))
     else:
-        tau, sigma = init
-        tau = tau.reshape((1, -1))
+        _, sigma = init
 
     delta = np.inf # Distance between two iterations
     iteration = 0
@@ -98,6 +98,8 @@ def tyler_estimator_covariance_normalisedet(X, init=None, tol=0.001, iter_max=10
     if iteration == iter_max:
         warnings.warn('Estimation algorithm did not converge')
 
+    tau = tau.reshape((-1, 1))
+
     return (tau, sigma, delta, iteration)
 
 
@@ -118,6 +120,8 @@ def tyler_estimator_covariance_normalisedet_old(X, init=None, tol=0.001, iter_ma
     c = np.linalg.det(sigma)**(1/p)
     tau = c*tau
     sigma = sigma/c
+
+    tau = tau.reshape((-1, 1))
 
     return (tau, sigma, delta, iteration)
 
@@ -140,6 +144,7 @@ def compute_feature_covariance_texture(X, args=(0.001, 100)):
         """
     eps, iter_max = args
     tau, sigma, _, _ = tyler_estimator_covariance_normalisedet(np.squeeze(X), tol=eps, iter_max=iter_max)
+    tau = tau.reshape(-1)
     return np.hstack([vech(sigma), tau])
 
 

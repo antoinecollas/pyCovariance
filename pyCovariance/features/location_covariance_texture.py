@@ -64,9 +64,12 @@ def tyler_estimator_location_covariance_normalisedet(X, init=None, tol=0.001, it
         tau = tau_new
         mu = mu_new
         sigma = sigma_new
-    
+
     if iteration == iter_max:
         warnings.warn('Estimation algorithm did not converge')
+
+    mu = mu.reshape((-1, 1))
+    tau = tau.reshape((-1, 1))
 
     return (mu, tau, sigma, delta, iteration)
 
