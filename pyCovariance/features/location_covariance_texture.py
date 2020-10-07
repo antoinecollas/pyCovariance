@@ -31,39 +31,39 @@ def tyler_estimator_location_covariance_normalisedet(X, init=None, tol=0.001, it
     if init is None:
         mu = np.mean(X, axis=1).reshape((-1, 1))
         sigma = (1/N)*(X-mu)@(X-mu).conj().T
-        tau = np.linalg.det(sigma)**(1/p)*np.ones((1, N))
         sigma = sigma/(np.linalg.det(sigma)**(1/p))
     else:
-        mu, tau, sigma = init
+        mu, _, sigma = init
 
     mu = mu.reshape((-1, 1))
-    tau = tau.reshape((1, -1))
 
     delta = np.inf # Distance between two iterations
     iteration = 0
 
     while (delta>tol) and (iteration<iter_max):
-        # compute tau
-        tau_new = (1/p)*np.real(np.einsum('ij,ji->i', np.conjugate(X-mu).T@np.linalg.inv(sigma), X-mu))
-        
         # compute mu (location)
-        mu_new = (1/np.sum(1/tau)) * np.sum(X/tau, axis=1).reshape((-1, 1))
+        tau = np.sqrt(np.real(np.einsum('ij,ji->i', np.conjugate(X-mu).T@np.linalg.inv(sigma), X-mu)))
+        mu = (1/np.sum(1/tau)) * np.sum(X/tau, axis=1).reshape((-1, 1))
 
         # compute sigma
-        X_bis = (X-mu) / np.sqrt(tau)
-        sigma_new = (1/N) * X_bis@X_bis.conj().T
+        tau = np.sqrt(np.real(np.einsum('ij,ji->i', np.conjugate(X-mu).T@np.linalg.inv(sigma), X-mu)))
+        X_bis = (X-mu) / tau
+        sigma_new = (p/N) * X_bis@X_bis.conj().T
 
-        # imposing det constraint: det(sigma_new) = 1
-        sigma_new = sigma_new/(np.linalg.det(sigma_new)**(1/p))
- 
         # condition for stopping
         delta = np.linalg.norm(sigma_new - sigma, 'fro') / np.linalg.norm(sigma, 'fro')
         iteration = iteration + 1
 
         # updating
-        tau = tau_new
-        mu = mu_new
         sigma = sigma_new
+
+    # recomputing tau
+    tau = np.real(np.einsum('ij,ji->i', np.conjugate(X-mu).T@np.linalg.inv(sigma), X-mu))
+
+    # imposing det constraint: det(sigma_new) = 1
+    c = np.linalg.det(sigma)**(1/p)
+    sigma = sigma/c
+    tau = c*tau
 
     if iteration == iter_max:
         warnings.warn('Estimation algorithm did not converge')

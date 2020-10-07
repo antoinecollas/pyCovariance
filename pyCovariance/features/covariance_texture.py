@@ -33,12 +33,9 @@ def tyler_estimator_covariance(X, init=None, tol=0.001, iter_max=100):
 
     while (delta>tol) and (iteration<iter_max):
         # compute expression of Tyler estimator
-        tau = (1/p)*np.real(np.einsum('ij,ji->i', np.conjugate(X).T@np.linalg.inv(sigma), X))
+        tau = (1/p) * np.real(np.einsum('ij,ji->i', np.conjugate(X).T@np.linalg.inv(sigma), X))
         X_bis = X / np.sqrt(tau)
         sigma_new = (1/N) * X_bis@X_bis.conj().T
-
-        # imposing trace constraint: Tr(sigma) = p
-        sigma_new = p*sigma_new/np.trace(sigma_new)
 
         # condition for stopping
         delta = np.linalg.norm(sigma_new - sigma, 'fro') / np.linalg.norm(sigma, 'fro')
@@ -47,9 +44,14 @@ def tyler_estimator_covariance(X, init=None, tol=0.001, iter_max=100):
         # updating sigma
         sigma = sigma_new
 
+    # imposing trace constraint: Tr(sigma) = p
+    c = np.trace(sigma)/p
+    sigma = sigma/c
+    tau = c*tau
+
     if iteration == iter_max:
         warnings.warn('Estimation algorithm did not converge')
-    
+
     tau = tau.reshape((-1, 1))
 
     return (tau, sigma, delta, iteration)
@@ -81,12 +83,9 @@ def tyler_estimator_covariance_normalisedet(X, init=None, tol=0.001, iter_max=10
 
     while (delta>tol) and (iteration<iter_max):
         # compute expression of Tyler estimator
-        tau = (1/p)*np.real(np.einsum('ij,ji->i', np.conjugate(X).T@np.linalg.inv(sigma), X))
+        tau = (1/p) * np.real(np.einsum('ij,ji->i', np.conjugate(X).T@np.linalg.inv(sigma), X))
         X_bis = X / np.sqrt(tau)
         sigma_new = (1/N) * X_bis@X_bis.conj().T
-
-        # imposing det constraint: det(sigma) = 1
-        sigma_new = sigma_new/(np.linalg.det(sigma_new)**(1/p))
 
         # condition for stopping
         delta = np.linalg.norm(sigma_new - sigma, 'fro') / np.linalg.norm(sigma, 'fro')
@@ -94,32 +93,14 @@ def tyler_estimator_covariance_normalisedet(X, init=None, tol=0.001, iter_max=10
 
         # updating sigma
         sigma = sigma_new
-    
+
+    # imposing det constraint: det(sigma) = 1
+    c = np.linalg.det(sigma)**(1/p)
+    sigma = sigma/c
+    tau = c*tau
+
     if iteration == iter_max:
         warnings.warn('Estimation algorithm did not converge')
-
-    tau = tau.reshape((-1, 1))
-
-    return (tau, sigma, delta, iteration)
-
-
-def tyler_estimator_covariance_normalisedet_old(X, init=None, tol=0.001, iter_max=100):
-    """ A function that computes the Tyler Fixed Point Estimator for covariance matrix estimation
-        Inputs:
-            * X = a matrix of size p*N with each observation along column dimension
-            * init = point on manifold to initialise estimation
-            * tol = tolerance for convergence of estimator
-            * iter_max = number of maximum iterations
-        Outputs:
-            * tau
-            * sigma
-            * delta = the final distance between two iterations
-            * iteration = number of iterations til convergence """
-    p, N = X.shape
-    tau, sigma, delta, iteration = tyler_estimator_covariance(X, init=init, tol=tol, iter_max=iter_max)
-    c = np.linalg.det(sigma)**(1/p)
-    tau = c*tau
-    sigma = sigma/c
 
     tau = tau.reshape((-1, 1))
 

@@ -5,7 +5,7 @@ import sys
 from tqdm import tqdm
 
 from pyCovariance.features.covariance import distance_covariance_Riemannian
-from pyCovariance.features.covariance_texture import tyler_estimator_covariance_normalisedet, tyler_estimator_covariance_normalisedet_old
+from pyCovariance.features.covariance_texture import tyler_estimator_covariance_normalisedet
 from pyCovariance.generation_data import generate_covariance, generate_texture, sample_compound
 from pyCovariance.vectorization import unvech, vech
 
@@ -30,9 +30,6 @@ print(list_n_points)
 # Gaussian
 sigma_errors_g = list()
 
-# Tyler_old
-sigma_errors_o = list()
-
 # Tyler
 sigma_errors = list()
 
@@ -52,16 +49,6 @@ for n in tqdm(list_n_points):
         sigma_g = sigma_g/np.real(np.linalg.det(sigma_g)**(1/p))
         sigma_error_g += distance_covariance_Riemannian(vech(sigma_g), vech(sigma))**2
 
-
-        # Tyler old
-        tau_est, sigma_est, _, _ = tyler_estimator_covariance_normalisedet_old(
-            X,
-            init=None,
-            tol=tol,
-            iter_max=iter_max
-        )
-        sigma_error_o += distance_covariance_Riemannian(vech(sigma_est), vech(sigma))**2
-
         # Tyler
         tau_est, sigma_est, _, _ = tyler_estimator_covariance_normalisedet(
             X,
@@ -74,19 +61,15 @@ for n in tqdm(list_n_points):
     # Gaussian
     sigma_errors_g.append(sigma_error_g/(p*nb_MC))
 
-    # Tyler old
-    sigma_errors_o.append(sigma_error_o/(p*nb_MC))
-
     # Tyler
     sigma_errors.append(sigma_error/(p*nb_MC))
 
 
 plt.loglog(list_n_points, sigma_errors_g, marker='.', label='sigma - Gaussian')
-plt.loglog(list_n_points, sigma_errors_o, marker='s', label='sigma - Tyler old')
 plt.loglog(list_n_points, sigma_errors, marker='^', label='sigma - Tyler')
 
 plt.legend()
 plt.xlabel('Nombre de points')
 plt.ylabel('Erreur d\'estimation')
 plt.grid(b=True, which='both')
-plt.savefig('tyler.png')
+plt.savefig('results/tyler.png')
