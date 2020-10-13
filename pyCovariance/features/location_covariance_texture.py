@@ -74,6 +74,67 @@ def tyler_estimator_location_covariance_normalisedet(X, init=None, tol=0.001, it
     return (mu, tau, sigma, delta, iteration)
 
 
+def estimation_location_covariance_texture_MLE(X, init=None, tol=0.001, iter_max=20):
+    """ A function that computes an alternative scheme of the Compound Gaussian fixed point equations for location and covariance estimation.
+    BE CAREFUL: 
+        Inputs:
+            * X = a matrix of size p*N with each observation along column dimension
+            * init = point on manifold to initialise estimation
+            * tol = tolerance for convergence of estimator
+            * iter_max = number of maximum iterations
+        Outputs:
+            * mu = estimate of location
+            * tau = estimate of location
+            * sigma = estimate of covariance
+            * delta = the final distance between two iterations
+            * iteration = number of iterations til convergence """
+
+    # Initialisation
+    p, N = X.shape
+    if init is None:
+        mu = np.mean(X, axis=1).reshape((-1, 1))
+        sigma = (1/N)*(X-mu)@(X-mu).conj().T
+        sigma = sigma/(np.linalg.det(sigma)**(1/p))
+    else:
+        mu, _, sigma = init
+
+    mu = mu.reshape((-1, 1))
+
+    delta = np.inf # Distance between two iterations
+    iteration = 0
+    while (delta>tol) and (iteration<iter_max):
+        # compute mu (location)
+        tau = np.real(np.einsum('ij,ji->i', np.conjugate(X-mu).T@np.linalg.inv(sigma), X-mu))
+        mu = (1/np.sum(1/tau)) * np.sum(X/tau, axis=1).reshape((-1, 1))
+
+        # compute sigma
+        tau = np.sqrt(np.real(np.einsum('ij,ji->i', np.conjugate(X-mu).T@np.linalg.inv(sigma), X-mu)))
+        X_bis = (X-mu) / tau
+        sigma_new = (p/N) * X_bis@X_bis.conj().T
+
+        # condition for stopping
+        delta = np.linalg.norm(sigma_new - sigma, 'fro') / np.linalg.norm(sigma, 'fro')
+        iteration = iteration + 1
+
+        # updating
+        sigma = sigma_new
+
+    # recomputing tau
+    tau = np.real(np.einsum('ij,ji->i', np.conjugate(X-mu).T@np.linalg.inv(sigma), X-mu))
+
+    # imposing det constraint: det(sigma_new) = 1
+    c = np.linalg.det(sigma)**(1/p)
+    sigma = sigma/c
+    tau = c*tau
+
+    if iteration == iter_max:
+        warnings.warn('Estimation algorithm did not converge')
+
+    mu = mu.reshape((-1, 1))
+    tau = tau.reshape((-1, 1))
+
+    return (mu, tau, sigma, delta, iteration)
+
 def create_cost_egrad_location_covariance_texture(X, autodiff=False):
     @pymanopt.function.Callable
     def cost(mu, tau, sigma):
