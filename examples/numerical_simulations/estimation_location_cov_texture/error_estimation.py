@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import os
 import sys
 from tqdm import tqdm
+import tikzplotlib
 
 from pyCovariance.features.covariance import distance_covariance_Riemannian
 from pyCovariance.features.covariance_texture import distance_texture_Riemannian, tyler_estimator_covariance_normalisedet
@@ -11,12 +12,13 @@ from pyCovariance.generation_data import generate_covariance, generate_texture, 
 from pyCovariance.vectorization import unvech, vech
 
 
-nb_MC = 20
+nb_MC = 1
 p = 10
-N_max = 100*p
+N_min = 2*p
+N_max = 50*p
 nb_points = 10
 tol = 1e-5
-iter_max = 10000
+iter_max = 100
 
 mu = np.random.randn(p, 1) + 1j*np.random.randn(p, 1)
 tau_full = generate_texture(N_max)
@@ -25,10 +27,7 @@ sigma = (1/np.linalg.det(sigma))**(1/p) * sigma
 
 assert np.abs(np.linalg.det(sigma)-1) < 1e-5
 
-list_n_points_1 = np.geomspace(2*p, 10*p, num=int(nb_points/2)+1, dtype=np.int)
-list_n_points_2 = np.geomspace(10*p, N_max, num=nb_points-int(nb_points/2), dtype=np.int)
-list_n_points = list(set([*list_n_points_1, *list_n_points_2]))
-list_n_points.sort()
+list_n_points = np.geomspace(N_min, N_max, num=nb_points, dtype=np.int)
 print('N=', list_n_points)
 
 # Gaussian
@@ -184,6 +183,7 @@ plt.xlabel('Number of data points')
 plt.ylabel('MSE on mu')
 plt.grid(b=True, which='both')
 plt.savefig(path+'_mu.png')
+tikzplotlib.save(path+'_mu.tex')
 plt.clf()
 
 plt.loglog(list_n_points, tau_errors_g, marker='*', color='b', label='tau - Gaussian')
@@ -196,6 +196,7 @@ plt.xlabel('Number of data points')
 plt.ylabel('MSE on tau')
 plt.grid(b=True, which='both')
 plt.savefig(path+'_tau.png')
+tikzplotlib.save(path+'_tau.tex')
 plt.clf()
 
 plt.loglog(list_n_points, sigma_errors_g, marker='*', color='b', label='sigma - Gaussian')
@@ -208,4 +209,5 @@ plt.xlabel('Number of data points')
 plt.ylabel('MSE on sigma')
 plt.grid(b=True, which='both')
 plt.savefig(path+'_sigma.png')
+tikzplotlib.save(path+'_sigma.tex')
 plt.clf()
