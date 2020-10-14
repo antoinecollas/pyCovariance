@@ -17,10 +17,11 @@ p = 10
 N_min = 2*p
 N_max = 50*p
 nb_points = 10
-tol = 1e-5
+tol = 1e-10
 iter_max = 10000
+alpha = 10
 
-mu = np.random.randn(p, 1) + 1j*np.random.randn(p, 1)
+mu = alpha + (1/np.sqrt(2))*(np.random.randn(p, 1) + 1j*np.random.randn(p, 1))
 tau_full = generate_texture(N_max)
 sigma = generate_covariance(p)
 sigma = (1/np.linalg.det(sigma))**(1/p) * sigma
