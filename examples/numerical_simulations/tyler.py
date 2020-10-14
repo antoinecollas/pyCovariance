@@ -11,7 +11,7 @@ from pyCovariance.vectorization import unvech, vech
 
 
 nb_MC = 100
-p = 3
+p = 10
 N_max = 10000
 nb_points = 5
 tol = 1e-10
@@ -59,14 +59,15 @@ for n in tqdm(list_n_points):
         sigma_error += distance_covariance_Riemannian(vech(sigma_est), vech(sigma))**2
 
     # Gaussian
-    sigma_errors_g.append(sigma_error_g/(p*nb_MC))
+    sigma_errors_g.append(sigma_error_g/nb_MC)
 
     # Tyler
-    sigma_errors.append(sigma_error/(p*nb_MC))
+    sigma_errors.append(sigma_error/nb_MC)
 
 
 plt.loglog(list_n_points, sigma_errors_g, marker='.', label='sigma - Gaussian')
 plt.loglog(list_n_points, sigma_errors, marker='^', label='sigma - Tyler')
+plt.loglog([list_n_points[0], list_n_points[-1]], [(p**2-1)/list_n_points[0], (p**2-1)/list_n_points[-1]], marker='^', label='iCRB')
 
 plt.legend()
 plt.xlabel('Nombre de points')
