@@ -67,7 +67,6 @@ for n in tqdm(list_n_points):
 
 plt.loglog(list_n_points, sigma_errors_g, marker='.', label='sigma - Gaussian')
 plt.loglog(list_n_points, sigma_errors, marker='^', label='sigma - Tyler')
-plt.loglog([list_n_points[0], list_n_points[-1]], [(p**2-1)/list_n_points[0], (p**2-1)/list_n_points[-1]], marker='^', label='iCRB')
 
 plt.legend()
 plt.xlabel('Nombre de points')
