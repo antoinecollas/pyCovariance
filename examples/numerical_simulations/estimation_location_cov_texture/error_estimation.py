@@ -17,7 +17,7 @@ p = 10
 N_min = 2*p
 N_max = 50*p
 nb_points = 10
-tol = 1e-10
+tol = 1e-8
 iter_max = 10000
 alpha = 10
 
