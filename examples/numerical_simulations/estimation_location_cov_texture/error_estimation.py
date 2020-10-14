@@ -12,13 +12,13 @@ from pyCovariance.generation_data import generate_covariance, generate_texture, 
 from pyCovariance.vectorization import unvech, vech
 
 
-nb_MC = 1
+nb_MC = 200
 p = 10
 N_min = 2*p
 N_max = 50*p
 nb_points = 10
 tol = 1e-5
-iter_max = 100
+iter_max = 10000
 
 mu = np.random.randn(p, 1) + 1j*np.random.randn(p, 1)
 tau_full = generate_texture(N_max)
