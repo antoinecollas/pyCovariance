@@ -121,7 +121,7 @@ for n in tqdm(list_n_points):
             X,
             init=theta_0,
             tol=tol,
-            iter_max=1,
+            iter_max=iter_max,
             autodiff=False
         )
         mu_error_rgd.append(np.linalg.norm(mu-mu_est)**2)
