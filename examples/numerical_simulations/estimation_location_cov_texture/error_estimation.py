@@ -41,7 +41,7 @@ mu_errors_t = list()
 tau_errors_t = list()
 sigma_errors_t = list()
 
-# Tyler with mu known
+# Tyler location known
 mu_errors_t2 = list()
 tau_errors_t2 = list()
 sigma_errors_t2 = list()
@@ -100,7 +100,7 @@ for n in tqdm(list_n_points):
         # Initialisation
         theta_0 = [mu_g, tau_g, sigma_g]
 
-        # Tyler
+        # Tyler location pre-estimated
         X_centered = X-mu_g
         tau_est, sigma_est, _, _ = tyler_estimator_covariance_normalisedet(
             X_centered,
@@ -113,6 +113,7 @@ for n in tqdm(list_n_points):
         tau_error_t.append((distance_texture_Riemannian(tau, tau_est)**2)/n)
         sigma_error_t.append(distance_covariance_Riemannian(vech(sigma_est), vech(sigma))**2)
 
+        # Tyler location known
         X_centered = X-mu
         X_centered_filtered = X_centered[:, np.linalg.norm(X_centered, axis=0)>1e-8]
         _, sigma_est, _, _ = tyler_estimator_covariance_normalisedet(
@@ -127,6 +128,7 @@ for n in tqdm(list_n_points):
         tau_error_t2.append((distance_texture_Riemannian(tau, tau_est)**2)/n)
         sigma_error_t2.append(distance_covariance_Riemannian(vech(sigma_est), vech(sigma))**2)
 
+        # Tyler
         mu_est, tau_est, sigma_est, _, _ = tyler_estimator_location_covariance_normalisedet(
             X,
             init=theta_0,
@@ -154,12 +156,12 @@ for n in tqdm(list_n_points):
     tau_errors_g.append(np.mean(tau_error_g))
     sigma_errors_g.append(np.mean(sigma_error_g))
 
-    # Tyler
+    # Tyler location pre-estimated
     mu_errors_t.append(np.mean(mu_error_t))
     tau_errors_t.append(np.mean(tau_error_t))
     sigma_errors_t.append(np.mean(sigma_error_t))
 
-    # Tyler with mu known
+    # Tyler location known
     mu_errors_t2.append(np.mean(mu_error_t2))
     tau_errors_t2.append(np.mean(tau_error_t2))
     sigma_errors_t2.append(np.mean(sigma_error_t2))
