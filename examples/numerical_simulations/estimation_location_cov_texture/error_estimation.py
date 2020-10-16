@@ -12,19 +12,31 @@ from pyCovariance.generation_data import generate_covariance, generate_texture, 
 from pyCovariance.vectorization import unvech, vech
 
 
+path = 'results/location_tyler_vs_grad'
+path_data = os.path.join(path+'_data')
+if not os.path.exists(path):
+    os.makedirs(path_data, exist_ok=True)
+
+np.random.seed(123)
+
 nb_MC = 200
 p = 10
 N_min = 2*p
 N_max = 50*p
 nb_points = 10
 tol = 1e-8
-iter_max = 10000
+iter_max = 12000
 alpha = 10
 
 mu = alpha + (1/np.sqrt(2))*(np.random.randn(p, 1) + 1j*np.random.randn(p, 1))
 tau_full = generate_texture(N_max)
 sigma = generate_covariance(p)
 sigma = (1/np.linalg.det(sigma))**(1/p) * sigma
+
+# save data
+np.save(os.path.join(path_data, 'mu.npy'), mu)
+np.save(os.path.join(path_data, 'tau.npy'), tau_full)
+np.save(os.path.join(path_data, 'sigma.npy'), sigma)
 
 assert np.abs(np.linalg.det(sigma)-1) < 1e-5
 
@@ -57,7 +69,7 @@ for n in tqdm(list_n_points):
     tau_error_g = list()
     sigma_error_g = list()
 
-    # Tyler with mu known
+    # Tyler location known
     mu_error_t = list()
     tau_error_t = list()
     sigma_error_t = list()
@@ -128,6 +140,7 @@ for n in tqdm(list_n_points):
         tau_error_rgd.append((distance_texture_Riemannian(tau, tau_est)**2)/n)
         sigma_error_rgd.append(distance_covariance_Riemannian(vech(sigma_est), vech(sigma))**2)
 
+
     # Gaussian
     mu_errors_g.append(np.mean(mu_error_g))
     tau_errors_g.append(np.mean(tau_error_g))
@@ -148,7 +161,6 @@ for n in tqdm(list_n_points):
     tau_errors_rgd.append(np.mean(tau_error_rgd))
     sigma_errors_rgd.append(np.mean(sigma_error_rgd))
 
-path = 'results/location_tyler_vs_grad'
 
 plt.loglog(list_n_points, mu_errors_g, marker='*', color='b', label='mu - Gaussian')
 plt.loglog(list_n_points, mu_errors_t2, marker='+', color='g', label='mu - Tyler')
