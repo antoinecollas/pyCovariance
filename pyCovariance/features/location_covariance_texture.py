@@ -227,7 +227,7 @@ def estimation_location_covariance_texture_RGD(X, init=None, tol=1e-3, iter_max=
         maxtime=np.inf,
         maxiter=iter_max,
         mingradnorm=tol,
-        minstepsize=tol,
+        minstepsize=0,
         maxcostevals=np.inf,
         logverbosity=2
     )

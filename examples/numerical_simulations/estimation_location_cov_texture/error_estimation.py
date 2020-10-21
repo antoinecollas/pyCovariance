@@ -19,12 +19,12 @@ if not os.path.exists(path):
 
 np.random.seed(123)
 
-nb_MC = 1000
+nb_MC = 2000
 p = 10
 N_min = 2*p
-N_max = 20*p
+N_max = 50*p
 nb_points = 10
-tol = 1e-16
+tol = 1e-8
 iter_max = 10000
 alpha = 10
 
