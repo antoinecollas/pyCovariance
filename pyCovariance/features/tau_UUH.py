@@ -136,6 +136,17 @@ def estimation_tau_UUH_SCM(X, k):
 ##########  DISTANCE  ##########
 
 def distance_grass(U1, U2):
+    """ Function that computes the distance between two subspaces represented by their othonormal basis U1 and U2.
+        ---------------------------------------------
+        Inputs:
+        --------
+            * U1 = array of shape (p, k) representing an orthonormal basis (k<=p)
+            * U2 = array of shape (p, k) representing an orthonormal basis (k<=p)
+
+        Outputs:
+        ---------
+            * distance between span(U1) and span(U2)
+        """
     return np.linalg.norm(np.arccos(np.linalg.svd(U1.conj().T@U2, full_matrices=False, compute_uv=False)))
 
 ##########   MEAN     ##########
