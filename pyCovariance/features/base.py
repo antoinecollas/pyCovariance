@@ -1,10 +1,20 @@
 import autograd.numpy as np
 from functools import partial
+import pymanopt
+from pymanopt import Problem
+from pymanopt.solvers import SteepestDescent
+import warnings
 
 class BaseClassFeatures:
-    def __init__(self):
-        pass
-    
+    def __init__(self, manifold):
+        """ Serve to instantiate a BaseClassFeatures object.
+        ----------------------------------------------------------------------
+        Input:
+        --------
+            * manifold = a manifold as defined in Pymanopt.
+        """
+        self.M = manifold
+
     def __str__(self):
         raise NotImplementedError
 
@@ -18,25 +28,26 @@ class BaseClassFeatures:
 
         Outputs:
         ---------
-            * feature = a (feature_size) array
+            * feature = a point on manifold self.M
         """
         raise NotImplementedError
 
-    def distance(self, x_1, x_2):
+    def distance(self, x1, x2):
         """ Compute distance between two features.
             ----------------------------------------------------------------------
             Inputs:
             --------
-                * x_1 = feature n°1
-                * x_2 = feature n°2
+                * x1 = point n°1 on manifold self.M
+                * x2 = point n°2 on manifold self.M
             Outputs:
             ---------
-                * distance = a scalar
+                * distance = a real number
             """
-        raise NotImplementedError
+        d = self.M.dist(x1, x2)
+        return d
 
     def mean(self, X):
-        """ Compute mean of features
+        """ Compute mean of features (points on manifold self.M).
             ----------------------------------------------------------------------
             Inputs:
             --------
@@ -45,7 +56,40 @@ class BaseClassFeatures:
             ---------
                 * mean = a (feature_size) array
             """
-        raise NotImplementedError
+
+        def _cost(X, theta):
+            d_squared = 0
+            for x in X:
+                d_squared += self.M.dist(theta, x)**2
+            return d_squared
+
+        def _grad(X, theta):
+            grad = np.zeros_like(theta)
+            for x in X:
+                grad += self.M.log(theta, x)
+            grad = (1/len(X))*grad
+            return grad
+
+        def _create_cost_grad(X):
+            @pymanopt.function.Callable
+            def cost(theta):
+                return _cost(X, theta)
+
+            @pymanopt.function.Callable
+            def grad(theta):
+                return _grad(X, theta)
+
+            return cost, grad
+
+        cost, grad = _create_cost_grad(X)
+        problem = Problem(manifold=self.M, cost=cost, egrad=grad, verbosity=0)
+        solver = SteepestDescent()
+
+        i = np.random.randint(len(X), size=1)[0]
+        init = X[i]
+        mean_value = solver.solve(problem, x=init)
+
+        return mean_value
 
 
 def center_vectors(X):

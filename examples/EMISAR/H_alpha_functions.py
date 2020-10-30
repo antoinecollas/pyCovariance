@@ -64,7 +64,7 @@ def compute_h_alpha_class(X):
 
 def cluster_image_by_H_alpha(
     image,
-    windows_mask,
+    window_mask,
     multi=False, 
     number_of_threads_rows=4,
     number_of_threads_columns=4
@@ -77,7 +77,7 @@ def cluster_image_by_H_alpha(
                 * n_r = number of rows of image
                 * n_c = number of columns of image
                 * p = 3. HH, Hv and VV polarisations in this order
-            * windows_mask = a boolean (m_r, m_c) array which is a mask to compute 
+            * window_mask = a boolean (m_r, m_c) array which is a mask to compute 
                              covariance matrix using SCM
             * enable_multi = enable or not parallel compuation
             * number_of_threads_columns = number of thread to use in columns 
@@ -92,10 +92,10 @@ def cluster_image_by_H_alpha(
     """
 
     n_r, n_c, p = image.shape
-    m_r, m_c = windows_mask.shape
-    𝓒 = sliding_windows_treatment_image_time_series_parallel(
+    m_r, m_c = window_mask.shape
+    𝓒 = sliding_window_parallel(
         image.reshape(n_r,n_c,p,1), 
-        windows_mask,
+        window_mask,
         compute_h_alpha_class, 
         multi=multi, 
         number_of_threads_rows=number_of_threads_rows,

@@ -35,7 +35,7 @@ RESOLUTION = [0.749, 1.499] # resolution in meters
 
 # Window size to compute features
 WINDOWS_SHAPE = (7,7)
-windows_mask = np.ones(WINDOWS_SHAPE)
+window_mask = np.ones(WINDOWS_SHAPE)
 
 print('################################################')
 print('Reading dataset') 
@@ -56,7 +56,7 @@ print('H-alpha decomposition')
 print('################################################')
 C = cluster_image_by_H_alpha(
     image,
-    windows_mask,
+    window_mask,
     multi=ENABLE_MULTI,
     number_of_threads_rows=NUMBER_OF_THREADS_ROWS,
     number_of_threads_columns=NUMBER_OF_THREADS_COLUMNS

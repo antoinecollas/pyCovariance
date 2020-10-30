@@ -13,7 +13,7 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 from pyCovariance.clustering_functions import K_means_clustering_algorithm
 
 # import sliding window function
-from pyCovariance.sliding_window import sliding_windows_treatment_image_time_series_parallel
+from pyCovariance.sliding_window import sliding_window_parallel
 
 def K_means_datacube(
     image,
@@ -32,14 +32,13 @@ def K_means_datacube(
     --------------------------------------------------------------
     Inputs:
     --------
-        * images = (H, W, p) numpy array with:
-            * H = height of the image
-            * W = width of the image
+        * images = (h, w, p) numpy array with:
+            * h = height of the image
+            * w = width of the image
             * p = size of each pixel
-        * mask = (H, W, p) numpy array to select pixels to cluster:
-            * H = height of the image
-            * W = width of the image
-            * p = size of each pixel
+        * mask = (h, w) numpy array to select pixels to cluster:
+            * h = height of the image
+            * w = width of the image
         * features = an instance of the class BaseClassFeatures from pyCovariance.features
         * windows_shape = (h, w) tuple:
             * h: height of the window in pixels
@@ -54,7 +53,7 @@ def K_means_datacube(
 
     Outputs:
     ---------
-    * C_its
+        * C_its
     """
     if len(image.shape) != 3:
         raise ValueError('Error on image shape !')
@@ -63,29 +62,35 @@ def K_means_datacube(
 
     print('###################### COMPUTING FEATURES ######################')
     t_beginning = time.time()
-    windows_mask = np.ones(windows_shape)
-    m_r, m_c = windows_mask.shape
+    window_mask = np.ones(windows_shape)
+    m_r, m_c = window_mask.shape
     N = m_r*m_c
     n_r, n_c, p = image.shape
-    feature_temp = sliding_windows_treatment_image_time_series_parallel(
-        image.reshape((n_r, n_c, p, 1)),
-        windows_mask,
+    features_temp = sliding_window_parallel(
+        image,
+        window_mask,
         features.estimation,
         multi=enable_multi,
         number_of_threads_rows=number_of_threads_rows,
         number_of_threads_columns=number_of_threads_columns
     )
-    X = feature_temp.reshape(((n_r-m_r+1)*(n_c-m_c+1), -1)).T
-    feature_temp = None # Freeing memory space
+    print('nb lines image', len(features_temp))
+    print('nb columns image', len(features_temp[0]))
+    print(features_temp[0][0].shape)
+    X = [i for row in features_temp for i in row]
     image = None
     print("Done in %f s." % (time.time()-t_beginning))
 
     print('###################### K-MEANS CLUSTERING ######################')
     t_beginning = time.time()
-   
+
     if mask is not None:
         mask = mask.reshape((-1))
-        X = X[:, mask]
+        X_new = list()
+        for x, m in zip(X, mask):
+            if m.astype(bool):
+                X_new.append(x)
+        X = X_new
 
     best_criterion_value = np.inf
     for _ in tqdm(range(n_init)):
@@ -111,7 +116,7 @@ def K_means_datacube(
             C_its += 1
             C_its = C_its.reshape((n_r-m_r+1, n_c-m_c+1, 1))
             C = None
-    
+
     print('K-means done in %f s.' % (time.time()-t_beginning))
  
     return C_its

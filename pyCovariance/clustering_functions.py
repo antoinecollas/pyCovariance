@@ -13,25 +13,22 @@ def compute_distance_k_means(
     queue=None,
     verbose=False
 ):
-    # -----------------------------------------------------------
-    # Definition of function to be executed in parallel (or not)
-    # -----------------------------------------------------------
-    (p, N) = X.shape
-    (p, K) = mu.shape
+    N = len(X)
+    K = len(mu)
     d = np.empty((N, K))  # To store distance from each class
     iterator = tqdm(range(N)) if verbose else range(N)
     for n in iterator:  # Looping on all samples
         for k in range(K):  # Looping on al classes
-            d[n, k] = distance(mu[:, k], X[:, n])
+            d[n, k] = distance(mu[k], X[n])
     if enable_multi:
-        queue.put(𝐝)
+        queue.put(d)
     else:
-        return 𝐝
+        return d
 
 
 def compute_all_distances_k_means(
-    𝐗,
-    𝛍,
+    X,
+    mu,
     distance,
     enable_multi=False,
     number_of_threads=4
@@ -40,71 +37,60 @@ def compute_all_distances_k_means(
         ----------------------------------------------------------------------
         Inputs:
         --------
-            * 𝐗 = a (p, N) numpy array with:
-                * p = dimension of vectors
-                * N = number of Samples
-            * 𝛍 = an array of shape (p,N) corresponding to classes centers
+            * X = a list of N data points
+            * mu = an list of data points corresponding to classes centers
             * distance = function to compute distance between two samples
-                         ** 𝐱_1 = sample 1
-                         ** 𝐱_2 = sample 2
+                         ** x_1 = sample 1
+                         ** x_2 = sample 2
             * enable_multi = enable or not parallel compuation
             * number_of_threads = number of parallel threads (cores of machine)
 
         Outputs:
         ---------
-            * 𝐝 = a (N,K) numpy array containing all needed distances for K-mean
+            * d = a (N, K) numpy array containing all needed distances for K-mean
         """
 
     # -----------------------------------------------------------
     # Case: Multiprocessing is enabled
     # -----------------------------------------------------------
     if enable_multi:
-        (p, N) = 𝐗.shape
-        𝐝 = []  # Results container
+        N = len(X)
+        d = list()
         indexes_split = np.hstack([0, int(N / number_of_threads) * np.arange(1, number_of_threads), N])
         # Separate data in subsets to be treated in parallel
-        𝐗_subsets = []
+        X_subsets = list()
         for t in range(1, number_of_threads + 1):
-            𝐗_subsets.append(𝐗[:, indexes_split[t - 1]:indexes_split[t]])
+            X_subsets.append([X[i] for i in range(indexes_split[t-1], indexes_split[t])])
         queues = [Queue() for i in range(number_of_threads)]  # Serves to obtain result for each thread
-        args = [(𝐗_subsets[i], 𝛍, distance, True, queues[i]) for i in range(number_of_threads)]
+        args = [(X_subsets[i], mu, distance, True, queues[i]) for i in range(number_of_threads)]
         jobs = [Process(target=compute_distance_k_means, args=a) for a in args]
         # Starting parallel computation
         for j in jobs: j.start()
         # Obtaining result for each thread
-        for q in queues: 𝐝.append(q.get())
+        for q in queues: d.append(q.get())
         # Waiting for each thread to terminate
         for j in jobs: j.join()
 
         # Merging results
-        𝐝 = np.vstack(𝐝)
+        d = np.vstack(d)
 
         # -----------------------------------------------------------
     # Case: Multiprocessing is not enabled
     # ----------------------------------------------------------- 
     else:
-        𝐝 = compute_distance_k_means(𝐗, 𝛍, distance)
+        d = compute_distance_k_means(X, mu, distance)
 
-    return 𝐝
+    return d
 
 
 def random_index_for_initialisation(K, N):
-    indexes = []
+    indexes = list()
     for k in range(K):
         index = np.random.randint(N)
         while index in indexes:
             index = np.random.randint(N)
         indexes.append(index)
     return indexes
-
-
-def choose_center_from_indexes(𝐗, indexes):
-    (p, N) = 𝐗.shape
-    K = len(indexes)
-    𝛍 = np.empty((p, K)).astype(𝐗.dtype)
-    for k in range(K):
-        𝛍[:, k] = 𝐗[:, indexes[k]]
-    return 𝛍
 
 
 def compute_mean_k_means(
@@ -127,50 +113,50 @@ def compute_mean_k_means(
 
  
 def wrapper_compute_all_mean_parallel(
-    𝐗,
+    X,
     K,
-    𝓒,
+    C,
     mean_function,
     enable_multi=False,
     verbose=False
 ):
     """ A simple function to compute all means in parallel for K-mean
-        CAUTION: number of threads = K in this case because I did not want 
-                 to bother managing the data communication
+        CAUTION: number of threads = K in this case
         ----------------------------------------------------------------------
         Inputs:
         --------
-            * 𝐗 = a (p, N) numpy array with:
-                * p = dimension of vectors
-                * N = number of Samples
+            * X = an np array of N data points
             * K = number of classes 
-            * 𝓒 = an array of shape (N,) with each sample with a label in {0,..., K-1}
-            * mean_function = function to compute mean
-                              takes two arguments:
-                              ** 𝐗_class = array of shape (p, M) corresponding to 
-                                           samples in class
-            * enable_multi = enable or not parallel compuation
+            * C = an array of shape (N,) with each sample with a label in {0,..., K-1}
+            * mean_function = function to compute mean and takes as input:
+                              ** X_class = a list of M data points corresponding to samples in class
+            * enable_multi = enable or not parallel computation
             * verbose = boolean
  
         Outputs:
         ---------
-            * 𝛍 = a (p,K) numpy array containing all means of classes
+            * mu = a list containing all means of classes
         """
-  
+
+    mu = [None for i in range(K)]
+
     # -----------------------------------------------------------
     # Case: Multiprocessing is enabled
     # -----------------------------------------------------------
     if enable_multi:
-        p = 𝐗.shape[0]
-        𝛍 = np.empty((p,K), dtype=complex)
-        number_of_effective_threads = K
-        queues = [Queue() for i in range(number_of_effective_threads)]  # Serves to obtain result for each thread
-        args = [(𝐗[:, 𝓒 == i], mean_function, True, queues[i], i) for i in range(number_of_effective_threads)]
+        queues = [Queue() for i in range(K)]  # Serves to obtain result for each thread
+        args = list()
+        for i in range(K):
+            X_class = list()
+            for j in range(len(C)):
+                if C[j] == i:
+                    X_class.append(X[j])
+            args.append((X_class, mean_function, True, queues[i], i))
         jobs = [Process(target=compute_mean_k_means, args=a) for a in args]
         # Starting parallel computation
         for j in jobs: j.start()
         # Obtaining result for each thread
-        for q in queues: tmp=q.get(); 𝛍[:,tmp[1]] = tmp[0]
+        for q in queues: tmp=q.get(); mu[tmp[1]] = tmp[0]
         # Waiting for each thread to terminate
         for j in jobs: j.join()
  
@@ -178,15 +164,17 @@ def wrapper_compute_all_mean_parallel(
     # Case: Multiprocessing is not enabled
     # ----------------------------------------------------------- 
     else:
-        p = 𝐗.shape[0]
-        𝛍 = np.empty((p,K), dtype=complex)
-        for k in range(K):  # Looping on all classes
+        for i in range(K):  # Looping on all classes
             if verbose:
-                print("Computing mean of class %d/%d " % (k+1,K))
-            𝐗_class = 𝐗[:, 𝓒==k]
-            𝛍[:,k] = compute_mean_k_means(𝐗_class, mean_function)
- 
-    return 𝛍
+                print("Computing mean of class %d/%d " % (i+1, K))
+            X_class = list()
+            for j in range(len(C)):
+                if C[j] == i:
+                    X_class.append(X[j])
+            mu[i] = compute_mean_k_means(X_class, mean_function)
+
+    return mu
+
 
 def compute_objective_function(distances):
     """ Compute the value of the objective function of K-means algorithm.
@@ -204,6 +192,7 @@ def compute_objective_function(distances):
     for k in np.unique(C):
         result += np.sum(distances[C==k, k])
     return result/distances.shape[0]
+
 
 def K_means_clustering_algorithm(
     X,
@@ -225,16 +214,12 @@ def K_means_clustering_algorithm(
         ----------------------------------------------------------------------
         Inputs:
         --------
-            * X = a (p, N) numpy array with:
-                * p = dimension of vectors
-                * N = number of Samples
+            * X = a list of N data points
             * K = number of classes
             * distance = function to compute distance between two samples takes two arguments:
                          ** x_1 = sample 1
                          ** x_2 = sample 2
-            * mean_function = function to compute mean takes one argument:
-                              ** X_class = array of shape (p, M) corresponding to 
-                                           samples in class
+            * mean_function = function to compute mean over a list of data points
             * init = a (N) array with one class per point (for example coming from a H-alpha decomposition). If None, centers are randomly chosen among samples.
             * iter_max = number of maximum iterations of algorithm
             * enable_multi_distance = enable or not parallel computation for distance computation
@@ -251,14 +236,14 @@ def K_means_clustering_algorithm(
             * criterion_value = value of the objective function which is minimized (within-class variance)
     """
 
-    (p, N) = X.shape
+    N = len(X)
 
     # -------------------------------
     # Initialisation of center means
     # -------------------------------
     if init is None:
         indexes = random_index_for_initialisation(K, N)
-        mu = choose_center_from_indexes(X, indexes)
+        mu = [X[i] for i in indexes]
     else:
         mu = wrapper_compute_all_mean_parallel(
             X,
@@ -276,6 +261,7 @@ def K_means_clustering_algorithm(
     time_means = 0
     
     for i in range(iter_max):
+
         if verbose:
             print("K-mean algorithm iteration %d" % i)
 
@@ -314,7 +300,7 @@ def K_means_clustering_algorithm(
                     print('Convergence reached:', delta)
                 break
         criterion_value = new_criterion_value
-        
+
         # -----------------------------------------
         # Computing new means using assigned samples
         # -----------------------------------------

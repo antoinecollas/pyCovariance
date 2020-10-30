@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import os
 import sys
 
-from pyCovariance.features import Covariance, CovarianceEuclidean, CovarianceTexture, Intensity, LocationCovarianceEuclidean, MeanPixelEuclidean, PixelEuclidean
+#from pyCovariance.features import Covariance, CovarianceEuclidean, CovarianceTexture, Intensity, LocationCovarianceEuclidean, MeanPixelEuclidean, PixelEuclidean
+from pyCovariance.features import Covariance
 
 from hyperspectral_functions import K_means_hyperspectral_image, Dataset, evaluate_and_save_clustering, HyperparametersKMeans
 
@@ -20,29 +21,29 @@ folder = os.path.join('results', dataset_name, date_str)
 # EVALUATION OF PCA
 
 hyperparams = HyperparametersKMeans(
-    crop_image = False,
+    crop_image = True,
     enable_multi = True,
     pca = None,
-    nb_bands_to_select = 10,
+    nb_bands_to_select = 2,
     mask = True,
     windows_size = 7,
     features = None,
     nb_init = 10,
-    nb_iter_max = 100,
+    nb_iter_max = 2,
     eps = 1e-3
 )
 
 features_list = [
-    Intensity(),
-    'sklearn',
-    PixelEuclidean(),
-    MeanPixelEuclidean(),
-    CovarianceEuclidean(),
-    Covariance(),
-    CovarianceTexture(
-        p=hyperparams.nb_bands_to_select,
-        N=hyperparams.windows_shape[0]*hyperparams.windows_shape[1]
-    )
+    #Intensity(),
+    #'sklearn',
+    #PixelEuclidean(),
+    #MeanPixelEuclidean(),
+    #CovarianceEuclidean(),
+    Covariance(hyperparams.nb_bands_to_select),
+    #CovarianceTexture(
+    #    p=hyperparams.nb_bands_to_select,
+    #    N=hyperparams.windows_shape[0]*hyperparams.windows_shape[1]
+    #)
 ]
 
 for pca in [False, True]:
