@@ -1,11 +1,12 @@
+import abc
 import autograd.numpy as np
 from functools import partial
 import pymanopt
 from pymanopt import Problem
 from pymanopt.solvers import SteepestDescent
-import warnings
 
-class BaseClassFeatures:
+
+class BaseClassFeatures(metaclass=abc.ABCMeta):
     def __init__(self, manifold):
         """ Serve to instantiate a BaseClassFeatures object.
         ----------------------------------------------------------------------
@@ -14,10 +15,13 @@ class BaseClassFeatures:
             * manifold = a manifold as defined in Pymanopt.
         """
         self.M = manifold
+        self.M._point_layout = 1
 
+    @abc.abstractmethod
     def __str__(self):
-        raise NotImplementedError
+        """ Name of the feature"""
 
+    @abc.abstractmethod
     def estimation(self, X):
         """ Serve to compute feature.
         ----------------------------------------------------------------------
@@ -30,7 +34,6 @@ class BaseClassFeatures:
         ---------
             * feature = a point on manifold self.M
         """
-        raise NotImplementedError
 
     def distance(self, x1, x2):
         """ Compute distance between two features.
@@ -64,8 +67,8 @@ class BaseClassFeatures:
             return d_squared
 
         def _grad(X, theta):
-            grad = np.zeros_like(theta)
-            for x in X:
+            grad = self.M.log(theta, X[0])
+            for x in X[1:]:
                 grad += self.M.log(theta, x)
             grad = (1/len(X))*grad
             return grad
