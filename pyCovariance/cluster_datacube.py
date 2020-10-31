@@ -74,9 +74,6 @@ def K_means_datacube(
         number_of_threads_rows=number_of_threads_rows,
         number_of_threads_columns=number_of_threads_columns
     )
-    print('nb lines image', len(features_temp))
-    print('nb columns image', len(features_temp[0]))
-    print(features_temp[0][0].shape)
     X = [i for row in features_temp for i in row]
     image = None
     print("Done in %f s." % (time.time()-t_beginning))
