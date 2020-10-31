@@ -6,7 +6,7 @@ import os
 import sys
 
 #from pyCovariance.features import Covariance, CovarianceEuclidean, CovarianceTexture, Intensity, LocationCovarianceEuclidean, MeanPixelEuclidean, PixelEuclidean
-from pyCovariance.features import Covariance
+from pyCovariance.features import Covariance, CovarianceTexture
 
 from hyperspectral_functions import K_means_hyperspectral_image, Dataset, evaluate_and_save_clustering, HyperparametersKMeans
 
@@ -40,10 +40,10 @@ features_list = [
     #MeanPixelEuclidean(),
     #CovarianceEuclidean(),
     Covariance(hyperparams.nb_bands_to_select),
-    #CovarianceTexture(
-    #    p=hyperparams.nb_bands_to_select,
-    #    N=hyperparams.windows_shape[0]*hyperparams.windows_shape[1]
-    #)
+    CovarianceTexture(
+        p=hyperparams.nb_bands_to_select,
+        N=hyperparams.windows_shape[0]*hyperparams.windows_shape[1]
+    )
 ]
 
 for pca in [False, True]:
