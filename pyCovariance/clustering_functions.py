@@ -18,8 +18,8 @@ def compute_distance_k_means(
     d = np.empty((N, K))  # To store distance from each class
     iterator = tqdm(range(N)) if verbose else range(N)
     for n in iterator:  # Looping on all samples
-        for k in range(K):  # Looping on al classes
-            d[n, k] = distance(mu[k], X[n])
+        for k in range(K):  # Looping on all classes
+            d[n, k] = distance(X[n], mu[k])
     if enable_multi:
         queue.put(d)
     else:
@@ -164,14 +164,16 @@ def wrapper_compute_all_mean_parallel(
     # Case: Multiprocessing is not enabled
     # ----------------------------------------------------------- 
     else:
-        for i in range(K):  # Looping on all classes
+        mu = None
+        for k in range(K):  # Looping on all classes
             if verbose:
                 print("Computing mean of class %d/%d " % (i+1, K))
-            X_class = list()
-            for j in range(len(C)):
-                if C[j] == i:
-                    X_class.append(X[j])
-            mu[i] = compute_mean_k_means(X_class, mean_function)
+            X_class = X[C==k]
+            temp = compute_mean_k_means(X_class, mean_function)
+            if mu is None:
+                mu = temp 
+            else:
+                mu.append(temp)
 
     return mu
 
@@ -235,7 +237,6 @@ def K_means_clustering_algorithm(
             * delta = convergence criterion
             * criterion_value = value of the objective function which is minimized (within-class variance)
     """
-
     N = len(X)
 
     # -------------------------------
@@ -243,7 +244,7 @@ def K_means_clustering_algorithm(
     # -------------------------------
     if init is None:
         indexes = random_index_for_initialisation(K, N)
-        mu = [X[i] for i in indexes]
+        mu = X[indexes]
     else:
         mu = wrapper_compute_all_mean_parallel(
             X,
@@ -259,7 +260,7 @@ def K_means_clustering_algorithm(
     C = np.empty(N)  # To store clustering results
     time_distances = 0
     time_means = 0
-    
+
     for i in range(iter_max):
 
         if verbose:

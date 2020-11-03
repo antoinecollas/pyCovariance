@@ -54,7 +54,9 @@ def sliding_window(
 
             # Computing the function over the local data
             result_line.append(function_to_compute(local_data))
+
         result.append(result_line)
+
     if multi:
         queue.put(result)
     else:

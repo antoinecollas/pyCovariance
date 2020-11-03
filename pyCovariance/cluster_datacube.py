@@ -10,10 +10,10 @@ sns.set_style("darkgrid")
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 # import general K-means
-from pyCovariance.clustering_functions import K_means_clustering_algorithm
+from .clustering_functions import K_means_clustering_algorithm
 
 # import sliding window function
-from pyCovariance.sliding_window import sliding_window_parallel
+from .sliding_window import sliding_window_parallel
 
 def K_means_datacube(
     image,
@@ -66,7 +66,7 @@ def K_means_datacube(
     m_r, m_c = window_mask.shape
     N = m_r*m_c
     n_r, n_c, p = image.shape
-    features_temp = sliding_window_parallel(
+    X_temp = sliding_window_parallel(
         image,
         window_mask,
         features.estimation,
@@ -74,7 +74,14 @@ def K_means_datacube(
         number_of_threads_rows=number_of_threads_rows,
         number_of_threads_columns=number_of_threads_columns
     )
-    X = [i for row in features_temp for i in row]
+    X = None
+    for row in range(len(X_temp)):
+        for col in range(len(X_temp[row])):
+            if X is None:
+                X = X_temp[row][col]
+            else:
+                X.append(X_temp[row][col])
+
     image = None
     print("Done in %f s." % (time.time()-t_beginning))
 
@@ -82,12 +89,8 @@ def K_means_datacube(
     t_beginning = time.time()
 
     if mask is not None:
-        mask = mask.reshape((-1))
-        X_new = list()
-        for x, m in zip(X, mask):
-            if m.astype(bool):
-                X_new.append(x)
-        X = X_new
+        mask = mask.reshape((-1)).astype(bool)
+        X = X[mask]
 
     best_criterion_value = np.inf
     for _ in tqdm(range(n_init)):

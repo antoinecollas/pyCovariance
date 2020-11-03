@@ -1,27 +1,113 @@
-import abc
 import autograd.numpy as np
-from functools import partial
+from copy import deepcopy
 import pymanopt
+from pymanopt.manifolds.manifold import Manifold
 from pymanopt import Problem
 from pymanopt.solvers import SteepestDescent
 
 
-class BaseClassFeatures(metaclass=abc.ABCMeta):
-    def __init__(self, manifold):
-        """ Serve to instantiate a BaseClassFeatures object.
+class _FeatureArray():
+    def __init__(self, data=None):
+        self._array = None
+        if data is not None:
+            self.append(data)
+
+    def __str__(self):
+        return self._array.__str__()
+
+    def __empty(self):
+        return self._array is None
+
+    def __len__(self):
+        a = self._array
+        if self.__empty():
+            return 0
+        return len(self._array[0])
+
+    @property
+    def shape(self):
+        if self.__empty() :
+            return self.__len__()
+        else:
+            a = self._array
+            shape = [a[i].shape for i in range(len(a))]
+            return tuple(shape)
+
+    def __getitem__(self, key):
+        if self.__empty():
+            return list()
+        a = self._array
+        f_a = _FeatureArray([a[i][key] for i in range(len(a))])
+        return f_a
+
+    def append(self, data):
+        assert type(data) in [list, _FeatureArray]
+
+        if type(data) is _FeatureArray:
+            data = data._array
+
+        if self._array is None:
+            self._array = [None]*len(data)
+
+        for i, (a, d) in enumerate(zip(self._array, data)):
+            # Assert the new data is a np.ndarray.
+            assert type(d) == np.ndarray
+
+            if a is None:
+                self._array[i] = d
+            else:
+                self._array[i] = np.concatenate([a, d], axis=0)
+
+    def export(self):
+        a = deepcopy(self._array)
+        for i in range(len(a)):
+            a[i] = np.squeeze(a[i])
+        if len(self.shape) == 1:
+            a = a[0]
+        return a
+
+
+def feature_estimation(method):
+    def wrapper(*args, **kwargs):
+        # estimation
+        f = method(*args, **kwargs)
+
+        # put np.ndarray in list
+        if type(f) is np.ndarray:
+            f = [f]
+
+        # add batch size dimension
+        f = [f[i][np.newaxis, ...] for i in range(len(f))]
+
+        # return a _FeatureArray
+        f = _FeatureArray(f)
+
+        return f
+    return wrapper
+
+
+class Feature():
+    def __init__(self, name, estimation, manifold, args_manifold):
+        """ Serve to instantiate a Feature object.
         ----------------------------------------------------------------------
         Input:
         --------
+            * name = string
+            * estimation = function that compute feature from np.array(p, N) where p is dimension of data and N is number of data.
             * manifold = a manifold as defined in Pymanopt.
+            * args_manifold = list of arguments of the manifold. e.g size of matrices.
         """
-        self.M = manifold
-        self.M._point_layout = 1
+        self._name = name
+        self._estimation = estimation
+        self._M_class = manifold
+        self._M = manifold(*args_manifold)
+        self._M._point_layout = 1
+        self._args_M = args_manifold
 
-    @abc.abstractmethod
     def __str__(self):
         """ Name of the feature"""
+        return self._name
 
-    @abc.abstractmethod
     def estimation(self, X):
         """ Serve to compute feature.
         ----------------------------------------------------------------------
@@ -34,6 +120,7 @@ class BaseClassFeatures(metaclass=abc.ABCMeta):
         ---------
             * feature = a point on manifold self.M
         """
+        return self._estimation(X)
 
     def distance(self, x1, x2):
         """ Compute distance between two features.
@@ -46,7 +133,9 @@ class BaseClassFeatures(metaclass=abc.ABCMeta):
             ---------
                 * distance = a real number
             """
-        d = self.M.dist(x1, x2)
+        assert type(x1) is _FeatureArray
+        assert type(x2) is _FeatureArray
+        d = self._M.dist(x1.export(), x2.export())
         return d
 
     def mean(self, X):
@@ -59,18 +148,36 @@ class BaseClassFeatures(metaclass=abc.ABCMeta):
             ---------
                 * mean = a (feature_size) array
             """
+        assert type(X) is _FeatureArray
+        M = self._M_class(*(self._args_M), len(X))
 
         def _cost(X, theta):
-            d_squared = 0
-            for x in X:
-                d_squared += self.M.dist(theta, x)**2
+            # theta
+            if type(theta) is np.ndarray:
+                theta = [theta]
+            temp = [theta[i][np.newaxis, ...] for i in range(len(theta))]
+            theta = _FeatureArray()
+            for _ in range(len(X)):
+                theta.append(temp)
+
+            d_squared = M.dist(theta.export(), X.export())**2
+
+            theta = theta[0].export()
+
             return d_squared
 
         def _grad(X, theta):
-            grad = self.M.log(theta, X[0])
-            for x in X[1:]:
-                grad += self.M.log(theta, x)
-            grad = (1/len(X))*grad
+            # theta
+            if type(theta) is np.ndarray:
+                theta = [theta]
+            temp = [theta[i][np.newaxis, ...] for i in range(len(theta))]
+            theta = _FeatureArray()
+            for _ in range(len(X)):
+                theta.append(temp)
+
+            grad = M.log(theta.export(), X.export())
+            grad = np.mean(grad, axis=0)
+
             return grad
 
         def _create_cost_grad(X):
@@ -85,45 +192,17 @@ class BaseClassFeatures(metaclass=abc.ABCMeta):
             return cost, grad
 
         cost, grad = _create_cost_grad(X)
-        problem = Problem(manifold=self.M, cost=cost, egrad=grad, verbosity=0)
+        problem = Problem(manifold=self._M, cost=cost, egrad=grad, verbosity=0)
         solver = SteepestDescent()
 
         i = np.random.randint(len(X), size=1)[0]
-        init = X[i]
-        mean_value = solver.solve(problem, x=init)
+        init = X[i].export()
+        theta = solver.solve(problem, x=init)
 
-        return mean_value
+        # theta
+        if type(theta) is np.ndarray:
+            theta = [theta]
+        theta = [theta[i][np.newaxis, ...] for i in range(len(theta))]
+        theta = _FeatureArray(theta)
 
-
-def center_vectors(X):
-    """ Serve to center vectors (e.g pixels).
-        ----------------------------------------------------------------------
-        Inputs:
-        --------
-            * X = a (p, N) array where p is the dimension of data and N the number of samples used for estimation
-
-        Outputs:
-        ---------
-            * 𝐱 = the feature for classification
-        """
-    mean = np.mean(X, axis=1)
-    mean = mean[:, np.newaxis]
-    X = X - mean
-    return X
-
-
-def center_vectors_estimation(features):
-    """ Center vectors before estimating features.
-    -------------------------------------
-        Inputs:
-            --------
-            * features = class of type BaseClassFeatures (e.g CovarianceTexture) 
-        Outputs:
-            ---------
-            * the same class as in the input except the vectors are now centered before estimating
-    """
-    def estimation_on_centered_vectors(X, features_estimation):
-        X = center_vectors(X)
-        return features_estimation(X)
-    features.estimation = partial(estimation_on_centered_vectors, features_estimation=features.estimation)
-    return features
+        return theta
