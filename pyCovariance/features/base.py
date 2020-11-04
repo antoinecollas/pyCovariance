@@ -182,7 +182,7 @@ class Feature():
                 a.append(data)
 
             grad = M.log(a.export(), X.export())
-            grad = np.mean(grad, axis=0)
+            grad = -np.mean(grad, axis=0)
 
             return grad
 
