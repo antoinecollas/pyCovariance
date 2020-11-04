@@ -79,7 +79,7 @@ class _FeatureArray():
         return a
 
 
-def feature_estimation(method):
+def _feature_estimation(method):
     def wrapper(*args, **kwargs):
         # estimation
         f = method(*args, **kwargs)
@@ -106,7 +106,7 @@ class Feature():
             * args_manifold = list of arguments of the manifold. e.g size of matrices.
         """
         self._name = name
-        self._estimation = estimation
+        self._estimation = _feature_estimation(estimation)
         self._M_class = manifold
         self._M = manifold(*args_manifold)
         self._M._point_layout = 1

@@ -1,10 +1,9 @@
 from pymanopt.manifolds import HermitianPositiveDefinite
 
-from .base import Feature, feature_estimation
+from .base import Feature
 
 ########## ESTIMATION ##########
 
-@feature_estimation
 def SCM(X):
     """ A function that computes the SCM for covariance matrix estimation
             Inputs:
