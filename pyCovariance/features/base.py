@@ -7,10 +7,9 @@ from pymanopt.solvers import SteepestDescent
 
 
 class _FeatureArray():
-    def __init__(self, data=None):
+    def __init__(self, *shape):
         self._array = None
-        if data is not None:
-            self.append(data)
+        self._shape = shape
 
     def __str__(self):
         return self._array.__str__()
@@ -28,30 +27,43 @@ class _FeatureArray():
     def shape(self):
         if self.__empty() :
             return self.__len__()
-        else:
-            a = self._array
-            shape = [a[i].shape for i in range(len(a))]
-            return tuple(shape)
+        return tuple([self._array[i].shape for i in range(len(self._array))])
+
+    @property
+    def nb_manifolds(self):
+        return len(self._shape)
 
     def __getitem__(self, key):
         if self.__empty():
             return list()
         a = self._array
-        f_a = _FeatureArray([a[i][key] for i in range(len(a))])
+        temp = [a[i][key] for i in range(len(a))]
+        f_a = _FeatureArray(*[temp[i].shape[1:] for i in range(len(temp))])
+        f_a.append(temp)
         return f_a
 
     def append(self, data):
-        assert type(data) in [list, _FeatureArray]
+        assert type(data) in [np.ndarray, list, _FeatureArray]
+
+        if type(data) is np.ndarray:
+            data = [data]
 
         if type(data) is _FeatureArray:
             data = data._array
 
         if self._array is None:
-            self._array = [None]*len(data)
+            self._array = [None]*len(self._shape)
+
+        assert self.nb_manifolds == len(data)
 
         for i, (a, d) in enumerate(zip(self._array, data)):
-            # Assert the new data is a np.ndarray.
             assert type(d) == np.ndarray
+
+            # Add batch dim.
+            if d.ndim == len(self._shape[i]):
+                d = d[np.newaxis, ...]
+
+            assert d.ndim == (len(self._shape[i])+1)
 
             if a is None:
                 self._array[i] = d
@@ -62,7 +74,7 @@ class _FeatureArray():
         a = deepcopy(self._array)
         for i in range(len(a)):
             a[i] = np.squeeze(a[i])
-        if len(self.shape) == 1:
+        if self.nb_manifolds == 1:
             a = a[0]
         return a
 
@@ -72,17 +84,13 @@ def feature_estimation(method):
         # estimation
         f = method(*args, **kwargs)
 
-        # put np.ndarray in list
+        # return a _FeatureArray
         if type(f) is np.ndarray:
             f = [f]
+        f_a = _FeatureArray(*[f[i].shape for i in range(len(f))])
+        f_a.append(f)
 
-        # add batch size dimension
-        f = [f[i][np.newaxis, ...] for i in range(len(f))]
-
-        # return a _FeatureArray
-        f = _FeatureArray(f)
-
-        return f
+        return f_a
     return wrapper
 
 
@@ -152,30 +160,28 @@ class Feature():
         M = self._M_class(*(self._args_M), len(X))
 
         def _cost(X, theta):
-            # theta
             if type(theta) is np.ndarray:
-                theta = [theta]
-            temp = [theta[i][np.newaxis, ...] for i in range(len(theta))]
-            theta = _FeatureArray()
+                data = [theta]
+            else:
+                data = theta
+            a = _FeatureArray(*[data[i].shape for i in range(len(data))])
             for _ in range(len(X)):
-                theta.append(temp)
+                a.append(data)
 
-            d_squared = M.dist(theta.export(), X.export())**2
-
-            theta = theta[0].export()
+            d_squared = M.dist(a.export(), X.export())**2
 
             return d_squared
 
         def _grad(X, theta):
-            # theta
             if type(theta) is np.ndarray:
-                theta = [theta]
-            temp = [theta[i][np.newaxis, ...] for i in range(len(theta))]
-            theta = _FeatureArray()
+                data = [theta]
+            else:
+                data = theta
+            a = _FeatureArray(*[data[i].shape for i in range(len(data))])
             for _ in range(len(X)):
-                theta.append(temp)
+                a.append(data)
 
-            grad = M.log(theta.export(), X.export())
+            grad = M.log(a.export(), X.export())
             grad = np.mean(grad, axis=0)
 
             return grad
@@ -202,7 +208,8 @@ class Feature():
         # theta
         if type(theta) is np.ndarray:
             theta = [theta]
-        theta = [theta[i][np.newaxis, ...] for i in range(len(theta))]
-        theta = _FeatureArray(theta)
+        shape = [theta[i].shape for i in range(len(theta))]
+        a = _FeatureArray(*shape)
+        a.append(theta)
 
-        return theta
+        return a
