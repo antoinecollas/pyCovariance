@@ -47,10 +47,10 @@ class _FeatureArray():
     def append(self, data):
         assert type(data) in [np.ndarray, list, _FeatureArray]
 
-        if type(data) is np.ndarray:
+        if type(data) == np.ndarray:
             data = [data]
 
-        if type(data) is _FeatureArray:
+        if type(data) == _FeatureArray:
             data = data._array
 
         if self._array is None:
