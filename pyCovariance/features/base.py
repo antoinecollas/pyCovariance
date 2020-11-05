@@ -38,6 +38,8 @@ class _FeatureArray():
             return list()
         a = self._array
         temp = [a[i][key] for i in range(len(a))]
+        if type(key) == int:
+            temp = [temp[i][np.newaxis, ...] for i in range(len(temp))]
         f_a = _FeatureArray(*[temp[i].shape[1:] for i in range(len(temp))])
         f_a.append(temp)
         return f_a
@@ -160,56 +162,43 @@ class Feature():
         M = self._M_class(*(self._args_M), len(X))
 
         def _cost(X, theta):
-            if type(theta) is np.ndarray:
-                data = [theta]
-            else:
-                data = theta
-            a = _FeatureArray(*[data[i].shape for i in range(len(data))])
-            for _ in range(len(X)):
-                a.append(data)
-
+            #a = _transform_theta(theta)
             d_squared = M.dist(a.export(), X.export())**2
-
             return d_squared
 
         def _grad(X, theta):
-            if type(theta) is np.ndarray:
-                data = [theta]
-            else:
-                data = theta
-            a = _FeatureArray(*[data[i].shape for i in range(len(data))])
-            for _ in range(len(X)):
-                a.append(data)
-
-            grad = M.log(a.export(), X.export())
-            grad = -np.mean(grad, axis=0)
-
-            return grad
+            #a = _transform_theta(theta)
+            theta_batch = deepcopy(theta)
+            for _ in range(len(X)-1):
+                theta_batch.append(theta)
+            grad = M.log(theta_batch.export(), X.export())
+            if type(grad) is np.ndarray:
+                grad = [grad]
+            grad = [-np.mean(grad[i], axis=0) for i in range(len(grad))]
+            a = _FeatureArray(*[grad[i].shape[1:] for i in range(len(grad))])
+            a.append(grad)
+            return a
 
         def _create_cost_grad(X):
-            @pymanopt.function.Callable
             def cost(theta):
                 return _cost(X, theta)
 
-            @pymanopt.function.Callable
             def grad(theta):
                 return _grad(X, theta)
 
             return cost, grad
 
         cost, grad = _create_cost_grad(X)
-        problem = Problem(manifold=self._M, cost=cost, egrad=grad, verbosity=0)
-        solver = SteepestDescent()
 
-        i = np.random.randint(len(X), size=1)[0]
-        init = X[i].export()
-        theta = solver.solve(problem, x=init)
+        # initialisation
+        theta = X[int(np.random.randint(len(X), size=1)[0])]
 
-        # theta
-        if type(theta) is np.ndarray:
-            theta = [theta]
-        shape = [theta[i].shape for i in range(len(theta))]
-        a = _FeatureArray(*shape)
-        a.append(theta)
+        # optimization
+        g = grad(theta)
+        for i in range(10):
+            print(g)
+            # exp riemann...
+            #theta -= g            
+            g = grad(theta)
 
-        return a
+        return theta
