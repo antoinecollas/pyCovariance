@@ -166,39 +166,42 @@ class Feature():
             d_squared = M.dist(a.export(), X.export())**2
             return d_squared
 
-        def _grad(X, theta):
+        def _minus_grad(X, theta):
             #a = _transform_theta(theta)
             theta_batch = deepcopy(theta)
             for _ in range(len(X)-1):
                 theta_batch.append(theta)
-            grad = M.log(theta_batch.export(), X.export())
-            if type(grad) is np.ndarray:
-                grad = [grad]
-            grad = [-np.mean(grad[i], axis=0) for i in range(len(grad))]
-            a = _FeatureArray(*[grad[i].shape[1:] for i in range(len(grad))])
-            a.append(grad)
+            minus_grad = M.log(theta_batch.export(), X.export())
+            if type(minus_grad) is np.ndarray:
+                minus_grad = [minus_grad]
+            minus_grad = [np.mean(minus_grad[i], axis=0) for i in range(len(minus_grad))]
+            a = _FeatureArray(*[minus_grad[i].shape[1:] for i in range(len(minus_grad))])
+            a.append(minus_grad)
             return a
 
-        def _create_cost_grad(X):
+        def _create_cost_minus_grad(X):
             def cost(theta):
                 return _cost(X, theta)
 
-            def grad(theta):
-                return _grad(X, theta)
+            def minus_grad(theta):
+                return _minus_grad(X, theta)
 
-            return cost, grad
+            return cost, minus_grad
 
-        cost, grad = _create_cost_grad(X)
+        cost, minus_grad = _create_cost_minus_grad(X)
 
         # initialisation
         theta = X[int(np.random.randint(len(X), size=1)[0])]
 
         # optimization
-        g = grad(theta)
+        g = minus_grad(theta)
         for i in range(10):
-            print(g)
-            # exp riemann...
-            #theta -= g            
-            g = grad(theta)
+            temp = self._M.exp(theta.export(), g.export())
+            if type(temp) is np.ndarray:
+                temp = [temp]
+            theta = _FeatureArray(*[temp[i].shape for i in range(len(temp))])
+            theta.append(temp)
+
+            g = minus_grad(theta)
 
         return theta
