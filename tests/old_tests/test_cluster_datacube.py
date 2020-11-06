@@ -1,7 +1,5 @@
-import matplotlib.pyplot as plt
 import autograd.numpy as np
-from autograd.numpy import random
-import os, sys, time
+import os, sys
 
 from pyCovariance.cluster_datacube import K_means_datacube
 from pyCovariance.evaluation import assign_classes_segmentation_to_gt, compute_mIoU
