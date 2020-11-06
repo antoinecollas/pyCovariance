@@ -113,6 +113,7 @@ class Feature():
         self._M = manifold(*args_manifold)
         self._M._point_layout = 1
         self._args_M = args_manifold
+        self._eps_grad = 1e-5
 
     def __str__(self):
         """ Name of the feature"""
@@ -192,10 +193,9 @@ class Feature():
 
         # initialisation
         theta = X[int(np.random.randint(len(X), size=1)[0])]
-
-        # optimization
         g = minus_grad(theta)
-        for i in range(10):
+
+        while self._M.norm(theta.export(), g.export()) > self._eps_grad:
             temp = self._M.exp(theta.export(), g.export())
             if type(temp) is np.ndarray:
                 temp = [temp]
