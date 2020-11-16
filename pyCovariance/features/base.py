@@ -1,9 +1,5 @@
 import autograd.numpy as np
 from copy import deepcopy
-import pymanopt
-from pymanopt.manifolds.manifold import Manifold
-from pymanopt import Problem
-from pymanopt.solvers import SteepestDescent
 
 
 class _FeatureArray():
@@ -18,14 +14,13 @@ class _FeatureArray():
         return self._array is None
 
     def __len__(self):
-        a = self._array
         if self.__empty():
             return 0
         return len(self._array[0])
 
     @property
     def shape(self):
-        if self.__empty() :
+        if self.__empty():
             return self.__len__()
         return tuple([self._array[i].shape for i in range(len(self._array))])
 
@@ -34,8 +29,6 @@ class _FeatureArray():
         return len(self._shape)
 
     def __getitem__(self, key):
-        if self.__empty():
-            return list()
         a = self._array
         temp = [a[i][key] for i in range(len(a))]
         if type(key) == int:
@@ -103,9 +96,12 @@ class Feature():
         Input:
         --------
             * name = string
-            * estimation = function that compute feature from np.array(p, N) where p is dimension of data and N is number of data.
+            * estimation = function that compute feature from np.array(p, N)
+                * p is dimension of data
+                * N is number of data.
             * manifold = a manifold as defined in Pymanopt.
-            * args_manifold = list of arguments of the manifold. e.g size of matrices.
+            * args_manifold = list of arguments of the manifold.
+                * e.g size of matrices.
         """
         self._name = name
         self._estimation = _feature_estimation(estimation)
@@ -124,7 +120,9 @@ class Feature():
         ----------------------------------------------------------------------
         Inputs:
         --------
-            * X = a (p, N) array where p is the dimension of data and N the number
+            * X = a (p, N) array where
+                * p is the dimension of data
+                * N the number
                     of samples used for estimation
 
         Outputs:
@@ -154,7 +152,8 @@ class Feature():
             ----------------------------------------------------------------------
             Inputs:
             --------
-                * X = array of shape (feature_size, M) corresponding to samples in class
+                * X = array of shape (feature_size, M)
+                    * M: nb samples in one class
             Outputs:
             ---------
                 * mean = a (feature_size) array
@@ -163,20 +162,20 @@ class Feature():
         M = self._M_class(*(self._args_M), len(X))
 
         def _cost(X, theta):
-            #a = _transform_theta(theta)
-            d_squared = M.dist(a.export(), X.export())**2
+            d_squared = M.dist(theta.export(), X.export())**2
             return d_squared
 
         def _minus_grad(X, theta):
-            #a = _transform_theta(theta)
             theta_batch = deepcopy(theta)
             for _ in range(len(X)-1):
                 theta_batch.append(theta)
             minus_grad = M.log(theta_batch.export(), X.export())
             if type(minus_grad) is np.ndarray:
                 minus_grad = [minus_grad]
-            minus_grad = [np.mean(minus_grad[i], axis=0) for i in range(len(minus_grad))]
-            a = _FeatureArray(*[minus_grad[i].shape[1:] for i in range(len(minus_grad))])
+            minus_grad = [np.mean(minus_grad[i], axis=0)
+                          for i in range(len(minus_grad))]
+            a = _FeatureArray(*[minus_grad[i].shape[1:]
+                                for i in range(len(minus_grad))])
             a.append(minus_grad)
             return a
 
