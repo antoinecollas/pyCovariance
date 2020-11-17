@@ -93,7 +93,9 @@ def sample_complex_tau_UUH_distribution(tau, U):
     assert U.dtype == np.complex128
     N = tau.shape[0]
     p, k = U.shape
-    cn_k = sample_complex_normal_distribution(N, np.eye(k, dtype=np.complex128))
-    cn_p = sample_complex_normal_distribution(N, np.eye(p, dtype=np.complex128))
+    cn_k = sample_complex_normal_distribution(N,
+                                              np.eye(k, dtype=np.complex128))
+    cn_p = sample_complex_normal_distribution(N,
+                                              np.eye(p, dtype=np.complex128))
     X = np.sqrt(tau).reshape((1, -1))*(U@cn_k) + cn_p
     return X
