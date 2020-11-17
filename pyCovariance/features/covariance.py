@@ -4,19 +4,19 @@ from .base import Feature
 
 ########## ESTIMATION ##########
 
-def SCM(X):
+def compute_scm(X):
     """ A function that computes the SCM for covariance matrix estimation
             Inputs:
-                * X = a np.array of dim (p, N) with each observation along column dimension
+                * X = a np.array of dim (N, p) with each observation along column dimension
             Outputs:
                 * Sigma = the estimate"""
-    (p, N) = X.shape
-    return (X @ X.conj().T) / N
+    (N, p) = X.shape
+    return (X.conj().T @ X) / N
 
 ##########  CLASSES  ##########
 
-def Covariance(p):
+def covariance(p):
     name = 'Covariance_Riemannian'
     M = SymmetricPositiveDefinite
     args_M = [p]
-    return Feature(name, SCM, M, args_M)
+    return Feature(name, compute_scm, M, args_M)

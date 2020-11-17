@@ -1,85 +1,63 @@
-import autograd.numpy as np
+import numpy as np
+from pymanopt.manifolds import Euclidean
 
-from .base import BaseClassFeatures
-from ..vectorization import *
-
-########## ESTIMATION ##########
-
-##########  DISTANCE  ##########
-
-##########   MEAN     ##########
-
-def mean(X):
-    """ Compute mean of vectors
-        Inputs:
-        --------
-            * X = a (p, N) array where p is the dimension of data and N the number of samples used for estimation
-
-        Outputs:
-        ---------
-            * 𝐱 = the feature for classification
-        """
-    mean = np.mean(X, axis=1)
-    return mean
+from .base import Feature
 
 
-##########  CLASSES  ##########
-
-class PixelEuclidean(BaseClassFeatures):
-    def __init__(self):
-        super().__init__()
-    
-    def __str__(self):
-        return 'Pixel_Euclidean'
-    
-    def estimation(self, X):
-        center_pixel = X[:, X.shape[1]//2+1, :]
-        return center_pixel
-
-    def distance(self, x1, x2):
-        d = np.linalg.norm(x2-x1)
-        d = np.real(d)
-        return d
-
-    def mean(self, X):
-        return np.mean(X, axis=1)
+# ESTIMATION
 
 
-class MeanPixelEuclidean(BaseClassFeatures):
-    def __init__(self):
-        super().__init__()
-    
-    def __str__(self):
-        return 'Mean_Pixel_Euclidean'
-    
-    def estimation(self, X):
-        return np.mean(X, 1)
-
-    def distance(self, x1, x2):
-        d = np.linalg.norm(x2-x1)
-        d = np.real(d)
-        return d
-
-    def mean(self, X):
-        return np.mean(X, axis=1)
+def get_center_vector(X):
+    """ A function that ouputs center vector from a set of vectors.
+            Inputs:
+                * X = a np.array of dim (N, p)
+                with each observation along column dimension
+            Outputs:
+                * center vector"""
+    return X[X.shape[0]//2+1]
 
 
-class Intensity(BaseClassFeatures):
-    def __init__(self):
-        super().__init__()
-    
-    def __str__(self):
-        return 'Intensity'
-    
-    def estimation(self, X):
-        center_pixel = X[:, X.shape[1]//2+1, :]
-        intensity = np.linalg.norm(center_pixel)
-        return intensity
+def compute_mean_vector(X):
+    """ A function that ouputs mean of vectors.
+            Inputs:
+                * X = a np.array of dim (N, p)
+                with each observation along column dimension
+            Outputs:
+                * mean vector"""
+    return np.mean(X, 0)
 
-    def distance(self, x1, x2):
-        d = np.linalg.norm(x2-x1)
-        d = np.real(d)
-        return d
 
-    def mean(self, X):
-        return np.mean(X, axis=1)
+def compute_intensity_vector(X):
+    """ A function that intensity of center vector.
+            Inputs:
+                * X = a np.array of dim (N, p)
+                with each observation along column dimension
+            Outputs:
+                * intensity"""
+    x = get_center_vector(X)
+    intensity = np.linalg.norm(x)
+    return intensity
+
+
+# CLASSES
+
+
+def pixel_euclidean(p):
+    name = 'Pixel_Euclidean'
+    M = Euclidean
+    args_M = [p]
+    return Feature(name, get_center_vector, M, args_M)
+
+
+def mean_pixel_euclidean(p):
+    name = 'Mean_Pixel_Euclidean'
+    M = Euclidean
+    args_M = [p]
+    return Feature(name, compute_mean_vector, M, args_M)
+
+
+def intensity_euclidean():
+    name = 'Intensity_Euclidean'
+    M = Euclidean
+    args_M = [1]
+    return Feature(name, compute_intensity_vector, M, args_M)

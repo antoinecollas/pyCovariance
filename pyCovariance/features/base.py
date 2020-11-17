@@ -80,6 +80,8 @@ def _feature_estimation(method):
         f = method(*args, **kwargs)
 
         # return a _FeatureArray
+        if type(f) not in [list, np.ndarray]:
+            f = np.array(f)
         if type(f) is np.ndarray:
             f = [f]
         f_a = _FeatureArray(*[f[i].shape for i in range(len(f))])
@@ -96,9 +98,9 @@ class Feature():
         Input:
         --------
             * name = string
-            * estimation = function that compute feature from np.array(p, N)
-                * p is dimension of data
+            * estimation = function that compute feature from np.array(N, p)
                 * N is number of data.
+                * p is dimension of data
             * manifold = a manifold as defined in Pymanopt.
             * args_manifold = list of arguments of the manifold.
                 * e.g size of matrices.
@@ -120,10 +122,10 @@ class Feature():
         ----------------------------------------------------------------------
         Inputs:
         --------
-            * X = a (p, N) array where
-                * p is the dimension of data
+            * X = a (N, p) array where
                 * N the number
                     of samples used for estimation
+                * p is the dimension of data
 
         Outputs:
         ---------
@@ -152,8 +154,7 @@ class Feature():
             ----------------------------------------------------------------------
             Inputs:
             --------
-                * X = array of shape (feature_size, M)
-                    * M: nb samples in one class
+                * X = _FeatureArray
             Outputs:
             ---------
                 * mean = a (feature_size) array
@@ -172,7 +173,7 @@ class Feature():
             minus_grad = M.log(theta_batch.export(), X.export())
             if type(minus_grad) is np.ndarray:
                 minus_grad = [minus_grad]
-            minus_grad = [np.mean(minus_grad[i], axis=0)
+            minus_grad = [np.array(np.mean(minus_grad[i], axis=0))
                           for i in range(len(minus_grad))]
             a = _FeatureArray(*[minus_grad[i].shape[1:]
                                 for i in range(len(minus_grad))])
@@ -196,6 +197,8 @@ class Feature():
 
         while self._M.norm(theta.export(), g.export()) > self._eps_grad:
             temp = self._M.exp(theta.export(), g.export())
+            if type(temp) not in [list, np.ndarray]:
+                temp = np.array(temp)
             if type(temp) is np.ndarray:
                 temp = [temp]
             theta = _FeatureArray(*[temp[i].shape for i in range(len(temp))])
