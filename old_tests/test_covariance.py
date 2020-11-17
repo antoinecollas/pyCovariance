@@ -9,9 +9,7 @@ from pyCovariance.vectorization import unvech, vech
 from pyCovariance.matrix_operators import sqrtm, invsqrtm, logm, expm
 
 
-###################################################
 # test estimation of covariance
-###################################################
 def test_compute_feature_Covariance_texture():
     N = 1000
     p = 3
@@ -28,9 +26,7 @@ def test_compute_feature_Covariance_texture():
     assert distance_covariance_Riemannian(vech(sigma), sigma_est) < 0.2
 
 
-#################################################
 # test Riemannian geometry of covariance matrices
-#################################################
 def test_distance_covariance_Riemannian():
     p = 3
     cov_0 = generate_covariance(p)
