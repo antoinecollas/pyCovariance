@@ -7,10 +7,12 @@ from pyCovariance.generation_data import generate_complex_covariance, \
         generate_stiefel, \
         generate_textures, \
         generate_toeplitz, \
-        sample_complex_normal, \
-        sample_complex_standard_normal, \
-        sample_complex_compound, \
-        sample_complex_tau_UUH
+        sample_complex_normal_distribution, \
+        sample_complex_standard_normal_distribution, \
+        sample_complex_compound_distribution, \
+        sample_complex_tau_UUH_distribution, \
+        sample_standard_normal_distribution, \
+        sample_normal_distribution
 
 
 def test_generate_covariance():
@@ -76,48 +78,69 @@ def test_generate_complex_stiefel():
     np_test.assert_allclose(U.conj().T@U, np.eye(k), atol=1e-10)
 
 
-def test_sample_complex_standard_normal():
+def test_sample_standard_normal_distribution():
     p = 5
-    N = int(1e6)
+    N = 10
 
-    X = sample_complex_standard_normal(p, N)
+    X = sample_standard_normal_distribution(p, N)
+    assert X.dtype == np.float64
+    assert X.shape == (p, N)
+    # Other tests are carried out in the SCM tests.
+
+
+def test_sample_complex_standard_normal_distribution():
+    p = 5
+    N = 10
+
+    X = sample_complex_standard_normal_distribution(p, N)
     assert X.dtype == np.complex128
     assert X.shape == (p, N)
     # Other tests are carried out in the SCM tests.
 
 
-def test_sample_complex_normal():
+def test_sample_normal_distribution():
     p = 5
-    N = int(1e6)
+    N = 10
+
+    sigma = generate_covariance(p)
+    X = sample_normal_distribution(N, sigma)
+    assert X.dtype == np.float64
+    assert X.shape == (p, N)
+    # Other tests are carried out in the SCM tests.
+
+
+def test_sample_complex_normal_distribution():
+    p = 5
+    N = 10
 
     sigma = generate_complex_covariance(p)
-    X = sample_complex_normal(N, sigma)
+    X = sample_complex_normal_distribution(N, sigma)
     assert X.dtype == np.complex128
     assert X.shape == (p, N)
     # Other tests are carried out in the SCM tests.
 
 
-def test_sample_complex_compound():
+def test_sample_complex_compound_distribution():
     p = 5
-    N = int(1e6)
+    N = 10
 
     sigma = generate_complex_covariance(p)
     sigma = sigma/(np.linalg.det(sigma)**(1/p))
     tau = generate_textures(N)
-    X = sample_complex_compound(tau, sigma)
+    X = sample_complex_compound_distribution(tau, sigma)
     assert X.dtype == np.complex128
     assert X.shape == (p, N)
     # Other tests are carried out in the Tyler tests.
 
 
-def test_sample_complex_tau_UUH():
+def test_sample_complex_tau_UUH_distribution():
     p = 10
     k = 3
-    N = int(1e6)
+    N = 20
 
     U = generate_complex_stiefel(p, k)
     tau = generate_textures(N)
-    X = sample_complex_tau_UUH(tau, U)
+    X = sample_complex_tau_UUH_distribution(tau, U)
     assert X.dtype == np.complex128
     assert X.shape == (p, N)
     # Other tests are carried out in the low rank estimation tests.

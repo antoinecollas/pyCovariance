@@ -55,29 +55,45 @@ def generate_complex_stiefel(p, k):
     return Q
 
 
-def sample_complex_standard_normal(p, N):
+def sample_standard_normal_distribution(p, N):
+    return random.randn(p, N)
+
+
+def sample_complex_standard_normal_distribution(p, N):
     X = random.randn(p, N) + 1j*random.randn(p, N)
     X = (1/np.sqrt(2))*X
     return X
 
 
-def sample_complex_normal(N, sigma):
-    p = sigma.shape[0]
-    X = sample_complex_standard_normal(p, N)
-    X = sqrtm(sigma)@X
+def sample_normal_distribution(N, cov):
+    assert cov.dtype == np.float64
+    p = cov.shape[0]
+    X = sample_standard_normal_distribution(p, N)
+    X = sqrtm(cov)@X
     return X
 
 
-def sample_complex_compound(tau, sigma):
+def sample_complex_normal_distribution(N, cov):
+    assert cov.dtype == np.complex128
+    p = cov.shape[0]
+    X = sample_complex_standard_normal_distribution(p, N)
+    X = sqrtm(cov)@X
+    return X
+
+
+def sample_complex_compound_distribution(tau, cov):
+    assert cov.dtype == np.complex128
     N = tau.shape[0]
-    X = np.sqrt(tau).reshape((1, -1))*sample_complex_normal(N, sigma)
+    temp = np.sqrt(tau).reshape((1, -1))
+    X = temp*sample_complex_normal_distribution(N, cov)
     return X
 
 
-def sample_complex_tau_UUH(tau, U):
+def sample_complex_tau_UUH_distribution(tau, U):
+    assert U.dtype == np.complex128
     N = tau.shape[0]
     p, k = U.shape
-    cn_k = sample_complex_normal(N, np.eye(k))
-    cn_p = sample_complex_normal(N, np.eye(p))
+    cn_k = sample_complex_normal_distribution(N, np.eye(k, dtype=np.complex128))
+    cn_p = sample_complex_normal_distribution(N, np.eye(p, dtype=np.complex128))
     X = np.sqrt(tau).reshape((1, -1))*(U@cn_k) + cn_p
     return X
