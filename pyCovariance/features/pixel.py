@@ -10,27 +10,27 @@ from .base import Feature
 def get_center_vector(X):
     """ A function that ouputs center vector from a set of vectors.
             Inputs:
-                * X = a np.array of dim (N, p)
+                * X = a np.array of dim (p, N)
                 with each observation along column dimension
             Outputs:
                 * center vector"""
-    return X[X.shape[0]//2+1]
+    return X[:, X.shape[1]//2+1]
 
 
 def compute_mean_vector(X):
     """ A function that ouputs mean of vectors.
             Inputs:
-                * X = a np.array of dim (N, p)
+                * X = a np.array of dim (p, N)
                 with each observation along column dimension
             Outputs:
                 * mean vector"""
-    return np.mean(X, 0)
+    return np.mean(X, axis=1)
 
 
 def compute_intensity_vector(X):
     """ A function that intensity of center vector.
             Inputs:
-                * X = a np.array of dim (N, p)
+                * X = a np.array of dim (p, N)
                 with each observation along column dimension
             Outputs:
                 * intensity"""

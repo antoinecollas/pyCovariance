@@ -122,7 +122,7 @@ class Feature():
         ----------------------------------------------------------------------
         Inputs:
         --------
-            * X = a (N, p) array where
+            * X = a (p, N) array where
                 * N the number
                     of samples used for estimation
                 * p is the dimension of data
