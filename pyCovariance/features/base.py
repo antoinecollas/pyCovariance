@@ -19,6 +19,12 @@ class _FeatureArray():
         return len(self._array[0])
 
     @property
+    def dtype(self):
+        if self.__empty():
+            return tuple()
+        return tuple([self._array[i].dtype for i in range(len(self._array))])
+
+    @property
     def shape(self):
         if self.__empty():
             return self.__len__()
@@ -53,6 +59,8 @@ class _FeatureArray():
 
         for i, (a, d) in enumerate(zip(self._array, data)):
             assert type(d) == np.ndarray
+            if a is not None:
+                assert d.dtype == a.dtype, 'Wrong dtype !'
 
             # Add batch dim.
             if d.ndim == len(self._shape[i]):

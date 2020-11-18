@@ -1,3 +1,4 @@
+import numpy as np
 import numpy.random as rnd
 import numpy.testing as np_test
 
@@ -11,6 +12,9 @@ def test_FeatureArray():
     # tests on a single manifold of vectors
     a = _FeatureArray((p,))
 
+    # test dtype
+    assert a.dtype == tuple()
+
     # test shape
     assert len(a) == 0
     assert a.shape == 0
@@ -19,6 +23,9 @@ def test_FeatureArray():
     temp = rnd.randn(N, p)
     for i in range(N):
         a.append(temp[i])
+
+    # test dtype
+    assert a.dtype == (np.float64, )
 
     # test shape
     assert len(a) == N
@@ -33,9 +40,12 @@ def test_FeatureArray():
 
     a = _FeatureArray((p,))
 
-    # append np array of size (N,p)
+    # append np array of size (N, p)
     temp = rnd.randn(N, p)
     a.append(temp)
+
+    # test dtype
+    assert a.dtype == (np.float64, )
 
     # test shape
     assert a.nb_manifolds == 1
@@ -51,6 +61,9 @@ def test_FeatureArray():
     # tests on a single manifold of matrices
     a = _FeatureArray((p, p))
 
+    # test dtype
+    assert a.dtype == tuple()
+
     # test shape
     assert a.nb_manifolds == 1
     assert len(a) == 0
@@ -60,6 +73,9 @@ def test_FeatureArray():
     temp = rnd.randn(N, p, p)
     for i in range(N):
         a.append(temp[i])
+
+    # test dtype
+    assert a.dtype == (np.float64, )
 
     # test shape
     assert len(a) == N
@@ -77,6 +93,9 @@ def test_FeatureArray():
     p2 = 7
     a1 = _FeatureArray((p1, p1), (p2, p2))
 
+    # test dtype
+    assert a1.dtype == tuple()
+
     # test shape
     assert a1.nb_manifolds == 2
     assert len(a1) == 0
@@ -87,6 +106,9 @@ def test_FeatureArray():
     temp2 = rnd.randn(N, p2, p2)
     for i in range(N):
         a1.append([temp1[i], temp2[i]])
+
+    # test dtype
+    assert a1.dtype == (np.float64, np.float64)
 
     # test shape
     assert len(a1) == N
@@ -103,15 +125,21 @@ def test_FeatureArray():
     p2 = 7
     a2 = _FeatureArray((p1, p1), (p2, p2))
 
+    # test dtype
+    assert a2.dtype == tuple()
+
     # test shape
     assert a2.nb_manifolds == 2
     assert len(a2) == 0
     assert a2.shape == 0
 
-    # append np array of size (p,p)
+    # append np array of size (p, p)
     temp21 = rnd.randn(N, p1, p1)
     temp22 = rnd.randn(N, p2, p2)
     a2.append([temp21, temp22])
+
+    # test dtype
+    assert a2.dtype == (np.float64, np.float64)
 
     # test shape
     assert len(a2) == N
