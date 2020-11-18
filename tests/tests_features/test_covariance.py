@@ -1,0 +1,66 @@
+import numpy as np
+from numpy import random as rnd
+import numpy.testing as np_test
+
+from pyCovariance.matrix_operators import invsqrtm, logm, sqrtm
+from pyCovariance.features import covariance
+from pyCovariance.generation_data import generate_covariance,\
+        sample_normal_distribution,\
+        sample_standard_normal_distribution
+
+
+def test_covariance():
+    p = 5
+    N = int(1e6)
+    N_mean = 10
+    cov = covariance(p)
+    assert type(str(cov)) is str
+
+    # test estimation 1
+    X = sample_standard_normal_distribution(p, N)
+    scm = cov.estimation(X).export()
+    assert scm.dtype == np.float64
+    assert np.linalg.norm(scm-np.eye(p)) < 0.01
+
+    # test estimation 2
+    sigma = generate_covariance(p)
+    X = sample_normal_distribution(N, sigma)
+    scm = cov.estimation(X).export()
+    assert scm.dtype == np.float64
+    assert np.linalg.norm(scm-sigma) < 0.01
+
+    # test distance
+    sigma1 = cov.estimation(rnd.randn(p, N))
+    sigma2 = cov.estimation(rnd.randn(p, N))
+    sigma1_isqrtm = invsqrtm(sigma1.export())
+    prod = sigma1_isqrtm@sigma2.export()@sigma1_isqrtm
+    eigvals = np.linalg.eigvalsh(prod)
+    d = np.sqrt(np.sum(np.log(eigvals)**2))
+    np_test.assert_almost_equal(cov.distance(sigma1, sigma2), d)
+
+    # test mean 1
+    X1 = sample_standard_normal_distribution(p, N)
+    X2 = sample_standard_normal_distribution(p, N)
+    sigma = cov.estimation(X1)
+    sigma.append(cov.estimation(X2))
+    sigma0 = sigma[0].export()
+    sigma0_sqrtm = sqrtm(sigma0)
+    sigma0_isqrtm = invsqrtm(sigma0)
+    sigma1 = sigma[1].export()
+    m = sigma0_sqrtm@sqrtm(sigma0_isqrtm@sigma1@sigma1_isqrtm)@sigma0_sqrtm
+    assert np.linalg.norm(cov.mean(sigma).export()-m) < 0.01
+
+    # test mean 2
+    sigma = cov.estimation(sample_standard_normal_distribution(p, N))
+    for _ in range(N_mean):
+        sigma.append(cov.estimation(sample_standard_normal_distribution(p, N)))
+    m = cov.mean(sigma).export()
+    condition = 0
+    for i in range(N_mean):
+        sigmai = sigma[i].export()
+        sigmai_sqrtm = sqrtm(sigmai)
+        sigmai_isqrtm = invsqrtm(sigmai)
+        temp = logm(sigmai_isqrtm@m@sigmai_isqrtm)
+        condition += sigmai_isqrtm@temp@sigmai_sqrtm
+    condition = np.linalg.norm(condition)
+    assert condition < 0.01

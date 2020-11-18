@@ -111,7 +111,7 @@ class Feature():
         self._M = manifold(*args_manifold)
         self._M._point_layout = 1
         self._args_M = args_manifold
-        self._eps_grad = 1e-5
+        self._eps_grad = 1e-15
 
     def __str__(self):
         """ Name of the feature"""

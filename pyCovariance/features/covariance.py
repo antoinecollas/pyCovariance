@@ -2,18 +2,21 @@ from pymanopt.manifolds import SymmetricPositiveDefinite
 
 from .base import Feature
 
-########## ESTIMATION ##########
+# ESTIMATION
+
 
 def compute_scm(X):
     """ A function that computes the SCM for covariance matrix estimation
             Inputs:
-                * X = a np.array of dim (N, p) with each observation along column dimension
+                * X = a np.array of dim (p, N)
+                with each observation along column dimension
             Outputs:
                 * Sigma = the estimate"""
-    (N, p) = X.shape
-    return (X.conj().T @ X) / N
+    (p, N) = X.shape
+    return (X @ X.conj().T) / N
 
-##########  CLASSES  ##########
+# CLASSES
+
 
 def covariance(p):
     name = 'Covariance_Riemannian'
