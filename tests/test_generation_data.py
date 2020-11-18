@@ -2,17 +2,18 @@ import autograd.numpy as np
 from numpy import testing as np_test
 
 from pyCovariance.generation_data import generate_complex_covariance, \
-        generate_covariance, \
         generate_complex_stiefel, \
+        generate_covariance, \
         generate_stiefel, \
         generate_textures, \
         generate_toeplitz, \
+        sample_complex_compound_distribution, \
         sample_complex_normal_distribution, \
         sample_complex_standard_normal_distribution, \
-        sample_complex_compound_distribution, \
         sample_complex_tau_UUH_distribution, \
+        sample_normal_distribution, \
         sample_standard_normal_distribution, \
-        sample_normal_distribution
+        sample_tau_UUH_distribution
 
 
 def test_generate_covariance():
@@ -131,6 +132,19 @@ def test_sample_complex_compound_distribution():
     assert X.dtype == np.complex128
     assert X.shape == (p, N)
     # Other tests are carried out in the Tyler tests.
+
+
+def test_sample_tau_UUH_distribution():
+    p = 10
+    k = 3
+    N = 20
+
+    U = generate_stiefel(p, k)
+    tau = generate_textures(N)
+    X = sample_tau_UUH_distribution(tau, U)
+    assert X.dtype == np.float64
+    assert X.shape == (p, N)
+    # Other tests are carried out in the low rank estimation tests.
 
 
 def test_sample_complex_tau_UUH_distribution():

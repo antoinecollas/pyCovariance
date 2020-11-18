@@ -89,6 +89,16 @@ def sample_complex_compound_distribution(tau, cov):
     return X
 
 
+def sample_tau_UUH_distribution(tau, U):
+    assert U.dtype == np.float64
+    N = tau.shape[0]
+    p, k = U.shape
+    cn_k = sample_normal_distribution(N, np.eye(k))
+    cn_p = sample_normal_distribution(N, np.eye(p))
+    X = np.sqrt(tau).reshape((1, -1))*(U@cn_k) + cn_p
+    return X
+
+
 def sample_complex_tau_UUH_distribution(tau, U):
     assert U.dtype == np.complex128
     N = tau.shape[0]
