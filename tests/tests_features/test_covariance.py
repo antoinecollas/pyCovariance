@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.linalg as la
 import numpy.testing as np_test
 
 from pyCovariance.matrix_operators import invsqrtm, logm, sqrtm
@@ -24,7 +25,7 @@ def test_real_covariance():
 
     scm = cov.estimation(X).export()
     assert scm.dtype == np.float64
-    assert np.linalg.norm(scm-np.eye(p)) < 0.01
+    assert la.norm(scm-np.eye(p))/la.norm(np.eye(p)) < 0.01
 
     # test estimation 2
     sigma = generate_covariance(p)
@@ -32,7 +33,7 @@ def test_real_covariance():
 
     scm = cov.estimation(X).export()
     assert scm.dtype == np.float64
-    assert np.linalg.norm(scm-sigma) < 0.05
+    assert la.norm(scm-sigma)/la.norm(sigma) < 0.01
 
     # test distance
     sigma = _FeatureArray((p, p))
@@ -41,7 +42,7 @@ def test_real_covariance():
 
     sigma0_isqrtm = invsqrtm(sigma[0].export())
     prod = sigma0_isqrtm@sigma[1].export()@sigma0_isqrtm
-    eigvals = np.linalg.eigvalsh(prod)
+    eigvals = la.eigvalsh(prod)
     d = np.sqrt(np.sum(np.log(eigvals)**2))
     np_test.assert_almost_equal(cov.distance(sigma[0], sigma[1]), d)
 
@@ -58,7 +59,7 @@ def test_real_covariance():
     m_closed_form = sigma0_sqrtm@temp@sigma0_sqrtm
     m = cov.mean(sigma).export()
     assert m.dtype == np.float64
-    assert np.linalg.norm(m-m_closed_form) < 0.01
+    assert la.norm(m-m_closed_form)/la.norm(m_closed_form) < 1e-10
 
     # test mean 2
     sigma = _FeatureArray((p, p))
@@ -74,8 +75,8 @@ def test_real_covariance():
         sigmai_isqrtm = invsqrtm(sigmai)
         temp = logm(sigmai_isqrtm@m@sigmai_isqrtm)
         condition += sigmai_isqrtm@temp@sigmai_sqrtm
-    condition = np.linalg.norm(condition)
-    assert condition < 0.01
+    condition = la.norm(condition)
+    assert condition < 1e-8
 
 
 def test_complex_covariance():
@@ -90,7 +91,7 @@ def test_complex_covariance():
 
     scm = cov.estimation(X).export()
     assert scm.dtype == np.complex128
-    assert np.linalg.norm(scm-np.eye(p)) < 0.01
+    assert la.norm(scm-np.eye(p))/la.norm(np.eye(p)) < 0.01
 
     # test estimation 2
     sigma = generate_complex_covariance(p)
@@ -98,7 +99,7 @@ def test_complex_covariance():
 
     scm = cov.estimation(X).export()
     assert scm.dtype == np.complex128
-    assert np.linalg.norm(scm-sigma) < 0.05
+    assert la.norm(scm-sigma)/la.norm(sigma) < 0.01
 
     # test distance
     sigma = _FeatureArray((p, p))
@@ -107,7 +108,7 @@ def test_complex_covariance():
 
     sigma0_isqrtm = invsqrtm(sigma[0].export())
     prod = sigma0_isqrtm@sigma[1].export()@sigma0_isqrtm
-    eigvals = np.linalg.eigvalsh(prod)
+    eigvals = la.eigvalsh(prod)
     d = np.sqrt(np.sum(np.log(eigvals)**2))
     np_test.assert_almost_equal(cov.distance(sigma[0], sigma[1]), d)
 
@@ -124,7 +125,7 @@ def test_complex_covariance():
     m_closed_form = sigma0_sqrtm@temp@sigma0_sqrtm
     m = cov.mean(sigma).export()
     assert m.dtype == np.complex128
-    assert np.linalg.norm(m-m_closed_form) < 0.01
+    assert la.norm(m-m_closed_form)/la.norm(m_closed_form) < 1e-10
 
     # test mean 2
     sigma = _FeatureArray((p, p))
@@ -140,5 +141,5 @@ def test_complex_covariance():
         sigmai_isqrtm = invsqrtm(sigmai)
         temp = logm(sigmai_isqrtm@m@sigmai_isqrtm)
         condition += sigmai_isqrtm@temp@sigmai_sqrtm
-    condition = np.linalg.norm(condition)
-    assert condition < 0.01
+    condition = la.norm(condition)
+    assert condition < 1e-8
