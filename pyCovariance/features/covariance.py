@@ -1,4 +1,4 @@
-from pymanopt.manifolds import SymmetricPositiveDefinite
+from pymanopt.manifolds import HermitianPositiveDefinite
 
 from .base import Feature
 
@@ -20,6 +20,6 @@ def compute_scm(X):
 
 def covariance(p):
     name = 'Covariance_Riemannian'
-    M = SymmetricPositiveDefinite
+    M = HermitianPositiveDefinite
     args_M = [p]
     return Feature(name, compute_scm, M, args_M)

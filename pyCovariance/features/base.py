@@ -119,7 +119,7 @@ class Feature():
         self._M = manifold(*args_manifold)
         self._M._point_layout = 1
         self._args_M = args_manifold
-        self._eps_grad = 1e-15
+        self._eps_grad = 1e-10
 
     def __str__(self):
         """ Name of the feature"""
@@ -209,6 +209,9 @@ class Feature():
                 temp = np.array(temp)
             if type(temp) is np.ndarray:
                 temp = [temp]
+            for i in range(len(temp)):
+                if X.dtype[i] == np.float64:
+                    temp[i] = temp[i].real.astype(np.float64)
             theta = _FeatureArray(*[temp[i].shape for i in range(len(temp))])
             theta.append(temp)
 
