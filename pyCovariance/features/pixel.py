@@ -1,5 +1,5 @@
 import numpy as np
-from pymanopt.manifolds import Euclidean
+from pymanopt.manifolds import ComplexEuclidean, Euclidean
 
 from .base import Feature
 
@@ -44,14 +44,14 @@ def compute_intensity_vector(X):
 
 def pixel_euclidean(p):
     name = 'Pixel_Euclidean'
-    M = Euclidean
+    M = ComplexEuclidean
     args_M = [p]
     return Feature(name, get_center_vector, M, args_M)
 
 
 def mean_pixel_euclidean(p):
     name = 'Mean_Pixel_Euclidean'
-    M = Euclidean
+    M = ComplexEuclidean
     args_M = [p]
     return Feature(name, compute_mean_vector, M, args_M)
 
