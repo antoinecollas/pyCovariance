@@ -1,5 +1,6 @@
 import autograd.numpy as np
 from copy import deepcopy
+from pymanopt.manifolds import Product
 
 
 class _FeatureArray():
@@ -76,7 +77,8 @@ class _FeatureArray():
     def export(self):
         a = deepcopy(self._array)
         for i in range(len(a)):
-            a[i] = np.squeeze(a[i])
+            if len(a[i]) == 1:
+                a[i] = np.squeeze(a[i], axis=0)
         if self.nb_manifolds == 1:
             a = a[0]
         return a
@@ -106,7 +108,7 @@ class Feature():
         Input:
         --------
             * name = string
-            * estimation = function that compute feature from np.array(N, p)
+            * estimation = function that compute feature from np.array(p, N)
                 * N is number of data.
                 * p is dimension of data
             * manifold = a manifold as defined in Pymanopt.
@@ -116,7 +118,12 @@ class Feature():
         self._name = name
         self._estimation = _feature_estimation(estimation)
         self._M_class = manifold
-        self._M = manifold(*args_manifold)
+        if type(manifold) in [list, tuple]:
+            nb_M = len(manifold)
+            temp = [manifold[i](*(args_manifold[i])) for i in range(nb_M)]
+            self._M = Product(temp)
+        else:
+            self._M = manifold(*args_manifold)
         self._M._point_layout = 1
         self._args_M = args_manifold
         self._eps_grad = 1e-10
@@ -155,6 +162,8 @@ class Feature():
         assert type(x1) is _FeatureArray
         assert type(x2) is _FeatureArray
         d = self._M.dist(x1.export(), x2.export())
+        if d.ndim != 0:
+            d = np.squeeze(d)
         return d
 
     def mean(self, X):
@@ -168,7 +177,14 @@ class Feature():
                 * mean = a (feature_size) array
             """
         assert type(X) is _FeatureArray
-        M = self._M_class(*(self._args_M), len(X))
+        if type(self._M_class) in [list, tuple]:
+            M_class = self._M_class
+            args_M = self._args_M
+            nb_M = len(self._M_class)
+            temp = [M_class[i](*(args_M[i]), len(X)) for i in range(nb_M)]
+            M = Product(temp)
+        else:
+            M = self._M_class(*(self._args_M), len(X))
 
         def _cost(X, theta):
             d_squared = M.dist(theta.export(), X.export())**2
