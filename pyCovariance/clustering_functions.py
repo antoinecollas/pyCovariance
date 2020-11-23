@@ -92,16 +92,6 @@ def compute_pairwise_distances_parallel(
     return d
 
 
-def random_index_for_initialisation(K, N):
-    indexes = list()
-    for k in range(K):
-        index = np.random.randint(N)
-        while index in indexes:
-            index = np.random.randint(N)
-        indexes.append(index)
-    return indexes
-
-
 def compute_means(
     X_class,
     mean_function,
@@ -180,7 +170,7 @@ def compute_means_parallel(
         mu = None
         for k in range(K):  # Looping on all classes
             if verbose:
-                print("Computing mean of class %d/%d " % (i+1, K))
+                print("Computing mean of class %d/%d " % (k+1, K))
             X_class = X[C == k]
             temp = compute_means(X_class, mean_function)
             if mu is None:
@@ -189,6 +179,16 @@ def compute_means_parallel(
                 mu.append(temp)
 
     return mu
+
+
+def random_index_for_initialisation(K, N):
+    indexes = list()
+    for k in range(K):
+        index = np.random.randint(N)
+        while index in indexes:
+            index = np.random.randint(N)
+        indexes.append(index)
+    return indexes
 
 
 def compute_objective_function(distances):
@@ -210,7 +210,7 @@ def compute_objective_function(distances):
     return result/distances.shape[0]
 
 
-def K_means_clustering_algorithm(
+def K_means(
     X,
     K,
     distance,
@@ -220,7 +220,7 @@ def K_means_clustering_algorithm(
     iter_max=20,
     enable_multi_distance=False,
     enable_multi_mean=False,
-    number_of_threads=4,
+    number_of_threads=1,
     verbose=False
 ):
     """ K-means algorithm in a general multivariate context with an arbitary
@@ -267,7 +267,8 @@ def K_means_clustering_algorithm(
             K,
             init,
             mean_function,
-            enable_multi=enable_multi_mean
+            enable_multi=enable_multi_mean,
+            verbose=verbose
         )
 
     criterion_value = np.inf
@@ -331,7 +332,8 @@ def K_means_clustering_algorithm(
             K,
             C,
             mean_function,
-            enable_multi=enable_multi_mean
+            enable_multi=enable_multi_mean,
+            verbose=verbose
         )
         te = time.time()
         time_means += te-tb
