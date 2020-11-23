@@ -31,7 +31,7 @@ def compute_pairwise_distances_parallel(
     mu,
     distance,
     enable_multi=False,
-    number_of_threads=4
+    nb_threads=4
 ):
     """ A simple function to compute all distances in parallel for K-mean
         ----------------------------------------------------------------------
@@ -43,7 +43,7 @@ def compute_pairwise_distances_parallel(
                          ** x_1 = sample 1
                          ** x_2 = sample 2
             * enable_multi = enable or not parallel compuation
-            * number_of_threads = number of parallel threads (cores of machine)
+            * nb_threads = number of parallel threads (cores of machine)
 
         Outputs:
         ---------
@@ -56,18 +56,18 @@ def compute_pairwise_distances_parallel(
     if enable_multi:
         N = len(X)
         d = list()
-        indexes_split = np.hstack([0, int(N / number_of_threads)
-                                   * np.arange(1, number_of_threads), N])
+        indexes_split = np.hstack([0, int(N / nb_threads)
+                                   * np.arange(1, nb_threads), N])
         # Separate data in subsets to be treated in parallel
         X_subsets = list()
-        for t in range(1, number_of_threads + 1):
+        for t in range(1, nb_threads + 1):
             temp = list()
             for i in range(indexes_split[t-1], indexes_split[t]):
                 temp.append(X[i])
             X_subsets.append(temp)
-        queues = [Queue() for i in range(number_of_threads)]
+        queues = [Queue() for i in range(nb_threads)]
         args = [(X_subsets[i], mu, distance, True, queues[i])
-                for i in range(number_of_threads)]
+                for i in range(nb_threads)]
         jobs = [Process(target=compute_pairwise_distances, args=a)
                 for a in args]
         # Starting parallel computation
@@ -220,7 +220,7 @@ def K_means(
     iter_max=20,
     enable_multi_distance=False,
     enable_multi_mean=False,
-    number_of_threads=1,
+    nb_threads=1,
     verbose=False
 ):
     """ K-means algorithm in a general multivariate context with an arbitary
@@ -242,7 +242,7 @@ def K_means(
             * iter_max = number of maximum iterations of algorithm
             * enable_multi_distance = enable parallel computation for distance
             * enable_multi_mean = enable parallel computation for mean
-            * number_of_threads = number of parallel threads (cores of machine)
+            * nb_threads = number of parallel threads (cores of machine)
             * verbose = boolean
 
         Outputs:
@@ -295,7 +295,7 @@ def K_means(
             mu,
             distance,
             enable_multi_distance,
-            number_of_threads
+            nb_threads
         )
         te = time.time()
         time_distances += te-tb

@@ -58,8 +58,8 @@ C = cluster_image_by_H_alpha(
     image,
     window_mask,
     multi=ENABLE_MULTI,
-    number_of_threads_rows=NUMBER_OF_THREADS_ROWS,
-    number_of_threads_columns=NUMBER_OF_THREADS_COLUMNS
+    nb_threads_rows=NUMBER_OF_THREADS_ROWS,
+    nb_threads_columns=NUMBER_OF_THREADS_COLUMNS
 )
 
 # Plotting

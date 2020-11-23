@@ -43,7 +43,7 @@ def test_compute_pairwise_distances_parallel():
                                             mu,
                                             pix.distance,
                                             enable_multi=True,
-                                            number_of_threads=os.cpu_count())
+                                            nb_threads=os.cpu_count())
     assert d.dtype == np.float64
     assert d.shape == (N, N_mean)
     for i in range(N):
@@ -125,7 +125,7 @@ def test_K_means():
         init=None,
         enable_multi_distance=False,
         enable_multi_mean=False,
-        number_of_threads=1,
+        nb_threads=1,
         verbose=False
     )[0]
     precision = np.sum(y == y_predict)/(2*N)
@@ -144,7 +144,7 @@ def test_K_means():
         init=init,
         enable_multi_distance=False,
         enable_multi_mean=False,
-        number_of_threads=1,
+        nb_threads=1,
         verbose=False
     )[0]
     precision = np.sum(y == y_predict)/(2*N)
@@ -163,7 +163,7 @@ def test_K_means():
         init=None,
         enable_multi_distance=False,
         enable_multi_mean=False,
-        number_of_threads=1,
+        nb_threads=1,
         verbose=True
     )[0]
     sys.stdout = sys.__stdout__
@@ -182,7 +182,7 @@ def test_K_means():
         init=None,
         enable_multi_distance=True,
         enable_multi_mean=True,
-        number_of_threads=os.cpu_count(),
+        nb_threads=os.cpu_count(),
         verbose=False
     )[0]
     precision = np.sum(y == y_predict)/(2*N)

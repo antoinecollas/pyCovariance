@@ -66,8 +66,8 @@ def cluster_image_by_H_alpha(
     image,
     window_mask,
     multi=False, 
-    number_of_threads_rows=4,
-    number_of_threads_columns=4
+    nb_threads_rows=4,
+    nb_threads_columns=4
 ):
     """ Basic clustering of a SAR image using the values in the H-α plane
         ----------------------------------------------------------------------
@@ -80,9 +80,9 @@ def cluster_image_by_H_alpha(
             * window_mask = a boolean (m_r, m_c) array which is a mask to compute 
                              covariance matrix using SCM
             * enable_multi = enable or not parallel compuation
-            * number_of_threads_columns = number of thread to use in columns 
+            * nb_threads_columns = number of thread to use in columns 
                 (total threads = number of cores of the machine in general)
-            * number_of_threads_rows = number of thread to use in columns 
+            * nb_threads_rows = number of thread to use in columns 
                 (total threads = number of cores of the machine in general) 
 
         Outputs:
@@ -98,8 +98,8 @@ def cluster_image_by_H_alpha(
         window_mask,
         compute_h_alpha_class, 
         multi=multi, 
-        number_of_threads_rows=number_of_threads_rows,
-        number_of_threads_columns=number_of_threads_columns
+        nb_threads_rows=nb_threads_rows,
+        nb_threads_columns=nb_threads_columns
     )
 
     return 𝓒.reshape(n_r-m_r+1, n_c-m_c+1)
