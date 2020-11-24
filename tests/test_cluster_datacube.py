@@ -3,6 +3,8 @@ import os
 import sys
 
 from pyCovariance import K_means_datacube
+from pyCovariance.features.base import _FeatureArray
+from pyCovariance.cluster_datacube import sliding_window_parallel
 from pyCovariance.features import pixel_euclidean
 from pyCovariance.generation_data import\
         generate_complex_covariance,\
@@ -14,7 +16,44 @@ from pyCovariance.generation_data import\
 
 
 def test_sliding_window_parallel():
-    pass
+    p = 3
+    H = 50
+    W = 100
+
+    # generation of the image
+    cov = generate_complex_covariance(p)
+    temp = sample_complex_normal_distribution(H*W, cov)
+    image = temp.reshape((H, W, p))
+    assert image.shape == (H, W, p)
+    assert image.dtype == np.complex128
+
+    window_size = 3
+    fct = pixel_euclidean(p).estimation
+    sys.stdout = open(os.devnull, 'w')
+    sys.stderr = open(os.devnull, 'w')
+    res = sliding_window_parallel(
+        image,
+        window_size,
+        fct,
+        multi=True,
+        nb_threads_rows=os.cpu_count()//2,
+        nb_threads_columns=2,
+        overlapping_window=True,
+        verbose=True
+    )
+    sys.stdout = sys.__stdout__
+    sys.stderr = sys.__stderr__
+    assert type(res) == list
+    assert type(res[0]) == list
+    assert type(res[0][0]) == _FeatureArray
+
+    h = w = window_size//2
+    image = image[h:-h, w:-w]
+    assert (len(res), len(res[0])) == image.shape[:2]
+
+    for i in range(len(res)):
+        for j in range(len(res[0])):
+            assert (image[i, j] == res[i][j].export()).all()
 
 
 def test_real_K_means_datacube():
@@ -40,7 +79,7 @@ def test_real_K_means_datacube():
     image[:, int(W/2):] = temp2.reshape((H, int(W/2), p))
 
     # clustering with one thread
-    WINDOWS_SHAPE = (3, 3)
+    WINDOW_SIZE = 3
     MASK = None
     FEATURE = pixel_euclidean(p)
     NUMBER_CLASSES = 2
@@ -51,8 +90,7 @@ def test_real_K_means_datacube():
     NUMBER_OF_THREADS_ROWS = 1
     NUMBER_OF_THREADS_COLUMNS = 1
 
-    h = WINDOWS_SHAPE[0]//2
-    w = WINDOWS_SHAPE[1]//2
+    h = w = WINDOW_SIZE//2
     gt = gt[h:-h, w:-w]
 
     sys.stdout = open(os.devnull, 'w')
@@ -61,7 +99,7 @@ def test_real_K_means_datacube():
         image,
         MASK,
         FEATURE,
-        WINDOWS_SHAPE,
+        WINDOW_SIZE,
         NUMBER_CLASSES,
         NUMBER_INIT,
         K_MEANS_NB_ITER_MAX,
@@ -101,7 +139,7 @@ def test_real_K_means_datacube():
         image,
         MASK,
         FEATURE,
-        WINDOWS_SHAPE,
+        WINDOW_SIZE,
         NUMBER_CLASSES,
         NUMBER_INIT,
         K_MEANS_NB_ITER_MAX,
@@ -129,7 +167,7 @@ def test_real_K_means_datacube():
     assert precision >= 0.95
 
     # clustering with multiple threads
-    WINDOWS_SHAPE = (3, 3)
+    WINDOW_SIZE = 3
     MASK = None
     FEATURE = pixel_euclidean(p)
     NUMBER_CLASSES = 2
@@ -146,7 +184,7 @@ def test_real_K_means_datacube():
         image,
         MASK,
         FEATURE,
-        WINDOWS_SHAPE,
+        WINDOW_SIZE,
         NUMBER_CLASSES,
         NUMBER_INIT,
         K_MEANS_NB_ITER_MAX,
@@ -201,7 +239,7 @@ def test_complex_K_means_datacube():
     image[:, int(W/2):] = temp2.reshape((H, int(W/2), p))
 
     # clustering with one thread
-    WINDOWS_SHAPE = (3, 3)
+    WINDOW_SIZE = 3
     MASK = None
     FEATURE = pixel_euclidean(p)
     NUMBER_CLASSES = 2
@@ -212,8 +250,7 @@ def test_complex_K_means_datacube():
     NUMBER_OF_THREADS_ROWS = 1
     NUMBER_OF_THREADS_COLUMNS = 1
 
-    h = WINDOWS_SHAPE[0]//2
-    w = WINDOWS_SHAPE[1]//2
+    h = w = WINDOW_SIZE//2
     gt = gt[h:-h, w:-w]
 
     sys.stdout = open(os.devnull, 'w')
@@ -222,7 +259,7 @@ def test_complex_K_means_datacube():
         image,
         MASK,
         FEATURE,
-        WINDOWS_SHAPE,
+        WINDOW_SIZE,
         NUMBER_CLASSES,
         NUMBER_INIT,
         K_MEANS_NB_ITER_MAX,

@@ -14,7 +14,7 @@ def get_center_vector(X):
                 with each observation along column dimension
             Outputs:
                 * center vector"""
-    return X[:, X.shape[1]//2+1]
+    return X[:, X.shape[1]//2]
 
 
 def compute_mean_vector(X):

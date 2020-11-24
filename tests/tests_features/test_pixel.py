@@ -19,7 +19,7 @@ def test_real_pixel_euclidean():
     X = rnd.randn(p, N)
     est = pix.estimation(X).export()
     assert est.dtype == np.float64
-    np_test.assert_equal(est, X[:, int(N/2)+1])
+    np_test.assert_equal(est, X[:, int(N/2)])
 
     # test distance
     X1 = pix.estimation(rnd.randn(p, N))
@@ -80,7 +80,7 @@ def test_real_intensity_euclidean():
 
     # test estimation
     X = rnd.randn(p, N)
-    feature = np.linalg.norm(X[:, int(N/2)+1])
+    feature = np.linalg.norm(X[:, int(N/2)])
     est = inten.estimation(X).export()
     assert est.dtype == np.float64
     np_test.assert_equal(est, feature)

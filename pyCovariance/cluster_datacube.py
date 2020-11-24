@@ -17,7 +17,7 @@ def K_means_datacube(
     image,
     mask,
     features,
-    windows_shape,
+    window_size,
     n_classes,
     n_init,
     n_iter_max,
@@ -40,9 +40,7 @@ def K_means_datacube(
             * h = height of the image
             * w = width of the image
         * features = an instance of the class Feature
-        * windows_shape = (h, w) tuple:
-            * h: height of the window in pixels
-            * w: width of the window in pixels
+        * window_size = int
         * n_classes = number of classes.
         * n_init = number of initialisations of K-means
         * n_iter_max = maximum number of iterations for the K-means algorithm
@@ -60,12 +58,11 @@ def K_means_datacube(
 
     print('###################### COMPUTING FEATURES ######################')
     t_beginning = time.time()
-    window_mask = np.ones(windows_shape)
-    m_r, m_c = window_mask.shape
+    m_r = m_c = window_size
     n_r, n_c, p = image.shape
     X_temp = sliding_window_parallel(
         image,
-        window_mask,
+        window_size,
         features.estimation,
         multi=enable_multi,
         nb_threads_rows=nb_threads_rows,
@@ -120,7 +117,7 @@ def K_means_datacube(
 
 def sliding_window(
     image,
-    window_mask,
+    window_size,
     function_to_compute,
     multi=False,
     queue=0,
@@ -134,17 +131,17 @@ def sliding_window(
                 * n_r is the number of rows,
                 * n_c is the number of columns
                 * p is the number of canals
-            * window_mask = a local mask to selection data (np boolean array)
+            * window_size = size of the squared window (3 means a 3x3 window)
             * function_to_compute = a function to compute the desired feature
             * multi = True if parallel computing
-            * queue = to obtain result for parralel computation
+            * queue = to obtain result for parallel computation
             * overlapping_window = boolean: overlapping window or not
             * verbose = boolean
         Output:
             * result"""
 
     n_r, n_c, p = image.shape
-    m_r, m_c = window_mask.shape
+    m_r = m_c = window_size
     N = m_r*m_c
     result = list()
     if overlapping_window:
@@ -164,11 +161,7 @@ def sliding_window(
         for i_c in range(int(m_c/2), n_c-int(m_c/2), step_columns):
             local_data = image[i_r-int(m_r/2):i_r+int(m_r/2)+1,
                                i_c-int(m_c/2):i_c+int(m_c/2)+1, :]
-            local_data = local_data.T.reshape((p, N))
-
-            # Applying mask
-            m = window_mask.reshape(m_r*m_c).astype(bool)
-            local_data = local_data[:, m]
+            local_data = local_data.reshape((N, p)).T
 
             # Computing the function over the local data
             result_line.append(function_to_compute(local_data))
@@ -183,7 +176,7 @@ def sliding_window(
 
 def sliding_window_parallel(
     image,
-    window_mask,
+    window_size,
     function_to_compute,
     multi=False,
     nb_threads_rows=3,
@@ -197,7 +190,7 @@ def sliding_window_parallel(
                 * n_r is the number of rows,
                 * n_c is the number of columns,
                 * p is the number of canals
-            * window_mask = a local mask to selection data.
+            * window_size = size of the squared window (3 means a 3x3 window)
             * function_to_compute = a function to compute the desired quantity
             * multi = True if parallel computing, False if not
             * nb_threads_rows = number of thread to use in columns
@@ -211,7 +204,7 @@ def sliding_window_parallel(
     if multi:
         # Slicing original image while taking into accound borders effects
         n_r, n_c, p = image.shape
-        m_r, m_c = window_mask.shape
+        m_r = m_c = window_size
         image_slices_list = list()
         for i_row in range(nb_threads_rows):
             # Indexes for the sub_image for rows
@@ -258,7 +251,7 @@ def sliding_window_parallel(
         # Arguments to pass to each thread
         args = [(
             image_slices_list[i_r][i_c],
-            window_mask,
+            window_size,
             function_to_compute,
             True,
             queues[i_r][i_c],
@@ -303,7 +296,7 @@ def sliding_window_parallel(
     else:
         results = sliding_window(
             image,
-            window_mask,
+            window_size,
             function_to_compute,
             overlapping_window=overlapping_window
         )
