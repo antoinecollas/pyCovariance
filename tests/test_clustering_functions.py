@@ -4,10 +4,10 @@ import numpy.testing as np_test
 import os
 import sys
 
+from pyCovariance import K_means
 from pyCovariance.clustering_functions import \
         compute_means_parallel,\
         compute_pairwise_distances_parallel,\
-        K_means,\
         random_index_for_initialisation
 from pyCovariance.features import pixel_euclidean
 from pyCovariance.features.base import _FeatureArray
