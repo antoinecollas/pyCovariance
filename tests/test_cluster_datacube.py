@@ -131,7 +131,6 @@ def test_real_K_means_datacube():
     # clustering within a mask
     MASK = np.zeros((H, W))
     MASK[int(H/2)-10:int(H/2)+10, int(W/2)-10:int(W/2)+10] = 1
-    MASK = MASK[h:-h, w:-w]
 
     sys.stdout = open(os.devnull, 'w')
     sys.stderr = open(os.devnull, 'w')
@@ -154,7 +153,7 @@ def test_real_K_means_datacube():
     assert C.shape == gt.shape
     assert C.dtype == np.int64
 
-    MASK = MASK.astype(bool)
+    MASK = MASK[h:-h, w:-w].astype(bool)
     assert (C[~MASK] == -1).all()
     assert (C[MASK] != -1).all()
 

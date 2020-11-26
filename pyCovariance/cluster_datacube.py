@@ -56,6 +56,10 @@ def K_means_datacube(
     if image.ndim != 3:
         raise ValueError('Error on image shape !')
 
+    if mask is not None:
+        h = w = window_size//2
+        mask = mask[h:-h, w:-w]
+
     print('###################### COMPUTING FEATURES ######################')
     t_beginning = time.time()
     m_r = m_c = window_size
