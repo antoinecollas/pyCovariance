@@ -38,18 +38,6 @@ def main():
         nb_iter_max=100,
         eps=1e-3
     )
-    hp = HyperparametersKMeans(
-        crop_image=True,
-        enable_multi=True,
-        pca=True,
-        nb_bands_to_select=None,
-        mask=True,
-        window_size=None,
-        features=None,
-        nb_init=1,
-        nb_iter_max=2,
-        eps=1e-3
-    )
 
     pairs_w_p = [(3, 4), (5, 4), (5, 10), (7, 4), (7, 10), (7, 20),
                  (9, 4), (9, 10), (9, 20), (9, 40)]
