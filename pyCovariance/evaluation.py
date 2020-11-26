@@ -112,7 +112,8 @@ def plot_segmentation(C, aspect=1, classes=None, title=None):
     cmap = plt.get_cmap('RdBu', max_C-min_C+1)
 
     # set limits .5 outside true range
-    mat = plt.matshow(C, aspect, cmap, vmin=min_C-.5, vmax=max_C+.5)
+    mat = plt.matshow(C, aspect=aspect, cmap=cmap,
+                      vmin=min_C-.5, vmax=max_C+.5)
 
     # tell the colorbar to tick at integers
     plt.colorbar(mat, ticks=np.arange(min_C, max_C+1))
