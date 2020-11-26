@@ -2,7 +2,6 @@ from datetime import datetime
 import matplotlib
 import matplotlib.pyplot as plt
 import os
-import sys
 
 from pyCovariance.features import\
         covariance,\
@@ -11,7 +10,6 @@ from pyCovariance.features import\
         pixel_euclidean
 
 from hyperspectral_functions import\
-        Dataset,\
         evaluate_and_save_clustering,\
         HyperparametersKMeans,\
         K_means_hyperspectral_image
@@ -26,35 +24,35 @@ def main():
     date_str = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
     folder = os.path.join('results', dataset_name, date_str)
 
-
     # EVALUATION ACCORDING TO WINDOW_SIZE AND NB_BANDS
 
     hp = HyperparametersKMeans(
-        crop_image = False,
-        enable_multi = True,
-        pca = True,
-        nb_bands_to_select = None,
-        mask = True,
-        window_size = None,
-        features = None,
-        nb_init = 10,
-        nb_iter_max = 100,
-        eps = 1e-3
+        crop_image=False,
+        enable_multi=True,
+        pca=True,
+        nb_bands_to_select=None,
+        mask=True,
+        window_size=None,
+        features=None,
+        nb_init=10,
+        nb_iter_max=100,
+        eps=1e-3
     )
     hp = HyperparametersKMeans(
-        crop_image = True,
-        enable_multi = True,
-        pca = True,
-        nb_bands_to_select = None,
-        mask = True,
-        window_size = None,
-        features = None,
-        nb_init = 1,
-        nb_iter_max = 2,
-        eps = 1e-3
+        crop_image=True,
+        enable_multi=True,
+        pca=True,
+        nb_bands_to_select=None,
+        mask=True,
+        window_size=None,
+        features=None,
+        nb_init=1,
+        nb_iter_max=2,
+        eps=1e-3
     )
 
-    pairs_w_p = [(3, 4), (5, 4), (5, 10), (7, 4), (7, 10), (7, 20), (9, 4), (9, 10), (9, 20), (9, 40)]
+    pairs_w_p = [(3, 4), (5, 4), (5, 10), (7, 4), (7, 10), (7, 20),
+                 (9, 4), (9, 10), (9, 20), (9, 40)]
 
     for w, p in pairs_w_p:
         print('w=', w, 'p=', p)
@@ -82,7 +80,9 @@ def main():
             print('Features:', str(hp.features))
             C = K_means_hyperspectral_image(dataset_name, hp)
             print()
-            mIoU, OA = evaluate_and_save_clustering(C, dataset_name, hp, folder, str(i) + '_' + prefix)
+            prefix_f_name = str(i) + '_' + prefix
+            mIoU, OA = evaluate_and_save_clustering(C, dataset_name,
+                                                    hp, folder, prefix_f_name)
             mIoUs.append(mIoU)
             OAs.append(OA)
             features_str.append(str(features))
@@ -108,5 +108,5 @@ def main():
         plt.savefig(path)
 
 
-if __name__== '__main__':
+if __name__ == '__main__':
     main()

@@ -18,12 +18,7 @@ from pyCovariance.evaluation import\
         compute_OA,\
         plot_segmentation,\
         plot_TP_FP_FN_segmentation,\
-        save_figure,\
         save_segmentation
-
-
-# The code is already multi threaded so we block OpenBLAS multi thread.
-os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 
 class Dataset():
@@ -34,13 +29,13 @@ class Dataset():
             self.key_dict = 'paviaU'
             self.path_gt = 'data/Pavia/PaviaU_gt.mat'
             self.key_dict_gt = 'paviaU_gt'
-            self.resolution = [1.3, 1.3] # resolution in meters
+            self.resolution = [1.3, 1.3]  # resolution in meters
         elif name == 'Indian_Pines':
             self.path = 'data/Indian_Pines/Indian_pines_corrected.mat'
             self.key_dict = 'indian_pines_corrected'
             self.path_gt = 'data/Indian_Pines/Indian_pines_gt.mat'
             self.key_dict_gt = 'indian_pines_gt'
-            self.resolution = [1.3, 1.3] # resolution in meters
+            self.resolution = [1.3, 1.3]  # resolution in meters
         else:
             print(name)
             raise NotImplementedError
@@ -63,28 +58,35 @@ class HyperparametersKMeans():
         '''
             Hyperparameters used by function "K_means_hyperspectral_image".
             Inputs:
-                crop_image: bool. If true, it crops image before applying K means to faster clustering.
+                crop_image: bool. If true, it crops image before
+                    applying K means.
                 enable_multi: bool. If true, K means uses multi processing.
-                pca: bool. If true, pca is applied to reduce dimention of pixels before applying K means.
-                nb_bands_to_select: int. Number of dimentions to keep (after a pca or dimentions are randomly chosen).
-                mask: bool. If true it clusters only where there is a ground truth.
-                window_size: int. Number of pixels of height and width in the window.
+                pca: bool. If true, pca is applied to reduce dimention
+                    of pixels before applying K means.
+                nb_bands_to_select: int. Number of dimentions to keep
+                    (after a pca or dimentions are randomly chosen).
+                mask: bool. If true it clusters only
+                    where there is a ground truth.
+                window_size: int. Number of pixels of height and
+                    width in the window.
                 features: Feature to use to cluster.
-                nb_init: int. Number of initialisations. Best clustering is kept.
-                nb_iter_max: int. Maximum number of iterations done by K means.
+                nb_init: int. Number of initialisations.
+                    Best clustering is kept.
+                nb_iter_max: int. Maximum number of iterations
+                    done by K means.
                 eps: float. Stopping criteria.
         '''
         # image
         self.crop_image = crop_image
         if crop_image:
             self.size_crop = 50
-       
+
         # multi processing
         self.enable_multi = enable_multi
         self.nb_threads_rows = os.cpu_count()//2
         self.nb_threads_columns = 2
-        self.nb_threads = os.cpu_count() 
-       
+        self.nb_threads = os.cpu_count()
+
         # preprocessing
         self.pca = pca
         self.nb_bands_to_select = nb_bands_to_select
@@ -116,8 +118,10 @@ def K_means_hyperspectral_image(dataset_name, hyperparams):
         center = np.array(image.shape[0:2])//2
         half_height = hyperparams.size_crop//2
         half_width = hyperparams.size_crop//2
-        image = image[center[0]-half_height:center[0]+half_height, center[1]-half_width:center[1]+half_width]
-        gt = gt[center[0]-half_height:center[0]+half_height, center[1]-half_width:center[1]+half_width]
+        image = image[center[0]-half_height:center[0]+half_height,
+                      center[1]-half_width:center[1]+half_width]
+        gt = gt[center[0]-half_height:center[0]+half_height,
+                center[1]-half_width:center[1]+half_width]
     nb_classes = len(np.unique(gt)) - 1
 
     # center image globally
@@ -133,7 +137,8 @@ def K_means_hyperspectral_image(dataset_name, hyperparams):
     else:
         print('Bands are selected randomly.')
         random.seed(2)
-        bands = random.sample(list(range(image.shape[2])), k=hyperparams.nb_bands_to_select)
+        bands = random.sample(list(range(image.shape[2])),
+                              k=hyperparams.nb_bands_to_select)
         bands.sort()
         image = image[:, :, bands]
 
@@ -155,10 +160,10 @@ def K_means_hyperspectral_image(dataset_name, hyperparams):
         else:
             X = X.reshape((-1, hyperparams.nb_bands_to_select))
         temp = KMeans(
-            n_clusters = nb_classes,
-            n_init = hyperparams.nb_init,
-            max_iter = hyperparams.nb_iter_max,
-            tol = hyperparams.eps
+            n_clusters=nb_classes,
+            n_init=hyperparams.nb_init,
+            max_iter=hyperparams.nb_iter_max,
+            tol=hyperparams.eps
         ).fit_predict(X)
         temp = temp+1
         if mask is not None:
@@ -189,9 +194,15 @@ def K_means_hyperspectral_image(dataset_name, hyperparams):
     return C
 
 
-def evaluate_and_save_clustering(segmentation, dataset_name, hyperparams, folder, prefix_filename):
+def evaluate_and_save_clustering(
+    segmentation,
+    dataset_name,
+    hyperparams,
+    folder,
+    prefix_filename
+):
     print('###################### EVALUATION ######################')
-    
+
     dataset = Dataset(dataset_name)
     # ground truth path
     gt = loadmat(dataset.path_gt)[dataset.key_dict_gt]
@@ -199,13 +210,14 @@ def evaluate_and_save_clustering(segmentation, dataset_name, hyperparams, folder
         center = np.array(gt.shape[0:2])//2
         half_height = hyperparams.size_crop//2
         half_width = hyperparams.size_crop//2
-        gt = gt[center[0]-half_height:center[0]+half_height, center[1]-half_width:center[1]+half_width]
+        gt = gt[center[0]-half_height:center[0]+half_height,
+                center[1]-half_width:center[1]+half_width]
     h = w = hyperparams.window_size//2
     gt = gt[h:-h, w:-w]
 
     assert segmentation.shape == gt.shape,\
-            'segmentation.shape:'+str(segmentation.shape)+\
-            ', gt.shape:'+str(gt.shape)
+           'segmentation.shape:' + str(segmentation.shape) +\
+           ', gt.shape:'+str(gt.shape)
 
     # create folders
     folder_npy = os.path.join(folder, 'npy')
@@ -214,28 +226,31 @@ def evaluate_and_save_clustering(segmentation, dataset_name, hyperparams, folder
     folder_segmentation = os.path.join(folder, 'segmentations')
     if not os.path.isdir(folder_segmentation):
         os.makedirs(folder_segmentation, exist_ok=True)
-    folder_detailed_analyses = os.path.join(folder, 'detailed_analyses', prefix_filename+'_'+str(hyperparams.features))
+    f_name = prefix_filename+'_'+str(hyperparams.features)
+    folder_detailed_analyses = os.path.join(folder,
+                                            'detailed_analyses', f_name)
     if not os.path.isdir(folder_detailed_analyses):
         os.makedirs(folder_detailed_analyses, exist_ok=True)
- 
+
     segmentation = assign_segmentation_classes_to_gt_classes(
         segmentation, gt, normalize=False)
-    save_segmentation(folder_npy, prefix_filename + '_K_means_' + str(hyperparams.features), segmentation)
- 
+    f_name = prefix_filename + '_K_means_' + str(hyperparams.features)
+    save_segmentation(folder_npy, f_name, segmentation)
+
     IoU, mIoU = compute_mIoU(segmentation, gt)
     mIoU = round(mIoU, 2)
     temp = 'IoU:'
     for i in range(len(IoU)):
-        temp += ' class '+  str(i+1) + ': ' + str(round(IoU[i], 2))
+        temp += ' class ' + str(i + 1) + ': ' + str(round(IoU[i], 2))
     print(temp)
     print('mIoU=', mIoU)
- 
+
     OA = compute_OA(segmentation, gt)
     OA = round(OA, 2)
     print('OA=', OA)
 
-    true = gt[gt!=0]
-    pred = segmentation[gt!=0]
+    true = gt[gt >= 0]
+    pred = segmentation[gt >= 0]
     AMI = adjusted_mutual_info_score(true, pred)
     AMI = round(AMI, 2)
     ARI = adjusted_rand_score(true, pred)
@@ -247,10 +262,13 @@ def evaluate_and_save_clustering(segmentation, dataset_name, hyperparams, folder
     plt.savefig(os.path.join(folder_segmentation, 'gt'))
 
     title = 'mIoU='+str(round(mIoU, 2))+' OA='+str(round(OA, 2))
-    plot_segmentation(segmentation, classes=np.unique(gt).astype(np.int), title=title)
-    plt.savefig(os.path.join(folder_segmentation, prefix_filename  + '_K_means_' + str(hyperparams.features)))
+    classes = np.unique(gt).astype(np.int)
+    plot_segmentation(segmentation, classes=classes, title=title)
+    f_name = prefix_filename + '_K_means_' + str(hyperparams.features)
+    plt.savefig(os.path.join(folder_segmentation, f_name))
 
-    plot_TP_FP_FN_segmentation(segmentation, gt, folder_save=folder_detailed_analyses)
+    plot_TP_FP_FN_segmentation(segmentation, gt,
+                               folder_save=folder_detailed_analyses)
 
     plt.close('all')
 
