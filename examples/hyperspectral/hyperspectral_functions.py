@@ -4,9 +4,6 @@ import matplotlib.pyplot as plt
 import random
 from scipy.io import loadmat
 from sklearn.cluster import KMeans
-from sklearn.metrics import\
-        adjusted_mutual_info_score,\
-        adjusted_rand_score
 import time
 
 from pyCovariance import\
@@ -14,6 +11,8 @@ from pyCovariance import\
         pca_image
 from pyCovariance.evaluation import\
         assign_segmentation_classes_to_gt_classes,\
+        compute_AMI,\
+        compute_ARI,\
         compute_mIoU,\
         compute_OA,\
         plot_segmentation,\
@@ -239,6 +238,7 @@ def evaluate_and_save_clustering(
     f_name = prefix_filename + '_K_means_' + str(hyperparams.features)
     save_segmentation(folder_npy, f_name, segmentation)
 
+    # mIoU
     IoU, mIoU = compute_mIoU(segmentation, gt)
     mIoU = round(mIoU, 2)
     temp = 'IoU:'
@@ -247,17 +247,19 @@ def evaluate_and_save_clustering(
     print(temp)
     print('mIoU=', mIoU)
 
+    # OA
     OA = compute_OA(segmentation, gt)
     OA = round(OA, 2)
     print('OA=', OA)
 
-    true = gt[gt >= 0]
-    pred = segmentation[gt >= 0]
-    AMI = adjusted_mutual_info_score(true, pred)
+    # AMI
+    AMI = compute_AMI(segmentation, gt)
     AMI = round(AMI, 2)
-    ARI = adjusted_rand_score(true, pred)
-    ARI = round(ARI, 2)
     print('AMI=', AMI)
+
+    # ARI
+    ARI = compute_ARI(segmentation, gt)
+    ARI = round(ARI, 2)
     print('ARI=', ARI)
 
     plot_segmentation(gt, title='Ground truth')

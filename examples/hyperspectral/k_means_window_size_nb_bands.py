@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import os
 
 from pyCovariance.features import\
-        covariance,\
         intensity_euclidean,\
         mean_pixel_euclidean,\
         pixel_euclidean
@@ -14,10 +13,10 @@ from hyperspectral_functions import\
         HyperparametersKMeans,\
         K_means_hyperspectral_image
 
-matplotlib.use('Agg')
-
 
 def main():
+    matplotlib.use('Agg')
+
     dataset_name = 'Indian_Pines'
 
     # folder path to save files
