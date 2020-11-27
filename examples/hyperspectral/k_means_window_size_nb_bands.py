@@ -27,36 +27,38 @@ def main():
     # EVALUATION ACCORDING TO WINDOW_SIZE AND NB_BANDS
 
     hp = HyperparametersKMeans(
-        crop_image=False,
+        crop_image=True,
         enable_multi=True,
         pca=True,
         nb_bands_to_select=None,
         mask=True,
         window_size=None,
         features=None,
-        nb_init=10,
-        nb_iter_max=100,
+        nb_init=1,
+        nb_iter_max=10,
         eps=1e-3
     )
 
-    pairs_w_p = [(3, 4), (5, 4), (5, 10), (7, 4), (7, 10), (7, 20),
-                 (9, 4), (9, 10), (9, 20), (9, 40)]
+    pairs_w_p = [(3, 4), (5, 4)]
+    max_w_size = pairs_w_p[-1][0]
 
-    for w, p in pairs_w_p:
-        print('w=', w, 'p=', p)
+    for w_size, p in pairs_w_p:
+        print()
+        print('##############')
+        print('w_size=', w_size, 'p=', p)
+        print('##############')
 
         hp.nb_bands_to_select = p
-        hp.window_size = w
+        hp.window_size = w_size
 
         features_list = [
             intensity_euclidean(),
             'sklearn',
             pixel_euclidean(p),
             mean_pixel_euclidean(p),
-            covariance(p),
         ]
 
-        prefix = 'w' + str(w) + '_p' + str(p)
+        prefix = 'w' + str(w_size) + '_p' + str(p)
 
         # K means and evaluations
         mIoUs = list()
@@ -67,6 +69,9 @@ def main():
             print()
             print('Features:', str(hp.features))
             C = K_means_hyperspectral_image(dataset_name, hp)
+            h = w = (max_w_size-w_size)//2
+            if (h > 0) and (w > 0):
+                C = C[h:-h, w:-w]
             print()
             prefix_f_name = str(i) + '_' + prefix
             mIoU, OA = evaluate_and_save_clustering(C, dataset_name,

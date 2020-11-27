@@ -212,8 +212,10 @@ def evaluate_and_save_clustering(
         half_width = hyperparams.size_crop//2
         gt = gt[center[0]-half_height:center[0]+half_height,
                 center[1]-half_width:center[1]+half_width]
-    h = w = hyperparams.window_size//2
-    gt = gt[h:-h, w:-w]
+    h = (gt.shape[0]-segmentation.shape[0])//2
+    w = (gt.shape[1]-segmentation.shape[1])//2
+    if (h > 0) and (w > 0):
+        gt = gt[h:-h, w:-w]
 
     assert segmentation.shape == gt.shape,\
            'segmentation.shape:' + str(segmentation.shape) +\
