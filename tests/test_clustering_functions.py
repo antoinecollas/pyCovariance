@@ -1,11 +1,13 @@
 import autograd.numpy as np
 import autograd.numpy.linalg as la
+import autograd.numpy.random as rnd
 import numpy.testing as np_test
 import os
 import sys
 
 from pyCovariance import K_means
 from pyCovariance.clustering_functions import \
+        compute_objective_function,\
         compute_means_parallel,\
         compute_pairwise_distances_parallel,\
         random_index_for_initialisation
@@ -90,6 +92,19 @@ def test_random_index_for_initialisation():
     N = 20
     idx = random_index_for_initialisation(K, N)
     assert len(np.unique(idx)) == len(idx)
+
+
+def test_compute_objective_function():
+    N = int(1e3)
+    K = 10
+    distances = rnd.rand(N, K)
+    res = 0
+    for i in range(distances.shape[0]):
+        d = distances[i]
+        k = np.argmin(d)
+        res += d[k]**2
+    var_intr = compute_objective_function(distances)
+    np_test.assert_almost_equal(res, var_intr)
 
 
 def test_K_means():

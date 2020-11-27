@@ -206,8 +206,8 @@ def compute_objective_function(distances):
     C = np.argmin(distances, axis=1)
     result = 0
     for k in np.unique(C):
-        result += np.sum(distances[C == k, k])
-    return result/distances.shape[0]
+        result += np.sum(distances[C == k, k]**2)
+    return result
 
 
 def K_means(
