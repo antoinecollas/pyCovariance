@@ -1,6 +1,9 @@
 import autograd.numpy as np
 import matplotlib.pyplot as plt
 import os
+from sklearn.metrics import\
+        adjusted_mutual_info_score,\
+        adjusted_rand_score
 from scipy.optimize import linear_sum_assignment
 import tikzplotlib
 
@@ -55,7 +58,8 @@ def assign_segmentation_classes_to_gt_classes(C, gt, normalize=False):
 def compute_mIoU(C, gt):
     """ A function that computes the mean of Intersection over Union between
     a segmented image (c) and a ground truth (gt).
-    BE CAREFUL, negative values are considered as no annotation available.
+    BE CAREFUL, negative values in gt are considered
+    as no annotation available.
         Inputs:
             * C: segmented image.
             * gt: ground truth.
@@ -78,11 +82,11 @@ def compute_mIoU(C, gt):
 def compute_OA(C, gt):
     """ A function that computes the Overall Accuracy (OA) between
     a segmented image (c) and a ground truth (gt).
-    BE CAREFUL, negative values are considered as no annotation available.
+    BE CAREFUL, negative values in gt are considered
+    as no annotation available.
         Inputs:
             * C: segmented image.
             * gt: ground truth.
-            * classes: list of classes used to compute the mIOU
         Ouputs:
             * OA
     """
@@ -93,6 +97,46 @@ def compute_OA(C, gt):
     OA = np.sum(C[mask] == gt[mask]) / np.sum(mask)
 
     return OA
+
+
+def compute_AMI(C, gt):
+    """ A function that computes the adjusted mutual info between
+    a segmented image (c) and a ground truth (gt).
+    BE CAREFUL, negative values in gt are considered
+    as no annotation available.
+        Inputs:
+            * C: segmented image.
+            * gt: ground truth.
+        Ouputs:
+            * adjusted mutual info
+    """
+    # get classes
+    classes = _get_classes(C, gt)
+
+    mask = np.isin(gt, classes)
+    AMI = adjusted_mutual_info_score(gt[mask], C[mask])
+
+    return AMI
+
+
+def compute_ARI(C, gt):
+    """ A function that computes the adjusted rand score between
+    a segmented image (c) and a ground truth (gt).
+    BE CAREFUL, negative values in gt are considered
+    as no annotation available.
+        Inputs:
+            * C: segmented image.
+            * gt: ground truth.
+        Ouputs:
+            * adjusted rand score
+    """
+    # get classes
+    classes = _get_classes(C, gt)
+
+    mask = np.isin(gt, classes)
+    ARI = adjusted_rand_score(gt[mask], C[mask])
+
+    return ARI
 
 
 def plot_segmentation(C, aspect=1, classes=None, title=None):
