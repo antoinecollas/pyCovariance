@@ -3,13 +3,12 @@ import autograd.numpy as np
 import autograd.numpy.linalg as la
 import pymanopt
 from pymanopt.manifolds import ComplexGrassmann,\
-        Product,\
         StrictlyPositiveVectors
 from pymanopt import Problem
 from pymanopt.solvers import SteepestDescent
 import warnings
 
-from .base import Feature
+from .base import Feature, Product
 
 
 # SUBOPTIMAL ESTIMATION

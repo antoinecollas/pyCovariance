@@ -1,5 +1,5 @@
 import autograd.numpy as np
-from pymanopt.manifolds import Product, SpecialHermitianPositiveDefinite, StrictlyPositiveVectors
+from pymanopt.manifolds import SpecialHermitianPositiveDefinite, StrictlyPositiveVectors
 import warnings
 
 from .base import BaseClassFeatures

@@ -4,7 +4,7 @@ import autograd
 import autograd.numpy as np
 import pymanopt
 from pymanopt import Problem
-from pymanopt.manifolds import ComplexEuclidean, Product, StrictlyPositiveVectors, SpecialHermitianPositiveDefinite
+from pymanopt.manifolds import ComplexEuclidean, StrictlyPositiveVectors, SpecialHermitianPositiveDefinite
 from pymanopt.solvers import ConjugateGradient, SteepestDescent
 import warnings
 
