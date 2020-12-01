@@ -19,7 +19,7 @@ def test_complex_covariance_texture():
 
     # test estimation
     tau = generate_textures(N)
-    sigma = generate_complex_covariance(p)
+    sigma = generate_complex_covariance(p, unit_det=True)
     sigma = sigma/(la.det(sigma)**(1/p))
     X = sample_complex_compound_distribution(tau, sigma)
 
@@ -32,8 +32,10 @@ def test_complex_covariance_texture():
 
     # test distance
     data = _FeatureArray((N, 1), (p, p))
-    data.append([generate_textures(N), generate_complex_covariance(p)])
-    data.append([generate_textures(N), generate_complex_covariance(p)])
+    data.append([generate_textures(N),
+                 generate_complex_covariance(p, unit_det=True)])
+    data.append([generate_textures(N),
+                 generate_complex_covariance(p, unit_det=True)])
 
     sigma0_isqrtm = invsqrtm(data[0].export()[1])
     prod = sigma0_isqrtm@data[1].export()[1]@sigma0_isqrtm
@@ -49,7 +51,8 @@ def test_complex_covariance_texture():
     N_mean = 10
     data = _FeatureArray((N, 1), (p, p))
     for _ in range(N_mean):
-        data.append([generate_textures(N), generate_complex_covariance(p)])
+        data.append([generate_textures(N),
+                     generate_complex_covariance(p, unit_det=True)])
 
     cov = covariance(p)
     sigma = _FeatureArray((p, p))
@@ -59,4 +62,5 @@ def test_complex_covariance_texture():
 
     m = feature.mean(data).export()
     assert la.norm(m[0] - mean_text) / la.norm(mean_text) < 1e-10
+    np_test.assert_almost_equal(la.det(m[1]), 1)
     assert la.norm(m[1] - mean_sigma) / la.norm(mean_sigma) < 1e-10

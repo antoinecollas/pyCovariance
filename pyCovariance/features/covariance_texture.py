@@ -1,7 +1,7 @@
 import autograd.numpy as np
 import autograd.numpy.linalg as la
 from pymanopt.manifolds import\
-        HermitianPositiveDefinite,\
+        SpecialHermitianPositiveDefinite,\
         StrictlyPositiveVectors
 import warnings
 
@@ -117,8 +117,7 @@ def tyler_estimator_normalized_trace(X, init=None, tol=1e-8, iter_max=100):
 
 def covariance_texture(N, p, weights=None):
     name = 'Covariance_texture_Riemannian'
-    # TODO: check why SpecialHermitianPositiveDefinite doesn't work ...
-    M = (StrictlyPositiveVectors, HermitianPositiveDefinite)
+    M = (StrictlyPositiveVectors, SpecialHermitianPositiveDefinite)
     if weights is None:
         weights = (1/N, 1/p)
     args_M = {

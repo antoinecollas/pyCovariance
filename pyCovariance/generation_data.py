@@ -1,31 +1,40 @@
 import autograd.numpy as np
+import autograd.numpy.linalg as la
 from autograd.numpy import random
 from scipy.linalg import toeplitz
 
 from .matrix_operators import sqrtm
 
 
-def generate_covariance(p):
+def generate_covariance(p, unit_det=False):
     # Generate eigenvalues between 1 and 2
     # (eigenvalues of a symmetric matrix are always real).
     D = np.diag(np.ones((p)) + random.rand(p))
 
     # Generate an orthogonal matrix.
-    Q, _ = np.linalg.qr(random.randn(p, p))
+    Q, _ = la.qr(random.randn(p, p))
 
     sigma = Q@D@Q.T
+
+    if unit_det:
+        sigma = sigma/(np.real(la.det(sigma))**(1/p))
+
     return sigma
 
 
-def generate_complex_covariance(p):
+def generate_complex_covariance(p, unit_det=False):
     # Generate eigenvalues between 1 and 2
     # (eigenvalues of a symmetric matrix are always real).
     D = np.diag(np.ones((p)) + random.rand(p))
 
     # Generate an orthogonal matrix.
-    Q, _ = np.linalg.qr(random.randn(p, p)+1j*random.randn(p, p))
+    Q, _ = la.qr(random.randn(p, p)+1j*random.randn(p, p))
 
     sigma = Q@D@Q.conj().T
+
+    if unit_det:
+        sigma = sigma/(np.real(la.det(sigma))**(1/p))
+
     return sigma
 
 
@@ -46,12 +55,12 @@ def generate_textures(N):
 
 
 def generate_stiefel(p, k):
-    Q, _ = np.linalg.qr(random.randn(p, k))
+    Q, _ = la.qr(random.randn(p, k))
     return Q
 
 
 def generate_complex_stiefel(p, k):
-    Q, _ = np.linalg.qr(random.randn(p, k)+1j*random.randn(p, k))
+    Q, _ = la.qr(random.randn(p, k)+1j*random.randn(p, k))
     return Q
 
 
