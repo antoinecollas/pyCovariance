@@ -45,19 +45,19 @@ def compute_intensity_vector(X):
 def pixel_euclidean(p):
     name = 'Pixel_Euclidean'
     M = ComplexEuclidean
-    args_M = [p]
+    args_M = {'sizes': p}
     return Feature(name, get_center_vector, M, args_M)
 
 
 def mean_pixel_euclidean(p):
     name = 'Mean_Pixel_Euclidean'
     M = ComplexEuclidean
-    args_M = [p]
+    args_M = {'sizes': p}
     return Feature(name, compute_mean_vector, M, args_M)
 
 
 def intensity_euclidean():
     name = 'Intensity_Euclidean'
     M = Euclidean
-    args_M = [1]
+    args_M = {'sizes': 1}
     return Feature(name, compute_intensity_vector, M, args_M)

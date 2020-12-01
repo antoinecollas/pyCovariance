@@ -162,11 +162,15 @@ def estimate_tau_UUH(X, k, tol=0.001, iter_max=100):
 # CLASSES
 
 
-def tau_UUH(p, k, N):
+def tau_UUH(p, k, N, weights=(1, 1)):
     name = 'tau_UUH_Riemannian'
-    M = [ComplexGrassmann, StrictlyPositiveVectors]
-    args_M = [[p, k], [N]]
+    M = (ComplexGrassmann, StrictlyPositiveVectors)
+    args_M = {
+        'sizes': ((p, k), N),
+        'weights': weights
+    }
 
     def _estimate_tau_UUH(X):
         return estimate_tau_UUH(X, k)
+
     return Feature(name, _estimate_tau_UUH, M, args_M)

@@ -1,15 +1,22 @@
 import autograd.numpy as np
-from pymanopt.manifolds import SpecialHermitianPositiveDefinite, StrictlyPositiveVectors
+import autograd.numpy.linalg as la
+from pymanopt.manifolds import\
+        HermitianPositiveDefinite,\
+        StrictlyPositiveVectors
 import warnings
 
-from .base import BaseClassFeatures
+from .base import Feature
+from ..matrix_operators import invsqrtm
 
-########## ESTIMATION ##########
 
-def tyler_estimator_covariance(X, init=None, tol=0.001, iter_max=100):
-    """ A function that computes the Tyler Fixed Point Estimator for covariance matrix estimation
+# ESTIMATION
+
+
+def tyler_estimator(X, init=None, tol=1e-8, iter_max=100):
+    """ A function that computes the Tyler Fixed Point Estimator
+        for covariance matrix estimation
         Inputs:
-            * X = a matrix of size p*N with each observation along column dimension
+            * X = a matrix of size p*N
             * init = point on manifold to initialise estimation
             * tol = tolerance for convergence of estimator
             * iter_max = number of maximum iterations
@@ -17,7 +24,7 @@ def tyler_estimator_covariance(X, init=None, tol=0.001, iter_max=100):
             * tau
             * sigma
             * delta = the final distance between two iterations
-            * iteration = number of iterations til convergence """
+            * iteration = number of iterations until convergence """
 
     # Initialisation
     p, N = X.shape
@@ -27,39 +34,37 @@ def tyler_estimator_covariance(X, init=None, tol=0.001, iter_max=100):
     else:
         _, sigma = init
 
-    delta = np.inf # Distance between two iterations
+    delta = np.inf  # Distance between two iterations
     iteration = 0
 
-    while (delta>tol) and (iteration<iter_max):
+    while (delta > tol) and (iteration < iter_max):
         # compute expression of Tyler estimator
-        tau = (1/p) * np.real(np.einsum('ij,ji->i', np.conjugate(X).T@np.linalg.inv(sigma), X))
-        X_bis = X / np.sqrt(tau)
-        sigma_new = (1/N) * X_bis@X_bis.conj().T
+        temp = invsqrtm(sigma)@X
+        tau = np.einsum('ij,ji->i', temp.conj().T, temp)
+        tau = (1/p) * np.real(tau)
+        temp = X / np.sqrt(tau)
+        sigma_new = (1/N) * temp@temp.conj().T
 
         # condition for stopping
-        delta = np.linalg.norm(sigma_new - sigma, 'fro') / np.linalg.norm(sigma, 'fro')
+        delta = la.norm(sigma_new - sigma) / la.norm(sigma)
         iteration = iteration + 1
 
         # updating sigma
         sigma = sigma_new
-
-    # imposing trace constraint: Tr(sigma) = p
-    c = np.trace(sigma)/p
-    sigma = sigma/c
-    tau = c*tau
 
     if iteration == iter_max:
         warnings.warn('Estimation algorithm did not converge')
 
     tau = tau.reshape((-1, 1))
 
-    return (tau, sigma, delta, iteration)
+    return tau, sigma, delta, iteration
 
 
-def tyler_estimator_covariance_normalisedet(X, init=None, tol=0.001, iter_max=100):
-    """ A function that computes the Tyler Fixed Point Estimator for covariance matrix estimation
+def tyler_estimator_normalized_det(X, init=None, tol=1e-8, iter_max=100):
+    """ A function that computes the Tyler Fixed Point Estimator.
+        Sigma is normalized to have a unit determinant.
         Inputs:
-            * X = a matrix of size p*N with each observation along column dimension
+            * X = a matrix of size p*N
             * init = point on manifold to initialise estimation
             * tol = tolerance for convergence of estimator
             * iter_max = number of maximum iterations
@@ -67,85 +72,62 @@ def tyler_estimator_covariance_normalisedet(X, init=None, tol=0.001, iter_max=10
             * tau
             * sigma
             * delta = the final distance between two iterations
-            * iteration = number of iterations til convergence """
+            * iteration = number of iterations until convergence """
 
-    # Initialisation
-    p, N = X.shape
-    if init is None:
-        sigma = (1/N)*X@X.conj().T
-        sigma = sigma/(np.linalg.det(sigma)**(1/p))
-    else:
-        _, sigma = init
+    p, _ = X.shape
 
-    delta = np.inf # Distance between two iterations
-    iteration = 0
-
-    while (delta>tol) and (iteration<iter_max):
-        # compute expression of Tyler estimator
-        tau = (1/p) * np.real(np.einsum('ij,ji->i', np.conjugate(X).T@np.linalg.inv(sigma), X))
-        X_bis = X / np.sqrt(tau)
-        sigma_new = (1/N) * X_bis@X_bis.conj().T
-
-        # condition for stopping
-        delta = np.linalg.norm(sigma_new - sigma, 'fro') / np.linalg.norm(sigma, 'fro')
-        iteration = iteration + 1
-
-        # updating sigma
-        sigma = sigma_new
+    tau, sigma, delta, iteration = tyler_estimator(X, init, tol, iter_max)
 
     # imposing det constraint: det(sigma) = 1
-    c = np.linalg.det(sigma)**(1/p)
+    c = np.real(la.det(sigma))**(1/p)
     sigma = sigma/c
     tau = c*tau
 
-    if iteration == iter_max:
-        warnings.warn('Estimation algorithm did not converge')
-
-    tau = tau.reshape((-1, 1))
-
-    return (tau, sigma, delta, iteration)
+    return tau, sigma, delta, iteration
 
 
-def compute_feature_covariance_texture(X, args=(0.001, 100)):
-    """ Serve to compute feature for Covariance and texture classificaiton.
-        We use vech opeartion to save memory space on covariance.
-        ----------------------------------------------------------------------
+def tyler_estimator_normalized_trace(X, init=None, tol=1e-8, iter_max=100):
+    """ A function that computes the Tyler Fixed Point Estimator.
+        Sigma is normalized to have tr(Sigma) = p
         Inputs:
-        --------
-            * X = a (p, N) array where p is the dimension of data and N the number
-                    of samples used for estimation
-            * args = (ϵ, iter_max) for Tyler estimator, where
-                ** eps = tolerance for convergence
-                ** iter_max = number of iterations max
-
+            * X = a matrix of size p*N
+            * init = point on manifold to initialise estimation
+            * tol = tolerance for convergence of estimator
+            * iter_max = number of maximum iterations
         Outputs:
-        ---------
-            * 𝐱 = the feature for classification
-        """
-    eps, iter_max = args
-    tau, sigma, _, _ = tyler_estimator_covariance_normalisedet(np.squeeze(X), tol=eps, iter_max=iter_max)
-    return tau, sigma
+            * tau
+            * sigma
+            * delta = the final distance between two iterations
+            * iteration = number of iterations until convergence """
+
+    p, _ = X.shape
+
+    tau, sigma, delta, iteration = tyler_estimator(X, init, tol, iter_max)
+
+    # imposing trace constraint: Tr(sigma) = p
+    c = np.real(np.trace(sigma))/p
+    sigma = sigma/c
+    tau = c*tau
+
+    return tau, sigma, delta, iteration
 
 
-##########  CLASSES  ##########
+# CLASSES
 
-class CovarianceTexture(BaseClassFeatures):
-    def __init__(
-        self,
-        p,
-        N,
-        estimation_args=None,
-    ):
-        prod = Product([StrictlyPositiveVectors(N), SpecialHermitianPositiveDefinite(p)])
-        super().__init__(manifold=prod)
-        self.p = p
-        self.N = N
-        self.estimation_args = estimation_args
 
-    def __str__(self):
-        return 'Covariance_texture_Riemannian'
+def covariance_texture(N, p, weights=None):
+    name = 'Covariance_texture_Riemannian'
+    # TODO: check why SpecialHermitianPositiveDefinite doesn't work ...
+    M = (StrictlyPositiveVectors, HermitianPositiveDefinite)
+    if weights is None:
+        weights = (1/N, 1/p)
+    args_M = {
+        'sizes': (N, p),
+        'weights': weights
+    }
 
-    def estimation(self, X):
-        if self.estimation_args is not None:
-            return compute_feature_covariance_texture(X, self.estimation_args)
-        return compute_feature_covariance_texture(X)
+    def _tyler(X):
+        tau, sigma, _, _ = tyler_estimator_normalized_det(X)
+        return tau, sigma
+
+    return Feature(name, _tyler, M, args_M)

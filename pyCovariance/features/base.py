@@ -119,15 +119,32 @@ class Feature():
         self._name = name
         self._estimation = _feature_estimation(estimation)
         self._M_class = manifold
+
+        if 'weights' in args_manifold:
+            self._weights = args_manifold['weights']
+        elif type(manifold) in [list, tuple]:
+            self._weights = tuple(np.ones(len(manifold)))
+
         if type(manifold) in [list, tuple]:
+            self._dimensions = list()
             nb_M = len(manifold)
-            temp = [manifold[i](*(args_manifold[i])) for i in range(nb_M)]
-            self._M = Product(temp)
+            for i in range(nb_M):
+                temp = args_manifold['sizes'][i]
+                if type(temp) not in [list, tuple]:
+                    temp = [temp]
+                self._dimensions.append(tuple(temp))
+            temp = [manifold[i](*(self._dimensions[i])) for i in range(nb_M)]
+            self._M = Product(temp, self._weights)
         else:
-            self._M = manifold(*args_manifold)
+            temp = args_manifold['sizes']
+            if type(temp) not in [list, tuple]:
+                temp = [temp]
+            self._dimensions = tuple(temp)
+            self._M = manifold(*(self._dimensions))
+
         self._M._point_layout = 1
-        self._args_M = args_manifold
         self._eps_grad = 1e-10
+        self._iter_max = 100
 
     def __str__(self):
         """ Name of the feature"""
@@ -178,14 +195,14 @@ class Feature():
                 * mean = a (feature_size) array
             """
         assert type(X) is _FeatureArray
+        dim = self._dimensions
         if type(self._M_class) in [list, tuple]:
             M_class = self._M_class
-            args_M = self._args_M
-            nb_M = len(self._M_class)
-            temp = [M_class[i](*(args_M[i]), len(X)) for i in range(nb_M)]
-            M = Product(temp)
+            nb_M = len(M_class)
+            temp = [M_class[i](*(dim[i]), len(X)) for i in range(nb_M)]
+            M = Product(temp, self._weights)
         else:
-            M = self._M_class(*(self._args_M), len(X))
+            M = self._M_class(*dim, len(X))
 
         def _cost(X, theta):
             d_squared = M.dist(theta.export(), X.export())**2
