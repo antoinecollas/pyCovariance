@@ -29,12 +29,14 @@ class Dataset():
             self.path_gt = 'data/Pavia/PaviaU_gt.mat'
             self.key_dict_gt = 'paviaU_gt'
             self.resolution = [1.3, 1.3]  # resolution in meters
+            self.dimension = 103
         elif name == 'Indian_Pines':
             self.path = 'data/Indian_Pines/Indian_pines_corrected.mat'
             self.key_dict = 'indian_pines_corrected'
             self.path_gt = 'data/Indian_Pines/Indian_pines_gt.mat'
             self.key_dict_gt = 'indian_pines_gt'
             self.resolution = [1.3, 1.3]  # resolution in meters
+            self.dimension = 200
         else:
             print(name)
             raise NotImplementedError
@@ -101,9 +103,7 @@ class HyperparametersKMeans():
         self.eps = eps
 
 
-def K_means_hyperspectral_image(dataset_name, hyperparams):
-    dataset = Dataset(dataset_name)
-
+def K_means_hyperspectral_image(dataset, hyperparams):
     t_beginning = time.time()
 
     print("###################### PREPROCESSING ######################")
@@ -112,8 +112,8 @@ def K_means_hyperspectral_image(dataset_name, hyperparams):
     gt = loadmat(dataset.path_gt)[dataset.key_dict_gt]
     gt = gt.astype(np.int64)
     gt -= 1
+    print('Crop image:', hyperparams.crop_image)
     if hyperparams.crop_image:
-        print('The image is cropped.')
         center = np.array(image.shape[0:2])//2
         half_height = hyperparams.size_crop//2
         half_width = hyperparams.size_crop//2
@@ -131,15 +131,8 @@ def K_means_hyperspectral_image(dataset_name, hyperparams):
 
     # pca
     if hyperparams.pca:
-        print('PCA is applied.')
         image = pca_image(image, hyperparams.nb_bands_to_select)
-    else:
-        print('Bands are selected randomly.')
-        random.seed(2)
-        bands = random.sample(list(range(image.shape[2])),
-                              k=hyperparams.nb_bands_to_select)
-        bands.sort()
-        image = image[:, :, bands]
+    print('PCA:', hyperparams.pca)
 
     n_r, n_c, p = image.shape
     print('image.shape:', image.shape)
@@ -195,14 +188,13 @@ def K_means_hyperspectral_image(dataset_name, hyperparams):
 
 def evaluate_and_save_clustering(
     segmentation,
-    dataset_name,
+    dataset,
     hyperparams,
     folder,
     prefix_filename
 ):
     print('###################### EVALUATION ######################')
 
-    dataset = Dataset(dataset_name)
     # ground truth path
     gt = loadmat(dataset.path_gt)[dataset.key_dict_gt]
     if hyperparams.crop_image:

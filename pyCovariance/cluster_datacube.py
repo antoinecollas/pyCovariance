@@ -60,7 +60,7 @@ def K_means_datacube(
         h = w = window_size//2
         mask = mask[h:-h, w:-w]
 
-    print('###################### COMPUTING FEATURES ######################')
+    print('#################### COMPUTING FEATURES ####################')
     t_beginning = time.time()
     m_r = m_c = window_size
     n_r, n_c, p = image.shape
