@@ -227,7 +227,7 @@ def estimation_location_covariance_texture_RGD(
     X,
     init=None,
     tol=1e-3,
-    iter_max=1000,
+    iter_max=int(1e3),
     autodiff=False,
     solver='conjugate'
 ):
@@ -280,6 +280,10 @@ def estimation_location_covariance_texture_RGD(
     Xopt, log = solver.solve(problem, x=init)
     Xopt[0] = Xopt[0].reshape((-1, 1))
 
+    # TODO: handle real data
+    # if X.dtype == np.float:
+    #    Xopt[0] = Xopt[0].real.astype(np.float64)
+    #    Xopt[2] = Xopt[2].real.astype(np.float64)
     return Xopt[0], Xopt[1], Xopt[2], log
 
 
