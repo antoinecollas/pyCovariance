@@ -4,7 +4,9 @@ import numpy.testing as np_test
 
 from pyCovariance.matrix_operators import invsqrtm, logm, sqrtm
 from pyCovariance.features.base import _FeatureArray
-from pyCovariance.features import covariance
+from pyCovariance.features import\
+        covariance,\
+        covariance_euclidean
 from pyCovariance.generation_data import generate_complex_covariance,\
         generate_covariance,\
         sample_complex_normal_distribution,\
@@ -143,3 +145,36 @@ def test_complex_covariance():
         condition += sigmai_isqrtm@temp@sigmai_sqrtm
     condition = la.norm(condition)
     assert condition < 1e-8
+
+
+def test_real_covariance_euclidean():
+    p = 5
+    N = int(1e6)
+    N_mean = 10
+    cov = covariance_euclidean(p)
+    assert type(str(cov)) is str
+
+    # test estimation
+    sigma = generate_covariance(p)
+    X = sample_normal_distribution(N, sigma)
+
+    scm = cov.estimation(X).export()
+    assert scm.dtype == np.float64
+    assert la.norm(scm-sigma)/la.norm(sigma) < 0.01
+
+    # test distance
+    sigma = _FeatureArray((p, p))
+    sigma.append(generate_covariance(p))
+    sigma.append(generate_covariance(p))
+
+    d = la.norm(sigma[0].export() - sigma[1].export())
+    np_test.assert_almost_equal(cov.distance(sigma[0], sigma[1]), d)
+
+    # test mean
+    sigma = _FeatureArray((p, p))
+    for _ in range(N_mean):
+        sigma.append(generate_covariance(p))
+
+    m = np.mean(sigma.export(), axis=0)
+    assert cov.mean(sigma).export().dtype == np.float64
+    np_test.assert_almost_equal(cov.mean(sigma).export(), m)

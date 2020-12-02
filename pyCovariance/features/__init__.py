@@ -1,5 +1,5 @@
 from .base import Feature
-from .covariance import covariance
+from .covariance import covariance, covariance_euclidean
 from .covariance_texture import covariance_texture
 from .location_covariance_texture import location_covariance_texture
 from .pixel import intensity_euclidean,\
