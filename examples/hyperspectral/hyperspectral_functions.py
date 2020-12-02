@@ -1,7 +1,6 @@
 import autograd.numpy as np
 import os
 import matplotlib.pyplot as plt
-import random
 from scipy.io import loadmat
 from sklearn.cluster import KMeans
 import time
@@ -80,7 +79,7 @@ class HyperparametersKMeans():
         # image
         self.crop_image = crop_image
         if crop_image:
-            self.size_crop = 50
+            self.size_crop = 25
 
         # multi processing
         self.enable_multi = enable_multi

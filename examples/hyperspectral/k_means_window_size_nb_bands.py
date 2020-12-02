@@ -136,8 +136,8 @@ if __name__ == '__main__':
             mean_pixel_euclidean(k),
             covariance_euclidean(k),
             covariance(k),
-            covariance_texture(N, k),
-            tau_UUH(p, k, N)
+            covariance_texture(w*w, k),
+            tau_UUH(p, k, w*w)
         ])
 
     main(
