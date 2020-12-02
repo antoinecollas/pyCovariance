@@ -46,7 +46,7 @@ class _FeatureArray():
         return f_a
 
     def append(self, data):
-        assert type(data) in [np.ndarray, list, _FeatureArray]
+        assert type(data) in [np.ndarray, list, tuple, _FeatureArray]
 
         if type(data) == np.ndarray:
             data = [data]
@@ -91,7 +91,7 @@ def _feature_estimation(method):
         f = method(*args, **kwargs)
 
         # return a _FeatureArray
-        if type(f) not in [list, np.ndarray]:
+        if type(f) not in [tuple, list, np.ndarray]:
             f = np.array(f)
         if type(f) is np.ndarray:
             f = [f]

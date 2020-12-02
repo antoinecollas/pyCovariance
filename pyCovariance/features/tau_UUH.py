@@ -153,10 +153,12 @@ def estimate_tau_UUH(X, k, tol=0.001, iter_max=100):
         tau = tau_new
         U = U_new
 
+    tau = tau.reshape((-1, 1))
+
     if iteration == iter_max:
         warnings.warn('Estimation algorithm did not converge')
 
-    return U, tau.reshape((-1, 1))
+    return U, tau
 
 
 # CLASSES
