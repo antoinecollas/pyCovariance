@@ -145,7 +145,7 @@ class Feature():
 
         self._M._point_layout = 1
         self._eps_grad = 1e-8
-        self._iter_max = 100
+        self._iter_max = 200
 
     def __str__(self):
         """ Name of the feature"""
@@ -257,9 +257,11 @@ class Feature():
 
             _iter += 1
 
-        if ((self._M.norm(theta.export(), g.export()) > self._eps_grad) and
+        criteria = self._M.norm(theta.export(), g.export())
+        if ((criteria > self._eps_grad) and
                (_iter == self._iter_max)):
             warnings.warn('Mean computation did not converge.')
+            print('Mean computation criteria:', criteria)
 
         return theta
 
