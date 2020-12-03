@@ -74,8 +74,8 @@ def test_real_tau_UUH():
         temp = np.diag(np.arctan(S))
         grad += Q@temp@Vh
     grad *= -(1/N_mean)
-    assert la.norm(grad) < 1e-10
+    assert la.norm(grad) < 1e-8
 
     tau = theta.export()[1]
     m_tau = np.prod(tau, axis=0)**(1/N_mean)
-    assert la.norm(m[1]-m_tau)/la.norm(m_tau) < 1e-10
+    assert la.norm(m[1]-m_tau)/la.norm(m_tau) < 1e-8

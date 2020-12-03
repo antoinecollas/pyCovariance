@@ -143,7 +143,7 @@ class Feature():
             self._M = manifold(*(self._dimensions))
 
         self._M._point_layout = 1
-        self._eps_grad = 1e-10
+        self._eps_grad = 1e-8
         self._iter_max = 100
 
     def __str__(self):
@@ -237,7 +237,10 @@ class Feature():
         theta = X[int(np.random.randint(len(X), size=1)[0])]
         g = minus_grad(theta)
 
-        while self._M.norm(theta.export(), g.export()) > self._eps_grad:
+        _iter = 0
+        while ((self._M.norm(theta.export(), g.export()) > self._eps_grad) and
+               (_iter < self._iter_max)):
+
             temp = self._M.exp(theta.export(), g.export())
             if type(temp) not in [list, np.ndarray]:
                 temp = np.array(temp)
@@ -250,6 +253,8 @@ class Feature():
             theta.append(temp)
 
             g = minus_grad(theta)
+
+            _iter += 1
 
         return theta
 

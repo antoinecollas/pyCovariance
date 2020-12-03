@@ -61,6 +61,6 @@ def test_complex_covariance_texture():
     mean_text = np.prod(data.export()[0], axis=0)**(1/N_mean)
 
     m = feature.mean(data).export()
-    assert la.norm(m[0] - mean_text) / la.norm(mean_text) < 1e-10
+    assert la.norm(m[0] - mean_text) / la.norm(mean_text) < 1e-8
     np_test.assert_almost_equal(la.det(m[1]), 1)
-    assert la.norm(m[1] - mean_sigma) / la.norm(mean_sigma) < 1e-10
+    assert la.norm(m[1] - mean_sigma) / la.norm(mean_sigma) < 1e-8
