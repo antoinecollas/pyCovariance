@@ -33,7 +33,7 @@ def test_compute_pairwise_distances_parallel():
     d = compute_pairwise_distances_parallel(X,
                                             mu,
                                             pix.distance,
-                                            enable_multi=False)
+                                            nb_threads=0)
     assert d.dtype == np.float64
     assert d.shape == (N, N_mean)
     for i in range(N):
@@ -44,7 +44,6 @@ def test_compute_pairwise_distances_parallel():
     d = compute_pairwise_distances_parallel(X,
                                             mu,
                                             pix.distance,
-                                            enable_multi=True,
                                             nb_threads=os.cpu_count())
     assert d.dtype == np.float64
     assert d.shape == (N, N_mean)
@@ -136,8 +135,6 @@ def test_K_means():
         distance=pix.distance,
         mean_function=pix.mean,
         init=None,
-        enable_multi_distance=False,
-        enable_multi_mean=False,
         nb_threads=1,
         verbose=False
     )[0]
@@ -155,8 +152,6 @@ def test_K_means():
         distance=pix.distance,
         mean_function=pix.mean,
         init=init,
-        enable_multi_distance=False,
-        enable_multi_mean=False,
         nb_threads=1,
         verbose=False
     )[0]
@@ -174,8 +169,6 @@ def test_K_means():
         distance=pix.distance,
         mean_function=pix.mean,
         init=None,
-        enable_multi_distance=False,
-        enable_multi_mean=False,
         nb_threads=1,
         verbose=True
     )[0]
@@ -193,8 +186,6 @@ def test_K_means():
         distance=pix.distance,
         mean_function=pix.mean,
         init=None,
-        enable_multi_distance=True,
-        enable_multi_mean=True,
         nb_threads=os.cpu_count(),
         verbose=False
     )[0]

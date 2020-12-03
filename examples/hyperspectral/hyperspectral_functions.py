@@ -45,7 +45,7 @@ class HyperparametersKMeans():
     def __init__(
         self,
         crop_image,
-        enable_multi,
+        nb_threads,
         pca,
         nb_bands_to_select,
         mask,
@@ -60,7 +60,7 @@ class HyperparametersKMeans():
             Inputs:
                 crop_image: bool. If true, it crops image before
                     applying K means.
-                enable_multi: bool. If true, K means uses multi processing.
+                    nb_threads: int. Number of threads for parallelisation.
                 pca: bool. If true, pca is applied to reduce dimention
                     of pixels before applying K means.
                 nb_bands_to_select: int. Number of dimentions to keep
@@ -82,9 +82,12 @@ class HyperparametersKMeans():
             self.size_crop = 30
 
         # multi processing
-        self.enable_multi = enable_multi
-        self.nb_threads_rows = os.cpu_count()//2
-        self.nb_threads_columns = 2
+        if nb_threads > 1:
+            self.nb_threads_rows = nb_threads//2
+            self.nb_threads_columns = 2
+        else:
+            self.nb_threads_rows = 1
+            self.nb_threads_columns = 1
 
         # preprocessing
         self.pca = pca
@@ -171,7 +174,6 @@ def K_means_hyperspectral_image(dataset, hyperparams):
             hyperparams.nb_init,
             hyperparams.nb_iter_max,
             hyperparams.eps,
-            hyperparams.enable_multi,
             hyperparams.nb_threads_rows,
             hyperparams.nb_threads_columns
         )

@@ -9,7 +9,6 @@ def compute_pairwise_distances(
     X,
     mu,
     distance,
-    enable_multi=False,
     queue=None,
     verbose=False
 ):
@@ -20,18 +19,17 @@ def compute_pairwise_distances(
     for n in iterator:  # Looping on all samples
         for k in range(K):  # Looping on all classes
             d[n, k] = distance(X[n], mu[k])
-    if enable_multi:
-        queue.put(d)
-    else:
+    if queue is None:
         return d
+    else:
+        queue.put(d)
 
 
 def compute_pairwise_distances_parallel(
     X,
     mu,
     distance,
-    enable_multi=False,
-    nb_threads=4
+    nb_threads=1
 ):
     """ A simple function to compute all distances in parallel for K-mean
         ----------------------------------------------------------------------
@@ -42,7 +40,6 @@ def compute_pairwise_distances_parallel(
             * distance = function to compute distance between two samples
                          ** x_1 = sample 1
                          ** x_2 = sample 2
-            * enable_multi = enable or not parallel compuation
             * nb_threads = number of parallel threads (cores of machine)
 
         Outputs:
@@ -53,7 +50,7 @@ def compute_pairwise_distances_parallel(
     # -----------------------------------------------------------
     # Case: Multiprocessing is enabled
     # -----------------------------------------------------------
-    if enable_multi:
+    if nb_threads > 1:
         N = len(X)
         d = list()
         indexes_split = np.hstack([0, int(N / nb_threads)
@@ -66,7 +63,7 @@ def compute_pairwise_distances_parallel(
                 temp.append(X[i])
             X_subsets.append(temp)
         queues = [Queue() for i in range(nb_threads)]
-        args = [(X_subsets[i], mu, distance, True, queues[i])
+        args = [(X_subsets[i], mu, distance, queues[i])
                 for i in range(nb_threads)]
         jobs = [Process(target=compute_pairwise_distances, args=a)
                 for a in args]
@@ -95,18 +92,17 @@ def compute_pairwise_distances_parallel(
 def compute_means(
     X_class,
     mean_function,
-    enable_multi=False,
     queue=None,
     jobno=None,
     verbose=False
 ):
     mu = mean_function(X_class)
-    if enable_multi:
+    if queue is None:
+        return mu
+    else:
         queue.put([mu, jobno])
         if verbose:
             print('Mean of class', jobno+1, 'computed !')
-    else:
-        return mu
 
 
 def compute_means_parallel(
@@ -154,7 +150,7 @@ def compute_means_parallel(
             args = list()
             for i, k in enumerate(classes):
                 X_class = X[C == k]
-                args.append((X_class, mean_function, True, queues[i], i))
+                args.append((X_class, mean_function, queues[i], i))
             jobs = [Process(target=compute_means, args=a) for a in args]
             # Starting parallel computation
             for j in jobs:
@@ -231,8 +227,6 @@ def K_means(
     init=None,
     eps=1e-2,
     iter_max=20,
-    enable_multi_distance=False,
-    enable_multi_mean=False,
     nb_threads=1,
     verbose=False
 ):
@@ -253,8 +247,6 @@ def K_means(
             (for example coming from a H-alpha decomposition).
             If None, centers are randomly chosen among samples.
             * iter_max = number of maximum iterations of algorithm
-            * enable_multi_distance = enable parallel computation for distance
-            * enable_multi_mean = enable parallel computation for mean
             * nb_threads = number of parallel threads (cores of machine)
             * verbose = boolean
 
@@ -306,7 +298,6 @@ def K_means(
             X,
             mu,
             distance,
-            enable_multi_distance,
             nb_threads
         )
         te = time.time()

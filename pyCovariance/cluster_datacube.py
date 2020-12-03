@@ -22,7 +22,6 @@ def K_means_datacube(
     n_init,
     n_iter_max,
     eps,
-    enable_multi,
     nb_threads_rows,
     nb_threads_columns
 ):
@@ -45,7 +44,6 @@ def K_means_datacube(
         * n_init = number of initialisations of K-means
         * n_iter_max = maximum number of iterations for the K-means algorithm
         * eps = epsilon to stop K-means
-        * enable_multi = enable or not parallel compuation
         * nb_threads_rows = number of threads in height
         * nb_threads_columns = number of threads to be used in column
 
@@ -68,7 +66,6 @@ def K_means_datacube(
         image,
         window_size,
         features.estimation,
-        multi=enable_multi,
         nb_threads_rows=nb_threads_rows,
         nb_threads_columns=nb_threads_columns
     )
@@ -100,8 +97,6 @@ def K_means_datacube(
             init=None,
             eps=eps,
             iter_max=n_iter_max,
-            enable_multi_distance=enable_multi,
-            enable_multi_mean=enable_multi,
             nb_threads=nb_threads_rows*nb_threads_columns
         )
 
@@ -182,9 +177,8 @@ def sliding_window_parallel(
     image,
     window_size,
     function_to_compute,
-    multi=False,
-    nb_threads_rows=3,
-    nb_threads_columns=3,
+    nb_threads_rows=1,
+    nb_threads_columns=1,
     overlapping_window=True,
     verbose=False
 ):
@@ -196,7 +190,6 @@ def sliding_window_parallel(
                 * p is the number of canals
             * window_size = size of the squared window (3 means a 3x3 window)
             * function_to_compute = a function to compute the desired quantity
-            * multi = True if parallel computing, False if not
             * nb_threads_rows = number of thread to use in columns
             * nb_threads_columns = number of thread to use in columns
             * overlapping_window = boolean: overlapping window or not
@@ -205,7 +198,7 @@ def sliding_window_parallel(
             * result.
             """
 
-    if multi:
+    if (nb_threads_rows > 1) or (nb_threads_columns > 1):
         # Slicing original image while taking into accound borders effects
         n_r, n_c, p = image.shape
         m_r = m_c = window_size

@@ -22,7 +22,7 @@ from .hyperspectral_functions import\
 def main(
     dataset,
     crop_image,
-    enable_multi,
+    nb_threads,
     pairs_window_size_nb_bands,
     mask,
     features_list,
@@ -39,7 +39,7 @@ def main(
 
     hp = HyperparametersKMeans(
         crop_image=crop_image,
-        enable_multi=enable_multi,
+        nb_threads=nb_threads,
         pca=None,
         nb_bands_to_select=None,
         mask=mask,
@@ -143,7 +143,7 @@ if __name__ == '__main__':
     main(
         dataset=dataset,
         crop_image=False,
-        enable_multi=True,
+        nb_threads=os.cpu_count(),
         pairs_window_size_nb_bands=pairs_w_k,
         mask=True,
         features_list=features_list,

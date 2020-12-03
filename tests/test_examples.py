@@ -22,7 +22,7 @@ def test_hyperspectral_indian_pines():
     hyper_k_means.main(
         dataset=dataset,
         crop_image=True,
-        enable_multi=False,
+        nb_threads=1,
         pairs_window_size_nb_bands=pairs_w_k,
         mask=True,
         features_list=features_list,
@@ -46,7 +46,7 @@ def test_hyperspectral_pavia():
     hyper_k_means.main(
         dataset=dataset,
         crop_image=True,
-        enable_multi=False,
+        nb_threads=1,
         pairs_window_size_nb_bands=pairs_w_k,
         mask=True,
         features_list=features_list,

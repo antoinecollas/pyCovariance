@@ -35,7 +35,6 @@ def test_sliding_window_parallel():
         image,
         window_size,
         fct,
-        multi=True,
         nb_threads_rows=os.cpu_count()//2,
         nb_threads_columns=2,
         overlapping_window=True,
@@ -86,7 +85,6 @@ def test_real_K_means_datacube():
     NUMBER_INIT = 1
     K_MEANS_NB_ITER_MAX = 100
     EPS = 1e-3
-    ENABLE_MULTI = False
     NUMBER_OF_THREADS_ROWS = 1
     NUMBER_OF_THREADS_COLUMNS = 1
 
@@ -104,7 +102,6 @@ def test_real_K_means_datacube():
         NUMBER_INIT,
         K_MEANS_NB_ITER_MAX,
         EPS,
-        ENABLE_MULTI,
         NUMBER_OF_THREADS_ROWS,
         NUMBER_OF_THREADS_COLUMNS,
     )
@@ -143,7 +140,6 @@ def test_real_K_means_datacube():
         NUMBER_INIT,
         K_MEANS_NB_ITER_MAX,
         EPS,
-        ENABLE_MULTI,
         NUMBER_OF_THREADS_ROWS,
         NUMBER_OF_THREADS_COLUMNS,
     )
@@ -173,7 +169,6 @@ def test_real_K_means_datacube():
     NUMBER_INIT = 1
     K_MEANS_NB_ITER_MAX = 100
     EPS = 1e-3
-    ENABLE_MULTI = True
     NUMBER_OF_THREADS_ROWS = os.cpu_count()//2
     NUMBER_OF_THREADS_COLUMNS = 2
 
@@ -188,7 +183,6 @@ def test_real_K_means_datacube():
         NUMBER_INIT,
         K_MEANS_NB_ITER_MAX,
         EPS,
-        ENABLE_MULTI,
         NUMBER_OF_THREADS_ROWS,
         NUMBER_OF_THREADS_COLUMNS,
     )
@@ -245,7 +239,6 @@ def test_complex_K_means_datacube():
     NUMBER_INIT = 1
     K_MEANS_NB_ITER_MAX = 100
     EPS = 1e-3
-    ENABLE_MULTI = False
     NUMBER_OF_THREADS_ROWS = 1
     NUMBER_OF_THREADS_COLUMNS = 1
 
@@ -263,7 +256,6 @@ def test_complex_K_means_datacube():
         NUMBER_INIT,
         K_MEANS_NB_ITER_MAX,
         EPS,
-        ENABLE_MULTI,
         NUMBER_OF_THREADS_ROWS,
         NUMBER_OF_THREADS_COLUMNS,
     )
