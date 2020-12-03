@@ -60,8 +60,8 @@ def main(
         print('p =', p)
         print('########################################################')
 
-        hp.nb_bands_to_select = p
         hp.window_size = w_size
+        hp.nb_bands_to_select = p
 
         features = features_list[i]
 
@@ -94,12 +94,12 @@ def main(
                                                     hp, folder, prefix_f_name)
             mIoUs.append(mIoU)
             OAs.append(OA)
-            features_str.append(str(features))
+            features_str.append(str(hp.features))
 
         # Bar plot of mIoUs
         fig, ax = plt.subplots(1)
         ax.bar(features_str, mIoUs, align='center')
-        ax.set_ylim(0, 0.5)
+        ax.set_ylim(0, 1)
         plt.ylabel('mIoU')
         plt.xticks(rotation=90)
         plt.subplots_adjust(bottom=0.5)

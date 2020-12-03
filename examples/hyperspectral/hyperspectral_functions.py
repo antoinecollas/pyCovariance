@@ -79,13 +79,12 @@ class HyperparametersKMeans():
         # image
         self.crop_image = crop_image
         if crop_image:
-            self.size_crop = 25
+            self.size_crop = 30
 
         # multi processing
         self.enable_multi = enable_multi
         self.nb_threads_rows = os.cpu_count()//2
         self.nb_threads_columns = 2
-        self.nb_threads = os.cpu_count()
 
         # preprocessing
         self.pca = pca
