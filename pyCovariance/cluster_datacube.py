@@ -102,7 +102,7 @@ def K_means_datacube(
             iter_max=n_iter_max,
             enable_multi_distance=enable_multi,
             enable_multi_mean=enable_multi,
-            nb_threads=os.cpu_count()
+            nb_threads=nb_threads_rows*nb_threads_columns
         )
 
         if criterion_value < best_criterion_value:

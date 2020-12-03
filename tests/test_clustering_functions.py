@@ -66,10 +66,9 @@ def test_compute_means_parallel():
 
     # single thread
     m = compute_means_parallel(X,
-                               K,
                                C,
                                pix.mean,
-                               enable_multi=False).export()
+                               nb_threads=1).export()
     assert m.dtype == np.float64
     assert m.shape == (K, p)
     for k in range(K):
@@ -77,10 +76,9 @@ def test_compute_means_parallel():
 
     # multiple threads
     m = compute_means_parallel(X,
-                               K,
                                C,
                                pix.mean,
-                               enable_multi=True).export()
+                               nb_threads=os.cpu_count()).export()
     assert m.dtype == np.float64
     assert m.shape == (K, p)
     for k in range(K):

@@ -111,10 +111,9 @@ def compute_means(
 
 def compute_means_parallel(
     X,
-    K,
     C,
     mean_function,
-    enable_multi=False,
+    nb_threads,
     verbose=False
 ):
     """ A simple function to compute all means in parallel for K-mean
@@ -123,13 +122,12 @@ def compute_means_parallel(
         Inputs:
         --------
             * X = an np array of N data points
-            * K = number of classes
             * C = an array of shape (N,)
             with each sample with a label in {0,..., K-1}
             * mean_function = function to compute mean and takes as input:
                               ** X_class = a list of M data points
                               corresponding to samples in class
-            * enable_multi = enable or not parallel computation
+            * nb_threads = maximum number of threads
             * verbose = boolean
 
         Outputs:
@@ -137,31 +135,46 @@ def compute_means_parallel(
             * mu = a list containing all means of classes
         """
 
+    K = len(np.unique(C))
+
     # -----------------------------------------------------------
     # Case: Multiprocessing is enabled
     # -----------------------------------------------------------
-    if enable_multi:
-        mu = [None for i in range(K)]
-        queues = [Queue() for i in range(K)]
-        args = list()
-        for i in range(K):
-            X_class = X[C == i]
-            args.append((X_class, mean_function, True, queues[i], i))
-        jobs = [Process(target=compute_means, args=a) for a in args]
-        # Starting parallel computation
-        for j in jobs:
-            j.start()
-        # Obtaining result for each thread
-        for q in queues:
-            tmp = q.get()
-            mu[tmp[1]] = tmp[0]
-        mu2 = mu[0]
-        for i in range(1, K):
-            mu2.append(mu[i])
-        mu = mu2
-        # Waiting for each thread to terminate
-        for j in jobs:
-            j.join()
+    if nb_threads > 1:
+        means_to_compute = np.arange(K)
+        mu = None
+
+        while len(means_to_compute) != 0:
+            nb_means = min(nb_threads, len(means_to_compute))
+            classes = means_to_compute[:nb_means]
+            means_to_compute = means_to_compute[nb_means:]
+
+            mu_temp = [None for _ in classes]
+            queues = [Queue() for _ in classes]
+            args = list()
+            for i, k in enumerate(classes):
+                X_class = X[C == k]
+                args.append((X_class, mean_function, True, queues[i], i))
+            jobs = [Process(target=compute_means, args=a) for a in args]
+            # Starting parallel computation
+            for j in jobs:
+                j.start()
+            # Obtaining result for each thread
+            for q in queues:
+                tmp = q.get()
+                mu_temp[tmp[1]] = tmp[0]
+            mu2 = mu_temp[0]
+            for i in range(1, len(classes)):
+                mu2.append(mu_temp[i])
+            mu_temp = mu2
+            # Waiting for each thread to terminate
+            for j in jobs:
+                j.join()
+
+            if mu is None:
+                mu = mu_temp
+            else:
+                mu.append(mu_temp)
 
     # -----------------------------------------------------------
     # Case: Multiprocessing is not enabled
@@ -264,10 +277,9 @@ def K_means(
     else:
         mu = compute_means_parallel(
             X,
-            K,
             init,
             mean_function,
-            enable_multi=enable_multi_mean,
+            nb_threads,
             verbose=verbose
         )
 
@@ -329,10 +341,9 @@ def K_means(
         tb = time.time()
         mu = compute_means_parallel(
             X,
-            K,
             C,
             mean_function,
-            enable_multi=enable_multi_mean,
+            nb_threads,
             verbose=verbose
         )
         te = time.time()
