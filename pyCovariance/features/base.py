@@ -2,6 +2,7 @@ import autograd.numpy as np
 from copy import deepcopy
 import pymanopt.manifolds as man
 from pymanopt.manifolds.product import _ProductTangentVector
+import warnings
 
 
 class _FeatureArray():
@@ -255,6 +256,10 @@ class Feature():
             g = minus_grad(theta)
 
             _iter += 1
+
+        if ((self._M.norm(theta.export(), g.export()) > self._eps_grad) and
+               (_iter == self._iter_max)):
+            warnings.warn('Mean computation did not converge.')
 
         return theta
 
