@@ -1,8 +1,7 @@
 from pyCovariance.datasets.hyperspectral import Dataset
 from pyCovariance.features import tau_UUH
 
-from examples.hyperspectral import\
-        k_means_window_size_nb_bands as hyper_k_means
+from examples.hyperspectral import k_means
 
 
 def test_hyperspectral_indian_pines():
@@ -19,7 +18,7 @@ def test_hyperspectral_indian_pines():
             tau_UUH(p, k, w*w)
         ])
 
-    hyper_k_means.main(
+    k_means.main(
         dataset=dataset,
         crop_image=True,
         nb_threads=1,
@@ -43,7 +42,7 @@ def test_hyperspectral_pavia():
             'sklearn',
         ])
 
-    hyper_k_means.main(
+    k_means.main(
         dataset=dataset,
         crop_image=True,
         nb_threads=1,
