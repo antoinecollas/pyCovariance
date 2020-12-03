@@ -12,7 +12,7 @@ from pyCovariance.features import\
         covariance_texture,\
         tau_UUH
 
-from .hyperspectral_functions import\
+from pyCovariance.datasets.hyperspectral import\
         Dataset,\
         evaluate_and_save_clustering,\
         HyperparametersKMeans,\

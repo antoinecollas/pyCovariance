@@ -5,10 +5,9 @@ from scipy.io import loadmat
 from sklearn.cluster import KMeans
 import time
 
-from pyCovariance import\
-        K_means_datacube,\
-        pca_image
-from pyCovariance.evaluation import\
+from ..cluster_datacube import K_means_datacube
+from ..pca import pca_image
+from ..evaluation import\
         assign_segmentation_classes_to_gt_classes,\
         compute_AMI,\
         compute_ARI,\
