@@ -21,6 +21,7 @@ from ..evaluation import\
 class Dataset():
     def __init__(self, name):
         self.name = name
+        self.size_crop = 30
         if name == 'Pavia':
             self.path = 'data/Pavia/PaviaU.mat'
             self.key_dict = 'paviaU'
@@ -38,6 +39,25 @@ class Dataset():
         else:
             print(name)
             raise NotImplementedError
+
+    def load(self, crop_image):
+        image = loadmat(self.path)[self.key_dict]
+        gt = loadmat(self.path_gt)[self.key_dict_gt]
+        gt = gt.astype(np.int64)
+
+        # 'no class' has label -1
+        gt -= 1
+
+        if crop_image:
+            center = np.array(image.shape[0:2])//2
+            half_height = self.size_crop//2
+            half_width = self.size_crop//2
+            image = image[center[0]-half_height:center[0]+half_height,
+                          center[1]-half_width:center[1]+half_width]
+            gt = gt[center[0]-half_height:center[0]+half_height,
+                    center[1]-half_width:center[1]+half_width]
+
+        return image, gt
 
 
 class HyperparametersKMeans():
@@ -77,8 +97,6 @@ class HyperparametersKMeans():
         '''
         # image
         self.crop_image = crop_image
-        if crop_image:
-            self.size_crop = 30
 
         # multi processing
         if nb_threads > 1:
@@ -108,20 +126,10 @@ def K_means_hyperspectral_image(dataset, hyperparams):
 
     print("###################### PREPROCESSING ######################")
     # load image and gt
-    image = loadmat(dataset.path)[dataset.key_dict]
-    gt = loadmat(dataset.path_gt)[dataset.key_dict_gt]
-    gt = gt.astype(np.int64)
-    gt -= 1
+    image, gt = dataset.load(hyperparams.crop_image)
     print('Crop image:', hyperparams.crop_image)
-    if hyperparams.crop_image:
-        center = np.array(image.shape[0:2])//2
-        half_height = hyperparams.size_crop//2
-        half_width = hyperparams.size_crop//2
-        image = image[center[0]-half_height:center[0]+half_height,
-                      center[1]-half_width:center[1]+half_width]
-        gt = gt[center[0]-half_height:center[0]+half_height,
-                center[1]-half_width:center[1]+half_width]
-    nb_classes = len(np.unique(gt)) - 1
+
+    nb_classes = np.sum(np.unique(gt)>=0)
 
     # center image globally
     mean = np.mean(image, axis=0)
@@ -157,9 +165,8 @@ def K_means_hyperspectral_image(dataset, hyperparams):
             max_iter=hyperparams.nb_iter_max,
             tol=hyperparams.eps
         ).fit_predict(X)
-        temp = temp+1
         if mask is not None:
-            C = np.zeros((n_r-2*w, n_c-2*w))
+            C = np.zeros((n_r-2*w, n_c-2*w)) - 1
             C[mask] = temp
         else:
             C = temp
@@ -176,8 +183,6 @@ def K_means_hyperspectral_image(dataset, hyperparams):
             hyperparams.nb_threads_rows,
             hyperparams.nb_threads_columns
         )
-        C = C.squeeze()
-    C = C.astype(np.int)
 
     t_end = time.time()
     print('TOTAL TIME ELAPSED:', round(t_end-t_beginning, 1), 's')
@@ -194,14 +199,8 @@ def evaluate_and_save_clustering(
 ):
     print('###################### EVALUATION ######################')
 
-    # ground truth path
-    gt = loadmat(dataset.path_gt)[dataset.key_dict_gt]
-    if hyperparams.crop_image:
-        center = np.array(gt.shape[0:2])//2
-        half_height = hyperparams.size_crop//2
-        half_width = hyperparams.size_crop//2
-        gt = gt[center[0]-half_height:center[0]+half_height,
-                center[1]-half_width:center[1]+half_width]
+    _, gt = dataset.load(hyperparams.crop_image)
+
     h = (gt.shape[0]-segmentation.shape[0])//2
     w = (gt.shape[1]-segmentation.shape[1])//2
     if (h > 0) and (w > 0):
@@ -234,7 +233,7 @@ def evaluate_and_save_clustering(
     mIoU = round(mIoU, 2)
     temp = 'IoU:'
     for i in range(len(IoU)):
-        temp += ' class ' + str(i + 1) + ': ' + str(round(IoU[i], 2))
+        temp += ' class ' + str(i - min(np.unique(gt))) + ': ' + str(round(IoU[i], 2))
     print(temp)
     print('mIoU=', mIoU)
 
@@ -253,12 +252,14 @@ def evaluate_and_save_clustering(
     ARI = round(ARI, 2)
     print('ARI=', ARI)
 
-    plot_segmentation(gt, title='Ground truth')
+    plot_segmentation(gt - min(np.unique(gt)), title='Ground truth')
     plt.savefig(os.path.join(folder_segmentation, 'gt'))
 
     title = 'mIoU='+str(round(mIoU, 2))+' OA='+str(round(OA, 2))
-    classes = np.unique(gt).astype(np.int)
-    plot_segmentation(segmentation, classes=classes, title=title)
+    classes = np.unique(gt)
+    classes = classes - min(np.unique(classes))
+    plot_segmentation(segmentation - min(np.unique(segmentation)),
+                      classes=classes, title=title)
     f_name = prefix_filename + '_K_means_' + str(hyperparams.features)
     plt.savefig(os.path.join(folder_segmentation, f_name))
 

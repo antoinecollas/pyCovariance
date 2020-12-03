@@ -1,4 +1,5 @@
 import autograd.numpy as np
+from copy import deepcopy
 import matplotlib.pyplot as plt
 import os
 from sklearn.metrics import\
@@ -48,7 +49,7 @@ def assign_segmentation_classes_to_gt_classes(C, gt, normalize=False):
     row_ind, col_ind = linear_sum_assignment(cost_matrix)
     row_ind = classes[row_ind]
     col_ind = classes[col_ind]
-    new_C = np.zeros(C.shape)
+    new_C = deepcopy(C)
     for i, j in zip(col_ind, row_ind):
         new_C[C == i] = j
 

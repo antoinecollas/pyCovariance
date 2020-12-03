@@ -123,8 +123,7 @@ if __name__ == '__main__':
     dataset = Dataset(dataset_name)
     p = dataset.dimension
 
-    pairs_w_k = [(5, 4), (5, 10), (7, 4), (7, 10), (7, 20),
-                 (9, 4), (9, 10), (9, 20), (9, 40)]
+    pairs_w_k = [(5, 4), (7, 10), (7, 20), (9, 10), (9, 30)]
 
     features_list = list()
     for pair in pairs_w_k:
