@@ -57,7 +57,7 @@ def tyler_estimator(X, init=None, tol=1e-8, iter_max=100):
 
     tau = tau.reshape((-1, 1))
 
-    return tau, sigma, delta, iteration
+    return sigma, tau, delta, iteration
 
 
 def tyler_estimator_normalized_det(X, init=None, tol=1e-8, iter_max=100):
@@ -76,14 +76,14 @@ def tyler_estimator_normalized_det(X, init=None, tol=1e-8, iter_max=100):
 
     p, _ = X.shape
 
-    tau, sigma, delta, iteration = tyler_estimator(X, init, tol, iter_max)
+    sigma, tau, delta, iteration = tyler_estimator(X, init, tol, iter_max)
 
     # imposing det constraint: det(sigma) = 1
     c = np.real(la.det(sigma))**(1/p)
     sigma = sigma/c
     tau = c*tau
 
-    return tau, sigma, delta, iteration
+    return sigma, tau, delta, iteration
 
 
 def tyler_estimator_normalized_trace(X, init=None, tol=1e-8, iter_max=100):
@@ -102,31 +102,32 @@ def tyler_estimator_normalized_trace(X, init=None, tol=1e-8, iter_max=100):
 
     p, _ = X.shape
 
-    tau, sigma, delta, iteration = tyler_estimator(X, init, tol, iter_max)
+    sigma, tau, delta, iteration = tyler_estimator(X, init, tol, iter_max)
 
     # imposing trace constraint: Tr(sigma) = p
     c = np.real(np.trace(sigma))/p
     sigma = sigma/c
     tau = c*tau
 
-    return tau, sigma, delta, iteration
+    return sigma, tau, delta, iteration
 
 
 # CLASSES
 
 
-def covariance_texture(N, p, weights=None):
-    name = 'Covariance_texture_Riemannian'
-    M = (StrictlyPositiveVectors, SpecialHermitianPositiveDefinite)
+def covariance_texture(p, N, weights=None):
+    M = (SpecialHermitianPositiveDefinite, StrictlyPositiveVectors)
     if weights is None:
-        weights = (1/N, 1/p)
+        weights = (1/p, 1/N)
     args_M = {
-        'sizes': (N, p),
+        'sizes': (p, N),
         'weights': weights
     }
+    name = 'Covariance_' + str(round(weights[0], 2)) +\
+           '_texture_' + str(round(weights[1], 2))
 
     def _tyler(X):
-        tau, sigma, _, _ = tyler_estimator_normalized_det(X)
-        return tau, sigma
+        sigma, tau, _, _ = tyler_estimator_normalized_det(X)
+        return sigma, tau
 
     return Feature(name, _tyler, M, args_M)
