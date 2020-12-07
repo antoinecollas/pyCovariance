@@ -117,7 +117,7 @@ class Feature():
             * args_manifold = list of arguments of the manifold.
                 * e.g size of matrices.
         """
-        self._name = name
+        self._name = name.replace('.', '_')
         self._estimation = _feature_estimation(estimation)
         self._M_class = manifold
 
