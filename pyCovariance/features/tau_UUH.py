@@ -27,7 +27,7 @@ def estimate_tau_UUH_SCM(X, k):
     U, _, _ = la.svd(X, full_matrices=False)
     U = U[:, :k]
     tau = np.ones((X.shape[1], 1))
-    return U, tau
+    return tau, U
 
 
 # ESTIMATION USING RIEMANNIAN GEOMETRY
@@ -105,7 +105,7 @@ def estimate_tau_UUH_RGD(X, k, autodiff):
     solver = SteepestDescent()
 
     parameters = solver.solve(problem)
-    return parameters[0], parameters[1]
+    return parameters[1], parameters[0]
 
 
 # ESTIMATION
@@ -158,17 +158,18 @@ def estimate_tau_UUH(X, k, tol=0.001, iter_max=100):
     if iteration == iter_max:
         warnings.warn('Estimation algorithm did not converge')
 
-    return U, tau
+    return tau, U
 
 
 # CLASSES
 
 
-def tau_UUH(p, k, N, weights=(1, 1)):
-    name = 'tau_UUH_Riemannian'
-    M = (ComplexGrassmann, StrictlyPositiveVectors)
+def tau_UUH(N, p, k, weights=(1, 1)):
+    name = 'tau_' + str(round(weights[0], 2)) +\
+           '_UUH_' + str(round(weights[1], 2))
+    M = (StrictlyPositiveVectors, ComplexGrassmann)
     args_M = {
-        'sizes': ((p, k), N),
+        'sizes': (N, (p, k)),
         'weights': weights
     }
 

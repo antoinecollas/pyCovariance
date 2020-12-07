@@ -15,7 +15,7 @@ def test_hyperspectral_indian_pines():
     for w, k in pairs_w_k:
         features_list.append([
             'sklearn',
-            tau_UUH(p, k, w*w)
+            tau_UUH(w*w, p, k)
         ])
 
     k_means.main(
