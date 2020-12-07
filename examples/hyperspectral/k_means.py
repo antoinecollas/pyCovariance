@@ -123,7 +123,7 @@ if __name__ == '__main__':
     dataset = Dataset(dataset_name)
     p = dataset.dimension
 
-    pairs_w_k = [(5, 4), (7, 10), (7, 20), (9, 10), (9, 30)]
+    pairs_w_k = [(7, 4), (9, 4), (9, 10), (11, 10)]
 
     features_list = list()
     for pair in pairs_w_k:
@@ -135,8 +135,11 @@ if __name__ == '__main__':
             mean_pixel_euclidean(k),
             covariance_euclidean(k),
             covariance(k),
-            covariance_texture(w*w, k),
-            tau_UUH(p, k, w*w)
+            covariance_texture(k, w*w),
+            tau_UUH(p, k, w*w, weights=(1/k, 1/(w*w))),
+            tau_UUH(p, k, w*w, weights=(1, 1)),
+            tau_UUH(p, k, w*w, weights=(1, 0)),
+            tau_UUH(p, k, w*w, weights=(0, 1))
         ])
 
     main(
