@@ -2,6 +2,7 @@ from datetime import datetime
 import matplotlib
 import matplotlib.pyplot as plt
 import os
+import re
 
 from pyCovariance.features import\
         intensity_euclidean,\
@@ -77,7 +78,8 @@ def main(
 
             print()
 
-            if str(hp.features) == 'tau_UUH_Riemannian':
+            pattern = re.compile('tau_\w*_UUH_\w*')
+            if pattern.match(str(hp.features)):
                 hp.pca = False
             else:
                 hp.pca = True
@@ -136,10 +138,10 @@ if __name__ == '__main__':
             covariance_euclidean(k),
             covariance(k),
             covariance_texture(k, w*w),
-            tau_UUH(p, k, w*w, weights=(1/k, 1/(w*w))),
-            tau_UUH(p, k, w*w, weights=(1, 1)),
-            tau_UUH(p, k, w*w, weights=(1, 0)),
-            tau_UUH(p, k, w*w, weights=(0, 1))
+            tau_UUH(w*w, p, k, weights=(1/(w*w), 1/k)),
+            tau_UUH(w*w, p, k, weights=(1, 1)),
+            tau_UUH(w*w, p, k, weights=(0, 1)),
+            tau_UUH(w*w, p, k, weights=(1, 0)),
         ])
 
     main(
