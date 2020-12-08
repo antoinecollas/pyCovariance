@@ -149,7 +149,7 @@ def K_means_hyperspectral_image(dataset, hyperparams):
     image, gt = dataset.load(hyperparams.crop_image)
     print('Crop image:', hyperparams.crop_image)
 
-    nb_classes = np.sum(np.unique(gt)>=0)
+    nb_classes = np.sum(np.unique(gt) >= 0)
 
     # center image globally
     mean = np.mean(image, axis=0)
@@ -253,7 +253,8 @@ def evaluate_and_save_clustering(
     mIoU = round(mIoU, 2)
     temp = 'IoU:'
     for i in range(len(IoU)):
-        temp += ' class ' + str(i - min(np.unique(gt))) + ': ' + str(round(IoU[i], 2))
+        temp += ' class ' + str(i - min(np.unique(gt))) +\
+                ': ' + str(round(IoU[i], 2))
     print(temp)
     print('mIoU=', mIoU)
 
