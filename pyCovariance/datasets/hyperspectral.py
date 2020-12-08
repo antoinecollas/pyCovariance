@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.io import loadmat
 from sklearn.cluster import KMeans
 import time
+import wget
 
 from ..cluster_datacube import K_means_datacube
 from ..pca import pca_image
@@ -23,6 +24,9 @@ class Dataset():
         self.name = name
         self.size_crop = 30
         if name == 'Pavia':
+            self.url = 'http://www.ehu.eus/ccwintco/uploads/e/ee/PaviaU.mat'
+            self.url_gt =\
+                'http://www.ehu.eus/ccwintco/uploads/5/50/PaviaU_gt.mat'
             self.path = 'data/Pavia/PaviaU.mat'
             self.key_dict = 'paviaU'
             self.path_gt = 'data/Pavia/PaviaU_gt.mat'
@@ -30,6 +34,11 @@ class Dataset():
             self.resolution = [1.3, 1.3]  # resolution in meters
             self.dimension = 103
         elif name == 'Indian_Pines':
+            self.url =\
+                ('http://www.ehu.eus/ccwintco/uploads/6/67/'
+                 'Indian_pines_corrected.mat')
+            self.url_gt =\
+                'http://www.ehu.eus/ccwintco/uploads/c/c4/Indian_pines_gt.mat'
             self.path = 'data/Indian_Pines/Indian_pines_corrected.mat'
             self.key_dict = 'indian_pines_corrected'
             self.path_gt = 'data/Indian_Pines/Indian_pines_gt.mat'
@@ -39,6 +48,17 @@ class Dataset():
         else:
             print(name)
             raise NotImplementedError
+        self.download()
+
+    def download(self):
+        if not os.path.exists(self.path):
+            _dir = os.path.dirname(self.path)
+            os.makedirs(_dir, exist_ok=True)
+            wget.download(self.url, _dir)
+        if not os.path.exists(self.path_gt):
+            _dir = os.path.dirname(self.path_gt)
+            os.makedirs(_dir, exist_ok=True)
+            wget.download(self.url_gt, _dir)
 
     def load(self, crop_image):
         image = loadmat(self.path)[self.key_dict]

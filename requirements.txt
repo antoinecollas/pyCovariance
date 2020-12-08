@@ -7,3 +7,4 @@ scipy==1.5.2
 seaborn==0.10.1
 tikzplotlib==0.9.2
 tqdm==4.46.0
+wget==3.2
