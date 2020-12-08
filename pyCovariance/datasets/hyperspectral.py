@@ -54,10 +54,12 @@ class Dataset():
         if not os.path.exists(self.path):
             _dir = os.path.dirname(self.path)
             os.makedirs(_dir, exist_ok=True)
+            print('\n Download', self.name, 'dataset.')
             wget.download(self.url, _dir)
         if not os.path.exists(self.path_gt):
             _dir = os.path.dirname(self.path_gt)
             os.makedirs(_dir, exist_ok=True)
+            print('\n Download', self.name, 'ground truth.')
             wget.download(self.url_gt, _dir)
 
     def load(self, crop_image):
