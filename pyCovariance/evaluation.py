@@ -31,24 +31,26 @@ def assign_segmentation_classes_to_gt_classes(C, gt, normalize=False):
             * segmented image with the right classes.
     """
     # get classes
-    classes = _get_classes(C, gt)
-    nb_classes = len(classes)
+    classes_gt = _get_classes(gt, gt)
+    classes_C = _get_classes(C, C)
+    assert len(classes_gt) == len(classes_C)
+    nb_classes = len(classes_gt)
 
     cost_matrix = np.zeros((nb_classes, nb_classes))
 
-    for i, class_gt in enumerate(classes):
+    for i, class_gt in enumerate(classes_gt):
         mask = (gt == class_gt)
         if normalize:
             nb_pixels = np.sum(mask)
-        for j, class_C in enumerate(classes):
+        for j, class_C in enumerate(classes_C):
             cost = -np.sum(C[mask] == class_C)
             if normalize:
                 cost /= nb_pixels
             cost_matrix[i, j] = cost
 
     row_ind, col_ind = linear_sum_assignment(cost_matrix)
-    row_ind = classes[row_ind]
-    col_ind = classes[col_ind]
+    row_ind = classes_gt[row_ind]
+    col_ind = classes_C[col_ind]
     new_C = deepcopy(C)
     for i, j in zip(col_ind, row_ind):
         new_C[C == i] = j
@@ -140,18 +142,14 @@ def compute_ARI(C, gt):
     return ARI
 
 
-def plot_segmentation(C, aspect=1, classes=None, title=None):
+def plot_segmentation(C, aspect=1, title=None):
     """ Plot a segmentation map.
         Inputs:
             * C: a (height, width) numpy array of integers (classes.
             * aspect: aspect ratio of the image.
-            * classes: list of numbers of classes
             * title: string used for the title of the figure
     """
-    if classes is not None:
-        max_C, min_C = np.max(classes), np.min(classes)
-    else:
-        max_C, min_C = np.max(C), np.min(C)
+    max_C, min_C = np.max(C), np.min(C)
 
     # get discrete colormap
     cmap = plt.get_cmap('RdBu', max_C-min_C+1)
@@ -185,7 +183,8 @@ def save_segmentation(folder, filename, np_array):
     np.save(path, np_array)
 
 
-def plot_TP_FP_FN_segmentation(C, gt, aspect=1, folder_save=None):
+def plot_TP_FP_FN_segmentation(C, gt, aspect=1,
+                               classes_labels=None, folder_save=None):
     """ Plot True Positive, False Positive, False Negative
     for a segmetnation given a ground truth.
     BE CAREFUL: negative classes are ignored
@@ -193,16 +192,20 @@ def plot_TP_FP_FN_segmentation(C, gt, aspect=1, folder_save=None):
             * C: a (height, width) numpy array of integers (classes).
             * gt: a (height, width) numpy array of integers (classes).
             * aspect: aspect ratio of the image.
+            * classes_labels: list of numbers of classes to put in labels
             * folder_save: string of the path of the folder to save the plots.
             If not, plots are not saved.
     """
     # get classes
     classes = _get_classes(C, gt)
 
+    if classes_labels is not None:
+        assert len(classes) == len(classes_labels)
+
     # get discrete colormap
     cmap = plt.get_cmap('RdBu', 4)
 
-    for i in classes:
+    for i in range(len(classes)):
         to_plot = np.zeros(C.shape)
         # true positive
         mask = np.logical_and((C == i), (gt == i))
@@ -227,7 +230,10 @@ def plot_TP_FP_FN_segmentation(C, gt, aspect=1, folder_save=None):
         cax.set_ticklabels(['Other', 'FN', 'FP', 'TP'])
 
         # title
-        plt.title('Class '+str(i))
+        if classes_labels is None:
+            plt.title('Class '+str(classes[i]))
+        else:
+            plt.title('Class '+str(classes_labels[i]))
 
         # remove grid
         plt.grid(b=False)

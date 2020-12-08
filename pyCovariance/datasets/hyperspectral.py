@@ -255,7 +255,7 @@ def evaluate_and_save_clustering(
     mIoU = round(mIoU, 2)
     temp = 'IoU:'
     for i in range(len(IoU)):
-        temp += ' class ' + str(i - min(np.unique(gt))) +\
+        temp += ' class ' + str(i + 1) +\
                 ': ' + str(round(IoU[i], 2))
     print(temp)
     print('mIoU=', mIoU)
@@ -275,18 +275,16 @@ def evaluate_and_save_clustering(
     ARI = round(ARI, 2)
     print('ARI=', ARI)
 
-    plot_segmentation(gt - min(np.unique(gt)), title='Ground truth')
+    plot_segmentation(gt + 1, title='Ground truth')
     plt.savefig(os.path.join(folder_segmentation, 'gt'))
 
     title = 'mIoU='+str(round(mIoU, 2))+' OA='+str(round(OA, 2))
-    classes = np.unique(gt)
-    classes = classes - min(np.unique(classes))
-    plot_segmentation(segmentation - min(np.unique(segmentation)),
-                      classes=classes, title=title)
+    plot_segmentation(segmentation + 1, title=title)
     f_name = prefix_filename + '_K_means_' + str(hyperparams.features)
     plt.savefig(os.path.join(folder_segmentation, f_name))
 
-    plot_TP_FP_FN_segmentation(segmentation, gt,
+    classes_labels = np.unique(gt[gt >= 0]) + 1
+    plot_TP_FP_FN_segmentation(segmentation, gt, classes_labels=classes_labels,
                                folder_save=folder_detailed_analyses)
 
     plt.close('all')

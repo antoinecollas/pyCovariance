@@ -55,6 +55,11 @@ def test_assign_segmentation_classes_to_gt_classes_and_compute_mIoU():
     _, mIoU = compute_mIoU(C, gt)
     assert mIoU < 0.1
 
+    # we change the number of classes in C
+    C[C == 0] = 8
+    C[C == 1] = 9
+    C[C == 2] = 27
+
     C = assign_segmentation_classes_to_gt_classes(C, gt)
     assert f1_score(gt, C, average='macro') > 0.85
     _, mIoU = compute_mIoU(C, gt)
