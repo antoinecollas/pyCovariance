@@ -259,7 +259,7 @@ class Feature():
 
         criteria = self._M.norm(theta.export(), g.export())
         if ((criteria > self._eps_grad) and
-               (_iter == self._iter_max)):
+           (_iter == self._iter_max)):
             warnings.warn('Mean computation did not converge.')
             print('Mean computation criteria:', criteria)
 
