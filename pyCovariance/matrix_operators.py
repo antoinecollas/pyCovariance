@@ -1,4 +1,5 @@
-# From: https://github.com/alexandrebarachant/pyRiemann/blob/master/pyriemann/utils/base.py
+# From: https://github.com/alexandrebarachant/pyRiemann/
+# blob/master/pyriemann/utils/base.py
 import autograd.numpy as np
 
 
@@ -14,7 +15,8 @@ def sqrtm(Ci):
     """Return the matrix square root of a covariance matrix defined by :
 
     .. math::
-            \mathbf{C} = \mathbf{V} \left( \mathbf{\Lambda} \\right)^{1/2} \mathbf{V}^T
+            \mathbf{C} = \mathbf{V} \left( \mathbf{\Lambda} \\right)^{1/2}
+            \mathbf{V}^T
 
     where :math:`\mathbf{\Lambda}` is the diagonal matrix of eigenvalues
     and :math:`\mathbf{V}` the eigenvectors of :math:`\mathbf{Ci}`
@@ -62,7 +64,8 @@ def invsqrtm(Ci):
     """Return the inverse matrix square root of a covariance matrix defined by :
 
     .. math::
-            \mathbf{C} = \mathbf{V} \left( \mathbf{\Lambda} \\right)^{-1/2} \mathbf{V}^T
+            \mathbf{C} = \mathbf{V} \left( \mathbf{\Lambda} \\right)^{-1/2}
+            \mathbf{V}^T
 
     where :math:`\mathbf{\Lambda}` is the diagonal matrix of eigenvalues
     and :math:`\mathbf{V}` the eigenvectors of :math:`\mathbf{Ci}`
@@ -71,7 +74,8 @@ def invsqrtm(Ci):
     :returns: the inverse matrix square root
 
     """
-    isqrt = lambda x: 1. / np.sqrt(x)
+    def isqrt(x):
+        return 1. / np.sqrt(x)
     return _matrix_operator(Ci, isqrt)
 
 
@@ -79,7 +83,8 @@ def powm(Ci, alpha):
     """Return the matrix power :math:`\\alpha` of a covariance matrix defined by :
 
     .. math::
-            \mathbf{C} = \mathbf{V} \left( \mathbf{\Lambda} \\right)^{\\alpha} \mathbf{V}^T
+            \mathbf{C} = \mathbf{V} \left( \mathbf{\Lambda} \\right)^{\\alpha}
+            \mathbf{V}^T
 
     where :math:`\mathbf{\Lambda}` is the diagonal matrix of eigenvalues
     and :math:`\mathbf{V}` the eigenvectors of :math:`\mathbf{Ci}`
@@ -89,5 +94,6 @@ def powm(Ci, alpha):
     :returns: the matrix power
 
     """
-    power = lambda x: x**alpha
+    def power(x):
+        return x**alpha
     return _matrix_operator(Ci, power)
