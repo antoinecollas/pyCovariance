@@ -34,7 +34,7 @@ def main(
 
     # folder path to save files
     date_str = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
-    folder = os.path.join('results', dataset.name, date_str)
+    folder_main = os.path.join('results', dataset.name, date_str)
 
     # EVALUATION ACCORDING TO WINDOW_SIZE AND NB_BANDS
 
@@ -67,6 +67,7 @@ def main(
         features = features_list[i]
 
         prefix = 'w' + str(w_size) + '_p' + str(p)
+        folder = os.path.join(folder_main, prefix)
 
         # K means and evaluations
         mIoUs = list()
@@ -78,7 +79,7 @@ def main(
 
             print()
 
-            pattern = re.compile('tau_\w*_UUH_\w*')
+            pattern = re.compile(r'tau_\w*_UUH_\w*')
             if pattern.match(str(hp.features)):
                 hp.pca = False
             else:
@@ -91,7 +92,7 @@ def main(
             if (h > 0) and (w > 0):
                 C = C[h:-h, w:-w]
 
-            prefix_f_name = str(i) + '_' + prefix
+            prefix_f_name = str(i)
             mIoU, OA = evaluate_and_save_clustering(C, dataset,
                                                     hp, folder, prefix_f_name)
             mIoUs.append(mIoU)
@@ -104,8 +105,8 @@ def main(
         ax.set_ylim(0, 1)
         plt.ylabel('mIoU')
         plt.xticks(rotation=90)
-        plt.subplots_adjust(bottom=0.5)
-        path = os.path.join('results', dataset.name, date_str, 'mIoU'+prefix)
+        plt.subplots_adjust(bottom=0.4)
+        path = os.path.join(folder, 'mIoU_'+prefix)
         plt.savefig(path)
 
         # Bar plot of OAs
@@ -114,8 +115,8 @@ def main(
         ax.set_ylim(0, 1)
         plt.ylabel('OA')
         plt.xticks(rotation=90)
-        plt.subplots_adjust(bottom=0.5)
-        path = os.path.join('results', dataset.name, date_str, 'OA'+prefix)
+        plt.subplots_adjust(bottom=0.4)
+        path = os.path.join(folder, 'OA_'+prefix)
         plt.savefig(path)
 
 
