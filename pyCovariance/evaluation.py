@@ -205,19 +205,19 @@ def plot_TP_FP_FN_segmentation(C, gt, aspect=1,
     # get discrete colormap
     cmap = plt.get_cmap('RdBu', 4)
 
-    for i in range(len(classes)):
+    for i, k in zip(classes_labels, classes):
         to_plot = np.zeros(C.shape)
         # true positive
-        mask = np.logical_and((C == i), (gt == i))
+        mask = np.logical_and((C == k), (gt == k))
         to_plot[mask] = 3
 
         # false positive
-        mask = np.logical_and(np.logical_and((C == i),
-                                             (gt != i)), np.isin(gt, classes))
+        mask = np.logical_and(np.logical_and((C == k),
+                                             (gt != k)), np.isin(gt, classes))
         to_plot[mask] = 2
 
         # false negative
-        mask = np.logical_and((C != i), (gt == i))
+        mask = np.logical_and((C != k), (gt == k))
         to_plot[mask] = 1
 
         # set limits .5 outside true range
@@ -231,9 +231,9 @@ def plot_TP_FP_FN_segmentation(C, gt, aspect=1,
 
         # title
         if classes_labels is None:
-            plt.title('Class '+str(classes[i]))
+            plt.title('Class '+str(int(k)))
         else:
-            plt.title('Class '+str(classes_labels[i]))
+            plt.title('Class '+str(int(i)))
 
         # remove grid
         plt.grid(b=False)
