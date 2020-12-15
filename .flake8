@@ -1,3 +1,2 @@
 [flake8]
-extend-ignore =
-    W605,
+extend-ignore = W605
