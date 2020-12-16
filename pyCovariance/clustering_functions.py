@@ -256,7 +256,7 @@ def K_means(
             * mu = an array of shape (p,K) corresponding to classes centers
             * i = number of iterations done
             * delta = convergence criterion
-            * criterion_value = value within-class variance
+            * criterion_values = list of values of within-classes variances
     """
     N = len(X)
 
@@ -276,13 +276,14 @@ def K_means(
         )
 
     criterion_value = np.inf
+    criterion_values = list()
     delta = np.inf  # Diff between previous value of criterion and new value
     i = 0  # Iteration
     C = np.empty(N)  # To store clustering results
     time_distances = 0
     time_means = 0
 
-    for i in range(iter_max):
+    while True:
 
         if verbose:
             print("K-mean algorithm iteration %d" % i)
@@ -315,12 +316,19 @@ def K_means(
         if verbose:
             print('############################################')
             print('K-means criterion:', round(new_criterion_value, 2))
+        criterion_values.append(new_criterion_value)
+
         if criterion_value != np.inf:
-            delta = np.abs(criterion_value-new_criterion_value)/criterion_value
+            delta = np.abs(criterion_value - new_criterion_value)
+            delta = delta / criterion_value
             if delta < eps:
                 if verbose:
                     print('Convergence reached:', delta)
                 break
+        if i == iter_max:
+            warnings.warn('K-means algorithm did not converge')
+            break
+
         criterion_value = new_criterion_value
 
         # -----------------------------------------
@@ -337,18 +345,18 @@ def K_means(
             nb_threads,
             verbose=verbose
         )
+
+        i = i + 1
+
         te = time.time()
         time_means += te-tb
 
         if verbose:
             print()
 
-    if i == iter_max-1:
-        warnings.warn('K-means algorithm did not converge')
-
     if verbose:
         print('Total time to compute distances\
               between samples and classes: ', int(time_distances), 's.')
         print('Total time to compute new means: ', int(time_means), 's.')
 
-    return (C, mu, i + 1, delta, criterion_value)
+    return (C, mu, i, delta, criterion_values)

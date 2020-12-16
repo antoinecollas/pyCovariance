@@ -93,7 +93,7 @@ def test_real_K_means_datacube():
 
     sys.stdout = open(os.devnull, 'w')
     sys.stderr = open(os.devnull, 'w')
-    C = K_means_datacube(
+    C, criterion_values = K_means_datacube(
         image,
         MASK,
         FEATURE,
@@ -110,6 +110,7 @@ def test_real_K_means_datacube():
 
     assert C.shape == gt.shape
     assert C.dtype == np.int64
+    assert type(criterion_values) == list
 
     # import matplotlib.pyplot as plt
     # plot_segmentation(C)
@@ -131,7 +132,7 @@ def test_real_K_means_datacube():
 
     sys.stdout = open(os.devnull, 'w')
     sys.stderr = open(os.devnull, 'w')
-    C = K_means_datacube(
+    C, criterion_values = K_means_datacube(
         image,
         MASK,
         FEATURE,
@@ -148,6 +149,7 @@ def test_real_K_means_datacube():
 
     assert C.shape == gt.shape
     assert C.dtype == np.int64
+    assert type(criterion_values) == list
 
     MASK = MASK[h:-h, w:-w].astype(bool)
     assert (C[~MASK] == -1).all()
@@ -174,7 +176,7 @@ def test_real_K_means_datacube():
 
     sys.stdout = open(os.devnull, 'w')
     sys.stderr = open(os.devnull, 'w')
-    C = K_means_datacube(
+    C, criterion_values = K_means_datacube(
         image,
         MASK,
         FEATURE,
@@ -191,6 +193,7 @@ def test_real_K_means_datacube():
 
     assert C.shape == gt.shape
     assert C.dtype == np.int64
+    assert type(criterion_values) == list
 
     # import matplotlib.pyplot as plt
     # plot_segmentation(C)
@@ -247,7 +250,7 @@ def test_complex_K_means_datacube():
 
     sys.stdout = open(os.devnull, 'w')
     sys.stderr = open(os.devnull, 'w')
-    C = K_means_datacube(
+    C, criterion_values = K_means_datacube(
         image,
         MASK,
         FEATURE,
@@ -264,6 +267,7 @@ def test_complex_K_means_datacube():
 
     assert C.shape == gt.shape
     assert C.dtype == np.int64
+    assert type(criterion_values) == list
 
     # import matplotlib.pyplot as plt
     # plot_segmentation(C)

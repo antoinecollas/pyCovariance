@@ -91,7 +91,7 @@ class HyperparametersKMeans():
         nb_bands_to_select,
         mask,
         window_size,
-        features,
+        feature,
         nb_init,
         nb_iter_max,
         eps
@@ -110,7 +110,7 @@ class HyperparametersKMeans():
                     where there is a ground truth.
                 window_size: int. Number of pixels of height and
                     width in the window.
-                features: Feature to use to cluster.
+                feature: Feature to use to cluster.
                 nb_init: int. Number of initialisations.
                     Best clustering is kept.
                 nb_iter_max: int. Maximum number of iterations
@@ -133,9 +133,9 @@ class HyperparametersKMeans():
         self.nb_bands_to_select = nb_bands_to_select
         self.mask = mask
 
-        # features
+        # feature
         self.window_size = window_size
-        self.features = features
+        self.feature = feature
 
         # K-means
         self.nb_init = nb_init
@@ -173,7 +173,7 @@ def K_means_hyperspectral_image(dataset, hyperparams):
     else:
         mask = None
 
-    if hyperparams.features == 'sklearn':
+    if hyperparams.feature == 'sklearn':
         h = w = hyperparams.window_size//2
         X = image[h:-h, w:-w, :]
         mask = mask[h:-h, w:-w]
@@ -181,22 +181,24 @@ def K_means_hyperspectral_image(dataset, hyperparams):
             X = X[mask]
         else:
             X = X.reshape((-1, hyperparams.nb_bands_to_select))
-        temp = KMeans(
+        sklearn_K_means = KMeans(
             n_clusters=nb_classes,
             n_init=hyperparams.nb_init,
             max_iter=hyperparams.nb_iter_max,
             tol=hyperparams.eps
-        ).fit_predict(X)
+        )
+        temp = sklearn_K_means.fit_predict(X)
         if mask is not None:
             C = np.zeros((n_r-2*w, n_c-2*w)) - 1
             C[mask] = temp
         else:
             C = temp
+        criterion_values = [sklearn_K_means.inertia_]
     else:
-        C = K_means_datacube(
+        C, criterion_values = K_means_datacube(
             image,
             mask,
-            hyperparams.features,
+            hyperparams.feature,
             hyperparams.window_size,
             nb_classes,
             hyperparams.nb_init,
@@ -209,7 +211,7 @@ def K_means_hyperspectral_image(dataset, hyperparams):
     t_end = time.time()
     print('TOTAL TIME ELAPSED:', round(t_end-t_beginning, 1), 's')
 
-    return C
+    return C, criterion_values
 
 
 def evaluate_and_save_clustering(
@@ -239,7 +241,7 @@ def evaluate_and_save_clustering(
     folder_segmentation = os.path.join(folder, 'segmentations')
     if not os.path.isdir(folder_segmentation):
         os.makedirs(folder_segmentation, exist_ok=True)
-    f_name = prefix_filename+'_'+str(hyperparams.features)
+    f_name = prefix_filename+'_'+str(hyperparams.feature)
     folder_detailed_analyses = os.path.join(folder,
                                             'detailed_analyses', f_name)
     if not os.path.isdir(folder_detailed_analyses):
@@ -247,7 +249,7 @@ def evaluate_and_save_clustering(
 
     segmentation = assign_segmentation_classes_to_gt_classes(
         segmentation, gt, normalize=False)
-    f_name = prefix_filename + '_K_means_' + str(hyperparams.features)
+    f_name = prefix_filename + '_K_means_' + str(hyperparams.feature)
     save_segmentation(folder_npy, f_name, segmentation)
 
     # mIoU
@@ -280,7 +282,7 @@ def evaluate_and_save_clustering(
 
     title = 'mIoU='+str(round(mIoU, 2))+' OA='+str(round(OA, 2))
     plot_segmentation(segmentation + 1, title=title)
-    f_name = prefix_filename + '_K_means_' + str(hyperparams.features)
+    f_name = prefix_filename + '_K_means_' + str(hyperparams.feature)
     plt.savefig(os.path.join(folder_segmentation, f_name))
 
     classes_labels = np.unique(gt[gt >= 0]) + 1

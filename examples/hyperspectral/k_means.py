@@ -45,7 +45,7 @@ def main(
         nb_bands_to_select=None,
         mask=mask,
         window_size=None,
-        features=None,
+        feature=None,
         nb_init=nb_init,
         nb_iter_max=nb_iter_max,
         eps=1e-3
@@ -75,19 +75,19 @@ def main(
         features_str = list()
 
         for i, feature in enumerate(features):
-            hp.features = feature
+            hp.feature = feature
 
             print()
 
             pattern = re.compile(r'tau_\w*_UUH_\w*')
-            if pattern.match(str(hp.features)):
+            if pattern.match(str(hp.feature)):
                 hp.pca = False
             else:
                 hp.pca = True
 
-            print('Feature:', str(hp.features))
+            print('Feature:', str(hp.feature))
 
-            C = K_means_hyperspectral_image(dataset, hp)
+            C, criterion_values = K_means_hyperspectral_image(dataset, hp)
             h = w = (max_w_size-w_size)//2
             if (h > 0) and (w > 0):
                 C = C[h:-h, w:-w]
@@ -97,7 +97,22 @@ def main(
                                                     hp, folder, prefix_f_name)
             mIoUs.append(mIoU)
             OAs.append(OA)
-            features_str.append(str(hp.features))
+            features_str.append(str(hp.feature))
+
+            # save plot of within classes variances
+            fig, ax = plt.subplots(1)
+            max_iter = 0
+            for k in criterion_values:
+                if len(k) > max_iter:
+                    max_iter = len(k)
+            x = list(range(max_iter))
+            for c_value in criterion_values:
+                plt.plot(x, c_value, '+--')
+            plt.ylabel('sum of within-classes variances')
+            plt.title('Criterion values of ' + str(hp.feature) + ' feature.')
+            temp = 'criterion_' + prefix + '_' + str(hp.feature)
+            path = os.path.join(folder, temp)
+            plt.savefig(path)
 
         # Bar plot of mIoUs
         fig, ax = plt.subplots(1)

@@ -50,6 +50,8 @@ def K_means_datacube(
     Outputs:
     ---------
         * C_best
+        * all_criterion_values = list of within classes variances
+                                of all K_means done
     """
     if image.ndim != 3:
         raise ValueError('Error on image shape !')
@@ -88,8 +90,9 @@ def K_means_datacube(
         X = X[mask]
 
     best_criterion_value = np.inf
+    all_criterion_values = list()
     for _ in tqdm(range(n_init)):
-        C, _, _, _, criterion_value = K_means(
+        C, _, _, _, criterion_values = K_means(
             X,
             n_classes,
             features.distance,
@@ -99,8 +102,9 @@ def K_means_datacube(
             iter_max=n_iter_max,
             nb_threads=nb_threads_rows*nb_threads_columns
         )
+        all_criterion_values.append(criterion_values)
 
-        if criterion_value < best_criterion_value:
+        if criterion_values[-1] < best_criterion_value:
             if mask is not None:
                 C_best = np.zeros((mask.shape[0], 1), dtype=np.int64) - 1
                 C_best[mask] = C.reshape((C.shape[0], 1))
@@ -111,7 +115,7 @@ def K_means_datacube(
 
     print('K-means done in %f s.' % (time.time()-t_beginning))
 
-    return C_best
+    return C_best, all_criterion_values
 
 
 def sliding_window(

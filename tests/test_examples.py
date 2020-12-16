@@ -25,8 +25,8 @@ def test_hyperspectral_indian_pines():
         pairs_window_size_nb_bands=pairs_w_k,
         mask=True,
         features_list=features_list,
-        nb_init=1,
-        nb_iter_max=1
+        nb_init=2,
+        nb_iter_max=2
     )
 
 
@@ -50,5 +50,5 @@ def test_hyperspectral_pavia():
         mask=True,
         features_list=features_list,
         nb_init=1,
-        nb_iter_max=1
+        nb_iter_max=2
     )
