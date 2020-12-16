@@ -101,12 +101,8 @@ def main(
 
             # save plot of within classes variances
             fig, ax = plt.subplots(1)
-            max_iter = 0
-            for k in criterion_values:
-                if len(k) > max_iter:
-                    max_iter = len(k)
-            x = list(range(max_iter))
             for c_value in criterion_values:
+                x = list(range(len(c_value)))
                 plt.plot(x, c_value, '+--')
             plt.ylabel('sum of within-classes variances')
             plt.title('Criterion values of ' + str(hp.feature) + ' feature.')
