@@ -193,7 +193,7 @@ def K_means_hyperspectral_image(dataset, hyperparams):
             C[mask] = temp
         else:
             C = temp
-        criterion_values = [sklearn_K_means.inertia_]
+        criterion_values = [[sklearn_K_means.inertia_]]
     else:
         C, criterion_values = K_means_datacube(
             image,
