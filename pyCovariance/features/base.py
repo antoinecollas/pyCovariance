@@ -144,8 +144,8 @@ class Feature():
             self._M = manifold(*(self._dimensions))
 
         self._M._point_layout = 1
-        self._eps_grad = 1e-8
-        self._iter_max = 200
+        self._eps = 1e-4
+        self._iter_max = 50
 
     def __str__(self):
         """ Name of the feature"""
@@ -206,7 +206,10 @@ class Feature():
             M = self._M_class(*dim, len(X))
 
         def _cost(X, theta):
-            d_squared = M.dist(theta.export(), X.export())**2
+            theta_batch = deepcopy(theta)
+            for _ in range(len(X)-1):
+                theta_batch.append(theta)
+            d_squared = M.dist(theta_batch.export(), X.export())**2
             return d_squared
 
         def _minus_grad(X, theta):
@@ -216,7 +219,7 @@ class Feature():
             minus_grad = M.log(theta_batch.export(), X.export())
             if type(minus_grad) is np.ndarray:
                 minus_grad = [minus_grad]
-            minus_grad = [np.array(np.mean(minus_grad[i], axis=0))
+            minus_grad = [2*np.array(np.sum(minus_grad[i], axis=0))
                           for i in range(len(minus_grad))]
             a = _FeatureArray(*[minus_grad[i].shape[1:]
                                 for i in range(len(minus_grad))])
@@ -239,10 +242,13 @@ class Feature():
         g = minus_grad(theta)
 
         _iter = 0
-        while ((self._M.norm(theta.export(), g.export()) > self._eps_grad) and
-               (_iter < self._iter_max)):
-
-            temp = self._M.exp(theta.export(), g.export())
+        lr = 1/(2*len(X))
+        delta = np.inf
+        var = cost(theta)
+        while ((delta > self._eps) and (_iter < self._iter_max)):
+            g_temp = g.export()
+            g_temp = [lr*g_temp[i] for i in range(len(g_temp))]
+            temp = self._M.exp(theta.export(), g_temp)
             if type(temp) not in [list, np.ndarray]:
                 temp = np.array(temp)
             if type(temp) is np.ndarray:
@@ -255,13 +261,15 @@ class Feature():
 
             g = minus_grad(theta)
 
+            new_var = cost(theta)
+            delta = np.abs(new_var - var) / var
+            var = new_var
+
             _iter += 1
 
-        criteria = self._M.norm(theta.export(), g.export())
-        if ((criteria > self._eps_grad) and
-           (_iter == self._iter_max)):
+        if ((delta > self._eps) and (_iter == self._iter_max)):
             warnings.warn('Mean computation did not converge.')
-            print('Mean computation criteria:', criteria)
+            print('Mean computation criteria:', delta)
 
         return theta
 
