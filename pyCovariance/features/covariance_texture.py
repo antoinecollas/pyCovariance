@@ -12,7 +12,7 @@ from ..matrix_operators import invsqrtm
 # ESTIMATION
 
 
-def tyler_estimator(X, init=None, tol=1e-8, iter_max=100):
+def tyler_estimator(X, init=None, tol=1e-4, iter_max=100):
     """ A function that computes the Tyler Fixed Point Estimator
         for covariance matrix estimation
         Inputs:
@@ -60,7 +60,7 @@ def tyler_estimator(X, init=None, tol=1e-8, iter_max=100):
     return sigma, tau, delta, iteration
 
 
-def tyler_estimator_normalized_det(X, init=None, tol=1e-8, iter_max=100):
+def tyler_estimator_normalized_det(X, init=None, tol=1e-4, iter_max=100):
     """ A function that computes the Tyler Fixed Point Estimator.
         Sigma is normalized to have a unit determinant.
         Inputs:
@@ -86,7 +86,7 @@ def tyler_estimator_normalized_det(X, init=None, tol=1e-8, iter_max=100):
     return sigma, tau, delta, iteration
 
 
-def tyler_estimator_normalized_trace(X, init=None, tol=1e-8, iter_max=100):
+def tyler_estimator_normalized_trace(X, init=None, tol=1e-4, iter_max=100):
     """ A function that computes the Tyler Fixed Point Estimator.
         Sigma is normalized to have tr(Sigma) = p
         Inputs:
