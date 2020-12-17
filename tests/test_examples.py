@@ -1,5 +1,5 @@
 from pyCovariance.datasets.hyperspectral import Dataset
-from pyCovariance.features import tau_UUH
+from pyCovariance.features import pixel_euclidean, covariance_texture, tau_UUH
 
 from examples.hyperspectral import k_means
 
@@ -9,13 +9,15 @@ def test_hyperspectral_indian_pines():
     dataset = Dataset(dataset_name)
     p = dataset.dimension
 
-    pairs_w_k = [(3, 4), (5, 4)]
+    pairs_w_k = [(5, 5)]
 
     features_list = list()
     for w, k in pairs_w_k:
         features_list.append([
             'sklearn',
-            tau_UUH(w*w, p, k)
+            pixel_euclidean(k),
+            covariance_texture(k, w*w),
+            tau_UUH(w*w, p, k, weights=(1/(w*w), 1/k))
         ])
 
     k_means.main(
