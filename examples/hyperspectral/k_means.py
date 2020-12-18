@@ -5,7 +5,6 @@ import os
 import re
 
 from pyCovariance.features import\
-        intensity_euclidean,\
         mean_pixel_euclidean,\
         pixel_euclidean,\
         covariance,\
@@ -132,30 +131,57 @@ def main(
 
 
 if __name__ == '__main__':
+    def get_features(pairs_w_k, p):
+        features_list = list()
+        for w, k in pairs_w_k:
+            features_list.append([
+                'sklearn',
+                pixel_euclidean(k),
+                mean_pixel_euclidean(k),
+                covariance_euclidean(k),
+                covariance(k),
+                covariance_texture(k, w*w),
+                tau_UUH(w*w, p, k, weights=(1/(w*w), 1/k)),
+                tau_UUH(w*w, p, k, weights=(0, 1)),
+            ])
+        return features_list
+
+    pairs_w_k = [(5, 5), (7, 5), (9, 5), (7, 3)]
 
     dataset_name = 'Indian_Pines'
     dataset = Dataset(dataset_name)
     p = dataset.dimension
+    features_list = get_features(pairs_w_k, p)
+    main(
+        dataset=dataset,
+        crop_image=False,
+        nb_threads=os.cpu_count(),
+        pairs_window_size_nb_bands=pairs_w_k,
+        mask=True,
+        features_list=features_list,
+        nb_init=5,
+        nb_iter_max=100
+    )
 
-    pairs_w_k = [(5, 5), (7, 5), (9, 5), (7, 10), (9, 10), (7, 20), (9, 20), (9, 40)]
+    dataset_name = 'Salinas'
+    dataset = Dataset(dataset_name)
+    p = dataset.dimension
+    features_list = get_features(pairs_w_k, p)
+    main(
+        dataset=dataset,
+        crop_image=False,
+        nb_threads=os.cpu_count(),
+        pairs_window_size_nb_bands=pairs_w_k,
+        mask=True,
+        features_list=features_list,
+        nb_init=5,
+        nb_iter_max=100
+    )
 
-    features_list = list()
-    for pair in pairs_w_k:
-        w, k = pair
-        features_list.append([
-            intensity_euclidean(),
-            'sklearn',
-            pixel_euclidean(k),
-            mean_pixel_euclidean(k),
-            covariance_euclidean(k),
-            covariance(k),
-            covariance_texture(k, w*w),
-            tau_UUH(w*w, p, k, weights=(1/(w*w), 1/k)),
-            tau_UUH(w*w, p, k, weights=(1, 1)),
-            tau_UUH(w*w, p, k, weights=(0, 1)),
-            tau_UUH(w*w, p, k, weights=(1, 0)),
-        ])
-
+    dataset_name = 'Pavia'
+    dataset = Dataset(dataset_name)
+    p = dataset.dimension
+    features_list = get_features(pairs_w_k, p)
     main(
         dataset=dataset,
         crop_image=False,
