@@ -76,6 +76,17 @@ class _FeatureArray():
             else:
                 self._array[i] = np.concatenate([a, d], axis=0)
 
+    def __mul__(self, other):
+        assert type(other) in [int, float, complex]
+        a = self._array
+        temp = [other*a[i] for i in range(len(a))]
+        f_a = _FeatureArray(*[temp[i].shape[1:] for i in range(len(temp))])
+        f_a.append(temp)
+        return f_a
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
     def export(self):
         a = deepcopy(self._array)
         for i in range(len(a)):
@@ -144,8 +155,8 @@ class Feature():
             self._M = manifold(*(self._dimensions))
 
         self._M._point_layout = 1
-        self._eps = 1e-4
-        self._iter_max = 50
+        self._eps_grad = 1e-6
+        self._iter_max = 500
 
     def __str__(self):
         """ Name of the feature"""
@@ -219,7 +230,7 @@ class Feature():
             minus_grad = M.log(theta_batch.export(), X.export())
             if type(minus_grad) is np.ndarray:
                 minus_grad = [minus_grad]
-            minus_grad = [2*np.array(np.sum(minus_grad[i], axis=0))
+            minus_grad = [np.array(2*np.sum(minus_grad[i], axis=0))
                           for i in range(len(minus_grad))]
             a = _FeatureArray(*[minus_grad[i].shape[1:]
                                 for i in range(len(minus_grad))])
@@ -240,15 +251,11 @@ class Feature():
         # initialisation
         theta = X[int(np.random.randint(len(X), size=1)[0])]
         g = minus_grad(theta)
-
         _iter = 0
         lr = 1/(2*len(X))
-        delta = np.inf
-        var = cost(theta)
-        while ((delta > self._eps) and (_iter < self._iter_max)):
-            g_temp = g.export()
-            g_temp = [lr*g_temp[i] for i in range(len(g_temp))]
-            temp = self._M.exp(theta.export(), g_temp)
+        grad_norm = self._M.norm(theta.export(), g.export())
+        while ((grad_norm > self._eps_grad) and (_iter < self._iter_max)):
+            temp = self._M.exp(theta.export(), (lr*g).export())
             if type(temp) not in [list, np.ndarray]:
                 temp = np.array(temp)
             if type(temp) is np.ndarray:
@@ -261,15 +268,13 @@ class Feature():
 
             g = minus_grad(theta)
 
-            new_var = cost(theta)
-            delta = np.abs(new_var - var) / var
-            var = new_var
-
+            grad_norm = self._M.norm(theta.export(), g.export())
             _iter += 1
 
-        if ((delta > self._eps) and (_iter == self._iter_max)):
+        if ((self._eps_grad > 0) and (grad_norm > self._eps_grad)
+           and (_iter == self._iter_max)):
             warnings.warn('Mean computation did not converge.')
-            print('Mean computation criteria:', delta)
+            print('Mean computation criteria:', grad_norm)
 
         return theta
 

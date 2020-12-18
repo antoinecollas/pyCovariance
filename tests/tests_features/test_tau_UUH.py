@@ -78,4 +78,5 @@ def test_real_tau_UUH():
         temp = np.diag(np.arctan(S))
         grad += Q@temp@Vh
     grad *= -(1/N_mean)
-    assert la.norm(grad) < 1e-8
+    grad_norm = la.norm(grad)
+    assert grad_norm < feature._eps_grad

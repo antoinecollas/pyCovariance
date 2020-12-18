@@ -162,6 +162,26 @@ def test_FeatureArray():
     for i in range(N):
         np_test.assert_equal(a1[i+N].export(), [temp21[i], temp22[i]])
 
+    # test rmul
+    c = 3
+    a = c*a1
+
+    # check values stored
+    for i in range(N):
+        np_test.assert_equal(a[i].export(), [c*temp1[i], c*temp2[i]])
+    for i in range(N):
+        np_test.assert_equal(a[i+N].export(), [c*temp21[i], c*temp22[i]])
+
+    # test mul
+    c = 4
+    a = a1*c
+
+    # check values stored
+    for i in range(N):
+        np_test.assert_equal(a[i].export(), [c*temp1[i], c*temp2[i]])
+    for i in range(N):
+        np_test.assert_equal(a[i+N].export(), [c*temp21[i], c*temp22[i]])
+
 
 def test_product():
     p1 = 10
