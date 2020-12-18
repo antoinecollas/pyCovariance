@@ -279,7 +279,8 @@ class Feature():
             # import matplotlib
             # import matplotlib.pyplot as plt
             # matplotlib.use('TkAgg')
-            # plt.loglog(list(range(1, len(grad_norm_values)+1)), grad_norm_values)
+            # plt.loglog(list(range(1, len(grad_norm_values)+1)),
+            # grad_norm_values)
             # plt.show()
 
         return theta
