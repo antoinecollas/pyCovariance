@@ -45,6 +45,18 @@ class Dataset():
             self.key_dict_gt = 'indian_pines_gt'
             self.resolution = [1.3, 1.3]  # resolution in meters
             self.dimension = 200
+        elif name == 'Salinas':
+            self.url =\
+                ('http://www.ehu.eus/ccwintco/uploads/a/a3/'
+                 'Salinas_corrected.mat')
+            self.url_gt =\
+                'http://www.ehu.eus/ccwintco/uploads/f/fa/Salinas_gt.mat'
+            self.path = 'data/Salinas/Salinas_corrected.mat'
+            self.key_dict = 'salinas_corrected'
+            self.path_gt = 'data/Salinas/Salinas_gt.mat'
+            self.key_dict_gt = 'salinas_gt'
+            self.resolution = [1.3, 1.3]  # resolution in meters
+            self.dimension = 204
         else:
             print(name)
             raise NotImplementedError
