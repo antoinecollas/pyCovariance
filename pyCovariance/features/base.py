@@ -155,7 +155,7 @@ class Feature():
             self._M = manifold(*(self._dimensions))
 
         self._M._point_layout = 1
-        self._eps_grad = 1e-5
+        self._eps_grad = 1e-6
         self._iter_max = 500
 
     def __str__(self):
@@ -221,6 +221,7 @@ class Feature():
             for _ in range(len(X)-1):
                 theta_batch.append(theta)
             d_squared = M.dist(theta_batch.export(), X.export())**2
+            d_squared = 1 / (2 * len(X)) * d_squared
             return d_squared
 
         def _minus_grad(X, theta):
@@ -230,7 +231,7 @@ class Feature():
             minus_grad = M.log(theta_batch.export(), X.export())
             if type(minus_grad) is np.ndarray:
                 minus_grad = [minus_grad]
-            minus_grad = [np.array(2*np.sum(minus_grad[i], axis=0))
+            minus_grad = [np.array(np.mean(minus_grad[i], axis=0))
                           for i in range(len(minus_grad))]
             a = _FeatureArray(*[minus_grad[i].shape[1:]
                                 for i in range(len(minus_grad))])
@@ -252,8 +253,8 @@ class Feature():
         theta = X[int(np.random.randint(len(X), size=1)[0])]
         g = minus_grad(theta)
         _iter = 0
-        lr = 1/(2*len(X))
-        grad_norm = self._M.norm(theta.export(), g.export())
+        lr = 1
+        grad_norm = float(self._M.norm(theta.export(), g.export()))
         while ((grad_norm > self._eps_grad) and (_iter < self._iter_max)):
             temp = self._M.exp(theta.export(), (lr*g).export())
             if type(temp) not in [list, np.ndarray]:
@@ -268,13 +269,18 @@ class Feature():
 
             g = minus_grad(theta)
 
-            grad_norm = self._M.norm(theta.export(), g.export())
+            grad_norm = float(self._M.norm(theta.export(), g.export()))
             _iter += 1
 
         if ((self._eps_grad > 0) and (grad_norm > self._eps_grad)
            and (_iter == self._iter_max)):
             warnings.warn('Mean computation did not converge.')
             print('Mean computation criteria:', grad_norm)
+            # import matplotlib
+            # import matplotlib.pyplot as plt
+            # matplotlib.use('TkAgg')
+            # plt.loglog(list(range(1, len(grad_norm_values)+1)), grad_norm_values)
+            # plt.show()
 
         return theta
 
