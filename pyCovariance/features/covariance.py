@@ -15,7 +15,8 @@ def compute_scm(X):
             Outputs:
                 * Sigma = the estimate"""
     (p, N) = X.shape
-    return (X @ X.conj().T) / N
+    scm = (X @ X.conj().T) / N
+    return scm
 
 # CLASSES
 
