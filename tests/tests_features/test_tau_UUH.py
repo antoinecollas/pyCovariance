@@ -41,7 +41,7 @@ def test_real_tau_UUH():
     theta1.append([tau1, U1])
     tau2 = generate_textures(N)
     U2 = generate_stiefel(p, k)
-    theta2 = _FeatureArray((p, k), (N, 1))
+    theta2 = _FeatureArray((N, 1), (p, k))
     theta2.append([tau2, U2])
     d1 = feature.distance(theta1, theta2)
     assert d1.ndim == 0
