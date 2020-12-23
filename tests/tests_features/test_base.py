@@ -164,7 +164,13 @@ def test_FeatureArray():
 
     # test rmul
     c = 3
+    shape_a1 = a1.shape
+    dtype_a1 = a1.dtype
     a = c*a1
+    shape_a = a.shape
+    dtype_a = a.dtype
+    assert shape_a == shape_a1
+    assert dtype_a == dtype_a1
 
     # check values stored
     for i in range(N):
@@ -174,7 +180,11 @@ def test_FeatureArray():
 
     # test mul
     c = 4
+    shape_a1 = a1.shape
     a = a1*c
+    shape_a = a.shape
+    assert shape_a == shape_a1
+
 
     # check values stored
     for i in range(N):

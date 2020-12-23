@@ -9,17 +9,17 @@ class _FeatureArray():
     def __init__(self, *shape):
         self._array = None
         self._shape = shape
+        self._size_preallocation = int(1e3)
+        self._len = 0
 
     def __str__(self):
         return self._array.__str__()
 
     def __empty(self):
-        return self._array is None
+        return len(self) == 0
 
     def __len__(self):
-        if self.__empty():
-            return 0
-        return len(self._array[0])
+        return self._len
 
     @property
     def dtype(self):
@@ -31,14 +31,20 @@ class _FeatureArray():
     def shape(self):
         if self.__empty():
             return self.__len__()
-        return tuple([self._array[i].shape for i in range(len(self._array))])
+        shape = list()
+        for i in range(len(self._shape)):
+            shape.append((len(self), *(self._shape[i])))
+        shape = tuple(shape)
+        return shape
 
     @property
     def nb_manifolds(self):
         return len(self._shape)
 
     def __getitem__(self, key):
+        assert len(self) > 0
         a = self._array
+        a = [a[i][:len(self)] for i in range(len(a))]
         temp = [a[i][key] for i in range(len(a))]
         if type(key) == int:
             temp = [temp[i][np.newaxis, ...] for i in range(len(temp))]
@@ -49,11 +55,11 @@ class _FeatureArray():
     def append(self, data):
         assert type(data) in [np.ndarray, list, tuple, _FeatureArray]
 
+        if type(data) == _FeatureArray:
+            data = data.export()
+
         if type(data) == np.ndarray:
             data = [data]
-
-        if type(data) == _FeatureArray:
-            data = data._array
 
         if self._array is None:
             self._array = [None]*len(self._shape)
@@ -66,20 +72,26 @@ class _FeatureArray():
                 assert d.dtype == a.dtype, 'Wrong dtype !'
 
             # Add batch dim.
-            if d.ndim == len(self._shape[i]):
+            if len(d.shape) == len(self._shape[i]):
                 d = d[np.newaxis, ...]
 
             assert d.ndim == (len(self._shape[i])+1)
 
+            shape = (self._size_preallocation, *(self._shape[i]))
             if a is None:
-                self._array[i] = d
-            else:
-                self._array[i] = np.concatenate([a, d], axis=0)
+                self._array[i] = np.zeros(shape, dtype=d.dtype)
+            while len(self) + len(d)  > len(self._array[i]):
+                a = self._array[i]
+                temp = np.zeros(shape, dtype=d.dtype)
+                self._array[i] = np.concatenate([a, temp], axis=0)
+            self._array[i][len(self):len(self)+len(d)] = d
+
+        self._len += len(d)
 
     def __mul__(self, other):
         assert type(other) in [int, float, complex]
         a = self._array
-        temp = [other*a[i] for i in range(len(a))]
+        temp = [other*a[i][:len(self)] for i in range(len(a))]
         f_a = _FeatureArray(*[temp[i].shape[1:] for i in range(len(temp))])
         f_a.append(temp)
         return f_a
@@ -88,7 +100,8 @@ class _FeatureArray():
         return self.__mul__(other)
 
     def export(self):
-        a = deepcopy(self._array)
+        temp = [self._array[i][:len(self)] for i in range(self.nb_manifolds)]
+        a = deepcopy(temp)
         for i in range(len(a)):
             if len(a[i]) == 1:
                 a[i] = np.squeeze(a[i], axis=0)
@@ -103,9 +116,9 @@ def _feature_estimation(method):
         f = method(*args, **kwargs)
 
         # return a _FeatureArray
-        if type(f) not in [tuple, list, np.ndarray]:
-            f = np.array(f)
-        if type(f) is np.ndarray:
+        if type(f) in [np.float64, np.complex128]:
+            f = np.array([f])
+        if type(f) == np.ndarray:
             f = [f]
         f_a = _FeatureArray(*[f[i].shape for i in range(len(f))])
         f_a.append(f)
@@ -155,7 +168,7 @@ class Feature():
             self._M = manifold(*(self._dimensions))
 
         self._M._point_layout = 1
-        self._eps_grad = 1e-6
+        self._eps_grad = 1e-8
         self._iter_max = 500
 
     def __str__(self):
@@ -231,7 +244,7 @@ class Feature():
             minus_grad = M.log(theta_batch.export(), X.export())
             if type(minus_grad) is np.ndarray:
                 minus_grad = [minus_grad]
-            minus_grad = [np.array(np.mean(minus_grad[i], axis=0))
+            minus_grad = [np.array(np.mean(minus_grad[i], axis=0, keepdims=True))
                           for i in range(len(minus_grad))]
             a = _FeatureArray(*[minus_grad[i].shape[1:]
                                 for i in range(len(minus_grad))])
