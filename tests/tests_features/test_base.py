@@ -185,7 +185,6 @@ def test_FeatureArray():
     shape_a = a.shape
     assert shape_a == shape_a1
 
-
     # check values stored
     for i in range(N):
         np_test.assert_equal(a[i].export(), [c*temp1[i], c*temp2[i]])

@@ -81,7 +81,7 @@ class _FeatureArray():
                 self._array[i] = d
             else:
                 shape = (self._size_preallocation, *(self._shape[i]))
-                while len(self) + len(d)  > len(self._array[i]):
+                while len(self) + len(d) > len(self._array[i]):
                     a = self._array[i]
                     temp = np.zeros(shape, dtype=a.dtype)
                     self._array[i] = np.concatenate([a, temp], axis=0)
@@ -169,8 +169,8 @@ class Feature():
             self._M = manifold(*(self._dimensions))
 
         self._M._point_layout = 1
-        self._eps_grad = 1e-8
-        self._iter_max = 500
+        self._eps_grad = 1e-6
+        self._iter_max = 1000
 
     def __str__(self):
         """ Name of the feature"""
@@ -245,7 +245,8 @@ class Feature():
             minus_grad = M.log(theta_batch.export(), X.export())
             if type(minus_grad) is np.ndarray:
                 minus_grad = [minus_grad]
-            minus_grad = [np.array(np.mean(minus_grad[i], axis=0, keepdims=True))
+            minus_grad = [np.array(np.mean(minus_grad[i],
+                                           axis=0, keepdims=True))
                           for i in range(len(minus_grad))]
             a = _FeatureArray(*[minus_grad[i].shape[1:]
                                 for i in range(len(minus_grad))])
@@ -269,6 +270,7 @@ class Feature():
         _iter = 0
         lr = 1
         grad_norm = float(self._M.norm(theta.export(), g.export()))
+        # grad_norm_values = [grad_norm]
         while ((grad_norm > self._eps_grad) and (_iter < self._iter_max)):
             temp = self._M.exp(theta.export(), (lr*g).export())
             if type(temp) not in [list, np.ndarray]:
@@ -284,7 +286,11 @@ class Feature():
             g = minus_grad(theta)
 
             grad_norm = float(self._M.norm(theta.export(), g.export()))
+            # grad_norm_values.append(grad_norm)
             _iter += 1
+
+            if _iter in [250, 750]:
+                lr = 0.1 * lr
 
         if ((self._eps_grad > 0) and (grad_norm > self._eps_grad)
            and (_iter == self._iter_max)):
