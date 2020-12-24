@@ -77,14 +77,15 @@ class _FeatureArray():
 
             assert d.ndim == (len(self._shape[i])+1)
 
-            shape = (self._size_preallocation, *(self._shape[i]))
             if a is None:
-                self._array[i] = np.zeros(shape, dtype=d.dtype)
-            while len(self) + len(d)  > len(self._array[i]):
-                a = self._array[i]
-                temp = np.zeros(shape, dtype=d.dtype)
-                self._array[i] = np.concatenate([a, temp], axis=0)
-            self._array[i][len(self):len(self)+len(d)] = d
+                self._array[i] = d
+            else:
+                shape = (self._size_preallocation, *(self._shape[i]))
+                while len(self) + len(d)  > len(self._array[i]):
+                    a = self._array[i]
+                    temp = np.zeros(shape, dtype=a.dtype)
+                    self._array[i] = np.concatenate([a, temp], axis=0)
+                self._array[i][len(self):len(self)+len(d)] = d
 
         self._len += len(d)
 
