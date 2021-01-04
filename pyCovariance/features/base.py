@@ -169,7 +169,7 @@ class Feature():
             self._M = manifold(*(self._dimensions))
 
         self._M._point_layout = 1
-        self._eps_grad = 1e-8
+        self._eps_grad = 1e-6
         self._iter_max = 1000
 
     def __str__(self):

@@ -78,7 +78,7 @@ def test_real_covariance():
         temp = logm(sigmai_isqrtm@m@sigmai_isqrtm)
         condition += sigmai_isqrtm@temp@sigmai_sqrtm
     condition = la.norm(condition)
-    assert condition < 1e-6
+    assert condition < 1e-5
 
 
 def test_complex_covariance():
@@ -144,7 +144,7 @@ def test_complex_covariance():
         temp = logm(sigmai_isqrtm@m@sigmai_isqrtm)
         condition += sigmai_isqrtm@temp@sigmai_sqrtm
     condition = la.norm(condition)
-    assert condition < 1e-6
+    assert condition < 1e-5
 
 
 def test_real_covariance_euclidean():
