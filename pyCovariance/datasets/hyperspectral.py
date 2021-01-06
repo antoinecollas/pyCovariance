@@ -271,7 +271,7 @@ def evaluate_and_save_clustering(
         os.makedirs(folder_detailed_analyses, exist_ok=True)
 
     segmentation = assign_segmentation_classes_to_gt_classes(
-        segmentation, gt, normalize=True)
+        segmentation, gt, normalize=False)
     f_name = prefix_filename + '_K_means_' + str(hyperparams.feature)
     save_segmentation(folder_npy, f_name, segmentation)
 
