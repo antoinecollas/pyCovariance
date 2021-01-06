@@ -102,6 +102,7 @@ class HyperparametersKMeans():
         pca,
         nb_bands_to_select,
         mask,
+        border_size,
         window_size,
         feature,
         nb_init,
@@ -120,6 +121,7 @@ class HyperparametersKMeans():
                     (after a pca or dimentions are randomly chosen).
                 mask: bool. If true it clusters only
                     where there is a ground truth.
+                border_size: int. Border size to not cluster.
                 window_size: int. Number of pixels of height and
                     width in the window.
                 feature: Feature to use to cluster.
@@ -144,6 +146,7 @@ class HyperparametersKMeans():
         self.pca = pca
         self.nb_bands_to_select = nb_bands_to_select
         self.mask = mask
+        self.border_size = border_size
 
         # feature
         self.window_size = window_size
@@ -177,37 +180,39 @@ def K_means_hyperspectral_image(dataset, hyperparams):
     print('PCA:', hyperparams.pca)
 
     n_r, n_c, p = image.shape
-    print('image.shape:', image.shape)
 
     # mask
+    mask = np.ones(gt.shape, dtype=bool)
+    if hyperparams.border_size > 0:
+        bs = hyperparams.border_size
+        mask[:bs] = False
+        mask[-bs:] = False
+        mask[:, :bs] = False
+        mask[:, -bs:] = False
     if hyperparams.mask:
-        mask = (gt >= 0)
-    else:
-        mask = None
+        mask[gt < 0] = False
 
+    h = w = hyperparams.window_size//2
     if hyperparams.feature == 'sklearn':
-        h = w = hyperparams.window_size//2
-        X = image[h:-h, w:-w, :]
-        mask = mask[h:-h, w:-w]
         if mask is not None:
-            X = X[mask]
+            image = image[mask]
         else:
-            X = X.reshape((-1, hyperparams.nb_bands_to_select))
+            image = image.reshape((-1, hyperparams.nb_bands_to_select))
         sklearn_K_means = KMeans(
             n_clusters=nb_classes,
             n_init=hyperparams.nb_init,
             max_iter=hyperparams.nb_iter_max,
             tol=hyperparams.eps
         )
-        temp = sklearn_K_means.fit_predict(X)
+        temp = sklearn_K_means.fit_predict(image)
         if mask is not None:
-            C = np.zeros((n_r-2*w, n_c-2*w)) - 1
+            C = np.zeros((n_r, n_c)) - 1
             C[mask] = temp
         else:
             C = temp
         criterion_values = [[sklearn_K_means.inertia_]]
     else:
-        C, criterion_values = K_means_datacube(
+        temp, criterion_values = K_means_datacube(
             image,
             mask,
             hyperparams.feature,
@@ -219,6 +224,8 @@ def K_means_hyperspectral_image(dataset, hyperparams):
             hyperparams.nb_threads_rows,
             hyperparams.nb_threads_columns
         )
+        C = np.zeros((n_r, n_c)) - 1
+        C[h:-h, w:-w] = temp
 
     t_end = time.time()
     print('TOTAL TIME ELAPSED:', round(t_end-t_beginning, 1), 's')
@@ -236,11 +243,6 @@ def evaluate_and_save_clustering(
     print('###################### EVALUATION ######################')
 
     _, gt = dataset.load(hyperparams.crop_image)
-
-    h = (gt.shape[0]-segmentation.shape[0])//2
-    w = (gt.shape[1]-segmentation.shape[1])//2
-    if (h > 0) and (w > 0):
-        gt = gt[h:-h, w:-w]
 
     assert segmentation.shape == gt.shape,\
            'segmentation.shape:' + str(segmentation.shape) +\

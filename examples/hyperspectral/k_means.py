@@ -36,7 +36,12 @@ def main(
     date_str = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
     folder_main = os.path.join('results', dataset.name, date_str)
 
-    # EVALUATION ACCORDING TO WINDOW_SIZE AND NB_BANDS
+    # get biggest window size to eliminate borders of the image in the mask
+    ws = list()
+    for w, _ in pairs_window_size_nb_bands :
+        ws.append(w)
+    ws.sort()
+    max_w = ws[-1]
 
     hp = HyperparametersKMeans(
         crop_image=crop_image,
@@ -44,6 +49,7 @@ def main(
         pca=None,
         nb_bands_to_select=None,
         mask=mask,
+        border_size=max_w,
         window_size=None,
         feature=None,
         nb_init=nb_init,
@@ -100,9 +106,6 @@ def main(
             print('Feature:', str(hp.feature))
 
             C, criterion_values = K_means_hyperspectral_image(dataset, hp)
-            h = w = (max_w_size-w_size)//2
-            if (h > 0) and (w > 0):
-                C = C[h:-h, w:-w]
 
             prefix_f_name = str(j)
             mIoU, OA = evaluate_and_save_clustering(C, dataset,
@@ -195,12 +198,8 @@ if __name__ == '__main__':
             features_list.append([
                 'sklearn',
                 pixel_euclidean(k),
-                mean_pixel_euclidean(k),
-                covariance_euclidean(k),
                 covariance(k),
-                covariance_texture(k, w*w),
                 tau_UUH(w*w, p, k),
-                tau_UUH(w*w, p, k, weights=(0, 1)),
             ])
         return features_list
 
