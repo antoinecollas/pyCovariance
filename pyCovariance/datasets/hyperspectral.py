@@ -199,6 +199,8 @@ def K_means_hyperspectral_image(dataset, hyperparams):
     if hyperparams.mask:
         mask[gt < 0] = False
 
+    print('image.shape:', image.shape)
+
     h = w = hyperparams.window_size//2
     if hyperparams.feature == 'sklearn':
         if mask is not None:
