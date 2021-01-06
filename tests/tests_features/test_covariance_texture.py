@@ -13,7 +13,7 @@ from pyCovariance.matrix_operators import invsqrtm
 
 def test_complex_covariance_texture():
     p = 5
-    N = int(1e6)
+    N = int(1e5)
     feature = covariance_texture(p, N)
     assert type(str(feature)) is str
 
