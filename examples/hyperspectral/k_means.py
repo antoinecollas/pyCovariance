@@ -1,3 +1,4 @@
+import autograd.numpy as np
 from datetime import datetime
 import matplotlib
 import matplotlib.pyplot as plt
@@ -53,6 +54,14 @@ def main(
     pairs_w_p = pairs_window_size_nb_bands
     max_w_size = pairs_w_p[-1][0]
 
+    # check that there is smae number of features for all (w, p) pairs
+    nb_features = len(features_list[0])
+    for i in range(len(pairs_w_p)):
+        assert nb_features == len(features_list[i])
+
+    matrix_mIoUs = np.zeros((len(pairs_w_p), nb_features))
+    matrix_OAs = np.zeros((len(pairs_w_p), nb_features))
+
     for i, (w_size, p) in enumerate(pairs_w_p):
         print()
         print('########################################################')
@@ -76,9 +85,8 @@ def main(
         # K means and evaluations
         mIoUs = list()
         OAs = list()
-        features_str = list()
 
-        for i, feature in enumerate(features):
+        for j, feature in enumerate(features):
             hp.feature = feature
 
             print()
@@ -96,12 +104,11 @@ def main(
             if (h > 0) and (w > 0):
                 C = C[h:-h, w:-w]
 
-            prefix_f_name = str(i)
+            prefix_f_name = str(j)
             mIoU, OA = evaluate_and_save_clustering(C, dataset,
                                                     hp, folder, prefix_f_name)
             mIoUs.append(mIoU)
             OAs.append(OA)
-            features_str.append(str(hp.feature))
 
             # save plot of within classes variances
             fig, ax = plt.subplots(1)
@@ -110,29 +117,75 @@ def main(
                 plt.plot(x, c_value, '+--')
             plt.ylabel('sum of within-classes variances')
             plt.title('Criterion values of ' + str(hp.feature) + ' feature.')
-            temp = str(i) + '_criterion_' + str(hp.feature)
+            temp = str(j) + '_criterion_' + str(hp.feature)
             path = os.path.join(folder_criteria, temp)
             plt.savefig(path)
 
+            plt.close('all')
+
+        matrix_mIoUs[i, :] = mIoUs
+        matrix_OAs[i, :] = OAs
+
+    # comparison between models for a (w, p) fixed
+    for i, (w_size, p) in enumerate(pairs_w_p):
+        features_str = list()
+        for feature in features:
+            features_str.append(str(feature))
+
+        prefix = 'w' + str(w_size) + '_p' + str(p)
+        folder = os.path.join(folder_main, prefix)
+
         # Bar plot of mIoUs
         fig, ax = plt.subplots(1)
-        ax.bar(features_str, mIoUs, align='center')
+        ax.bar(features_str, matrix_mIoUs[i, :], align='center')
         ax.set_ylim(0, 1)
         plt.ylabel('mIoU')
         plt.xticks(rotation=90)
         plt.subplots_adjust(bottom=0.4)
-        path = os.path.join(folder, 'mIoU_'+prefix)
+        path = os.path.join(folder, 'mIoU_' + prefix)
         plt.savefig(path)
 
         # Bar plot of OAs
         fig, ax = plt.subplots(1)
-        ax.bar(features_str, OAs, align='center')
+        ax.bar(features_str, matrix_OAs[i, :], align='center')
         ax.set_ylim(0, 1)
         plt.ylabel('OA')
         plt.xticks(rotation=90)
         plt.subplots_adjust(bottom=0.4)
-        path = os.path.join(folder, 'OA_'+prefix)
+        path = os.path.join(folder, 'OA_' + prefix)
         plt.savefig(path)
+
+        plt.close('all')
+
+    # comparison between pairs of (w, p) for a fixed model
+    for i, feature in enumerate(features_list[0]):
+        pairs_str = list()
+        for j, (w_size, p) in enumerate(pairs_w_p):
+            pairs_str.append('w' + str(w_size) + '_p' + str(p))
+
+        folder = os.path.join(folder_main)
+
+        # Bar plot of mIoUs
+        fig, ax = plt.subplots(1)
+        ax.bar(pairs_str, matrix_mIoUs[:, i].reshape(-1), align='center')
+        ax.set_ylim(0, 1)
+        plt.ylabel('mIoU')
+        plt.xticks(rotation=90)
+        plt.subplots_adjust(bottom=0.4)
+        path = os.path.join(folder, str(i) + '_mIoU_' + str(feature))
+        plt.savefig(path)
+
+        # Bar plot of OAs
+        fig, ax = plt.subplots(1)
+        ax.bar(pairs_str, matrix_OAs[:, i].reshape(-1), align='center')
+        ax.set_ylim(0, 1)
+        plt.ylabel('OA')
+        plt.xticks(rotation=90)
+        plt.subplots_adjust(bottom=0.4)
+        path = os.path.join(folder, str(i) + '_OA_' + str(feature))
+        plt.savefig(path)
+
+        plt.close('all')
 
 
 if __name__ == '__main__':
