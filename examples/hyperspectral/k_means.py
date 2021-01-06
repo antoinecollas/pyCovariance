@@ -146,7 +146,7 @@ if __name__ == '__main__':
             ])
         return features_list
 
-    pairs_w_k = [(5, 5), (7, 5), (9, 5), (7, 3)]
+    pairs_w_k = [(5, 3), (5, 5), (5, 7), (7, 3), (7, 5), (7, 7), (9, 3), (9, 5), (9, 7)]
 
     dataset_name = 'Indian_Pines'
     dataset = Dataset(dataset_name)
@@ -159,22 +159,7 @@ if __name__ == '__main__':
         pairs_window_size_nb_bands=pairs_w_k,
         mask=True,
         features_list=features_list,
-        nb_init=5,
-        nb_iter_max=100
-    )
-
-    dataset_name = 'Salinas'
-    dataset = Dataset(dataset_name)
-    p = dataset.dimension
-    features_list = get_features(pairs_w_k, p)
-    main(
-        dataset=dataset,
-        crop_image=False,
-        nb_threads=os.cpu_count(),
-        pairs_window_size_nb_bands=pairs_w_k,
-        mask=True,
-        features_list=features_list,
-        nb_init=5,
+        nb_init=10,
         nb_iter_max=100
     )
 
@@ -189,6 +174,21 @@ if __name__ == '__main__':
         pairs_window_size_nb_bands=pairs_w_k,
         mask=True,
         features_list=features_list,
-        nb_init=5,
+        nb_init=10,
+        nb_iter_max=100
+    )
+
+    dataset_name = 'Salinas'
+    dataset = Dataset(dataset_name)
+    p = dataset.dimension
+    features_list = get_features(pairs_w_k, p)
+    main(
+        dataset=dataset,
+        crop_image=False,
+        nb_threads=os.cpu_count(),
+        pairs_window_size_nb_bands=pairs_w_k,
+        mask=True,
+        features_list=features_list,
+        nb_init=10,
         nb_iter_max=100
     )
