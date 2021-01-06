@@ -197,8 +197,12 @@ if __name__ == '__main__':
             features_list.append([
                 'sklearn',
                 pixel_euclidean(k),
+                mean_pixel_euclidean(k),
+                covariance_euclidean(k),
                 covariance(k),
+                covariance_texture(k, w*w),
                 tau_UUH(w*w, p, k),
+                tau_UUH(w*w, p, k, weights=(0, 1)),
             ])
         return features_list
 
