@@ -67,6 +67,11 @@ def main(
 
         prefix = 'w' + str(w_size) + '_p' + str(p)
         folder = os.path.join(folder_main, prefix)
+        if not os.path.exists(folder):
+            os.makedirs(folder, exist_ok=True)
+        folder_criteria = os.path.join(folder, 'K-means_criteria')
+        if not os.path.exists(folder_criteria):
+            os.makedirs(folder_criteria, exist_ok=True)
 
         # K means and evaluations
         mIoUs = list()
@@ -105,8 +110,8 @@ def main(
                 plt.plot(x, c_value, '+--')
             plt.ylabel('sum of within-classes variances')
             plt.title('Criterion values of ' + str(hp.feature) + ' feature.')
-            temp = 'criterion_' + prefix + '_' + str(hp.feature)
-            path = os.path.join(folder, temp)
+            temp = str(i) + '_criterion_' + str(hp.feature)
+            path = os.path.join(folder_criteria, temp)
             plt.savefig(path)
 
         # Bar plot of mIoUs
