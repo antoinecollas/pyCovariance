@@ -164,10 +164,18 @@ def estimate_tau_UUH(X, k, tol=0.001, iter_max=100):
 # CLASSES
 
 
-def tau_UUH(N, p, k, weights=(1, 1)):
-    name = 'tau_' + str(round(weights[0], 2)) +\
-           '_UUH_' + str(round(weights[1], 2))
+def tau_UUH(N, p, k, weights=None):
     M = (StrictlyPositiveVectors, ComplexGrassmann)
+
+    if weights is None:
+        name = 'tau_UUH'
+    else:
+        name = 'tau_' + str(round(weights[0], 2)) +\
+               '_UUH_' + str(round(weights[1], 2))
+
+    if weights is None:
+        weights = (1/N, 1/k)
+
     args_M = {
         'sizes': (N, (p, k)),
         'weights': weights

@@ -51,7 +51,9 @@ def test_real_tau_UUH():
     U, S, Vh = np.linalg.svd(temp, full_matrices=False)
     theta = np.diag(np.arctan(S))
     log_U1_U2 = U@theta@Vh
-    d2 = np.sqrt(la.norm(log_U1_U2)**2 + la.norm(np.log(tau1)-np.log(tau2))**2)
+    d2 = (1/k)*(la.norm(log_U1_U2)**2)
+    d2 += (1/N)*(la.norm(np.log(tau1)-np.log(tau2))**2)
+    d2 = np.sqrt(d2)
     np_test.assert_almost_equal(d1, d2)
 
     # test mean
@@ -78,5 +80,5 @@ def test_real_tau_UUH():
         temp = np.diag(np.arctan(S))
         grad += Q@temp@Vh
     grad *= -(1/N_mean)
-    grad_norm = la.norm(grad)
+    grad_norm = np.sqrt((1/k)*(la.norm(grad)**2))
     assert grad_norm < feature._eps_grad

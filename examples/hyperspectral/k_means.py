@@ -199,12 +199,13 @@ if __name__ == '__main__':
                 covariance_euclidean(k),
                 covariance(k),
                 covariance_texture(k, w*w),
-                tau_UUH(w*w, p, k, weights=(1/(w*w), 1/k)),
+                tau_UUH(w*w, p, k),
                 tau_UUH(w*w, p, k, weights=(0, 1)),
             ])
         return features_list
 
-    pairs_w_k = [(5, 3), (5, 5), (5, 7), (7, 3), (7, 5), (7, 7), (9, 3), (9, 5), (9, 7)]
+    pairs_w_k = [(5, 3), (5, 5), (5, 7), (7, 3),
+                 (7, 5), (7, 7), (9, 3), (9, 5), (9, 7)]
 
     dataset_name = 'Indian_Pines'
     dataset = Dataset(dataset_name)
