@@ -74,7 +74,7 @@ class Dataset():
             print('\n Download', self.name, 'ground truth.')
             wget.download(self.url_gt, _dir)
 
-    def load(self, crop_image):
+    def load(self, crop_image, border_size=0):
         image = loadmat(self.path)[self.key_dict]
         gt = loadmat(self.path_gt)[self.key_dict_gt]
         gt = gt.astype(np.int64)
@@ -90,6 +90,13 @@ class Dataset():
                           center[1]-half_width:center[1]+half_width]
             gt = gt[center[0]-half_height:center[0]+half_height,
                     center[1]-half_width:center[1]+half_width]
+
+        if border_size > 0:
+            bs = border_size
+            gt[:bs, :] = -1
+            gt[-bs:, :] = -1
+            gt[:, :bs] = -1
+            gt[:, -bs:] = -1
 
         return image, gt
 
@@ -242,7 +249,7 @@ def evaluate_and_save_clustering(
 ):
     print('###################### EVALUATION ######################')
 
-    _, gt = dataset.load(hyperparams.crop_image)
+    _, gt = dataset.load(hyperparams.crop_image, hyperparams.border_size)
 
     assert segmentation.shape == gt.shape,\
            'segmentation.shape:' + str(segmentation.shape) +\
