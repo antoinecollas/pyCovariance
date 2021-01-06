@@ -117,14 +117,20 @@ def tyler_estimator_normalized_trace(X, init=None, tol=1e-4, iter_max=100):
 
 def covariance_texture(p, N, weights=None):
     M = (SpecialHermitianPositiveDefinite, StrictlyPositiveVectors)
+
+    if weights is None:
+        name = 'Covariance_texture'
+    else:
+        name = 'Covariance_' + str(round(weights[0], 2)) +\
+               '_texture_' + str(round(weights[1], 2))
+
     if weights is None:
         weights = (1/p, 1/N)
+
     args_M = {
         'sizes': (p, N),
         'weights': weights
     }
-    name = 'Covariance_' + str(round(weights[0], 2)) +\
-           '_texture_' + str(round(weights[1], 2))
 
     def _tyler(X):
         sigma, tau, _, _ = tyler_estimator_normalized_det(X)
