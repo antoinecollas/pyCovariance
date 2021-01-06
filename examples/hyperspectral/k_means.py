@@ -91,7 +91,7 @@ def main(
 
             print()
 
-            pattern = re.compile(r'tau_\w*_UUH_\w*')
+            pattern = re.compile(r'tau_?\w*_UUH_?\w*')
             if pattern.match(str(hp.feature)):
                 hp.pca = False
             else:
