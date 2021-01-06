@@ -38,7 +38,7 @@ def main(
 
     # get biggest window size to eliminate borders of the image in the mask
     ws = list()
-    for w, _ in pairs_window_size_nb_bands :
+    for w, _ in pairs_window_size_nb_bands:
         ws.append(w)
     ws.sort()
     max_w = ws[-1]
@@ -58,7 +58,6 @@ def main(
     )
 
     pairs_w_p = pairs_window_size_nb_bands
-    max_w_size = pairs_w_p[-1][0]
 
     # check that there is smae number of features for all (w, p) pairs
     nb_features = len(features_list[0])
