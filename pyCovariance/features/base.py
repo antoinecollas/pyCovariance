@@ -101,8 +101,7 @@ class _FeatureArray():
         return self.__mul__(other)
 
     def export(self):
-        temp = [self._array[i][:len(self)] for i in range(self.nb_manifolds)]
-        a = deepcopy(temp)
+        a = [self._array[i][:len(self)] for i in range(self.nb_manifolds)]
         for i in range(len(a)):
             if len(a[i]) == 1:
                 a[i] = np.squeeze(a[i], axis=0)
