@@ -41,7 +41,7 @@ def main(
     for w, _ in pairs_window_size_nb_bands:
         ws.append(w)
     ws.sort()
-    max_w = ws[-1]
+    max_w = ws[-1]//2
 
     hp = HyperparametersKMeans(
         crop_image=crop_image,
