@@ -72,13 +72,19 @@ def test_real_tau_UUH():
     m_tau = np.prod(tau, axis=0)**(1/N_mean)
     assert la.norm(m[0]-m_tau)/la.norm(m_tau) < 1e-8
 
-    grad = 0
+    grad_U = 0
     U = theta.export()[1]
     for i in range(N_mean):
         temp = U[i]@np.linalg.inv(m[1].conj().T@U[i])-m[1]
         Q, S, Vh = np.linalg.svd(temp, full_matrices=False)
         temp = np.diag(np.arctan(S))
-        grad += Q@temp@Vh
-    grad *= -(1/N_mean)
-    grad_norm = np.sqrt((1/k)*(la.norm(grad)**2))
-    assert grad_norm < feature._eps_grad
+        grad_U += Q@temp@Vh
+    grad_U *= -(1/N_mean)
+    temp_U = (1/k)*(la.norm(grad_U)**2)
+
+    grad_tau = -(1/N_mean)*np.sum(m_tau*(np.log(tau)-np.log(m_tau)), axis=0)
+    temp_tau = (1/N)*np.sum((1/m_tau)*grad_tau*(1/m_tau)*grad_tau)
+
+    grad_norm = np.sqrt(temp_tau + temp_U)
+
+    assert grad_norm < 1e-6
