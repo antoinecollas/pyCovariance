@@ -27,7 +27,7 @@ def test_real_pca():
     # eigvenvectors have not necessarily same signs
     p1 = image_pca[0, 0]
     p2 = image_pca_sk[0, 0]
-    sign = p1/p2
+    sign = np.sign(p1/p2)
     image_pca_sk = image_pca_sk * sign
 
     np_test.assert_almost_equal(image_pca, image_pca_sk)
