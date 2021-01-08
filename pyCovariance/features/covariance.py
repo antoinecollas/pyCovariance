@@ -22,7 +22,7 @@ def compute_scm(X):
 
 
 def covariance(p):
-    name = 'Covariance_Riemannian'
+    name = 'Covariance'
     M = HermitianPositiveDefinite
     args_M = {'sizes': p}
     return Feature(name, compute_scm, M, args_M)
