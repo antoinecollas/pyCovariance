@@ -9,7 +9,6 @@ from pyCovariance.features import\
         mean_pixel_euclidean,\
         pixel_euclidean,\
         covariance,\
-        covariance_euclidean,\
         covariance_texture,\
         tau_UUH
 
@@ -191,6 +190,10 @@ def main(
 
 
 if __name__ == '__main__':
+    seed = 0
+    np.random.seed(seed)
+    print('seed:', seed)
+
     def get_features(pairs_w_k, p):
         features_list = list()
         for w, k in pairs_w_k:
@@ -198,7 +201,6 @@ if __name__ == '__main__':
                 'sklearn',
                 pixel_euclidean(k),
                 mean_pixel_euclidean(k),
-                covariance_euclidean(k),
                 covariance(k),
                 covariance_texture(k, w*w),
                 tau_UUH(w*w, p, k),
@@ -206,8 +208,9 @@ if __name__ == '__main__':
             ])
         return features_list
 
-    pairs_w_k = [(5, 3), (5, 5), (5, 7), (7, 3),
-                 (7, 5), (7, 7), (9, 3), (9, 5), (9, 7)]
+    pairs_w_k = [(5, 3), (5, 5), (5, 7),
+                 (7, 3), (7, 5), (7, 7),
+                 (9, 3), (9, 5), (9, 7)]
 
     dataset_name = 'Indian_Pines'
     dataset = Dataset(dataset_name)
