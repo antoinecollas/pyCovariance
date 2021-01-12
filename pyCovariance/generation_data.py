@@ -96,6 +96,14 @@ def sample_complex_normal_distribution(N, cov):
     return X
 
 
+def sample_compound_distribution(tau, cov):
+    assert cov.dtype == np.float64
+    N = tau.shape[0]
+    temp = np.sqrt(tau).reshape((1, -1))
+    X = temp*sample_normal_distribution(N, cov)
+    return X
+
+
 def sample_complex_compound_distribution(tau, cov):
     assert cov.dtype == np.complex128
     N = tau.shape[0]

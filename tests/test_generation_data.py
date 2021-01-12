@@ -11,6 +11,7 @@ from pyCovariance.generation_data import generate_complex_covariance, \
         sample_complex_normal_distribution, \
         sample_complex_standard_normal_distribution, \
         sample_complex_tau_UUH_distribution, \
+        sample_compound_distribution, \
         sample_normal_distribution, \
         sample_standard_normal_distribution, \
         sample_tau_UUH_distribution
@@ -145,12 +146,23 @@ def test_sample_complex_normal_distribution():
     # Other tests are carried out in the SCM tests.
 
 
+def test_sample_compound_distribution():
+    p = 5
+    N = 10
+
+    sigma = generate_covariance(p, unit_det=True)
+    tau = generate_textures(N)
+    X = sample_compound_distribution(tau, sigma)
+    assert X.dtype == np.float64
+    assert X.shape == (p, N)
+    # TODO: Add other tests in the Tyler tests ??
+
+
 def test_sample_complex_compound_distribution():
     p = 5
     N = 10
 
-    sigma = generate_complex_covariance(p)
-    sigma = sigma/(np.linalg.det(sigma)**(1/p))
+    sigma = generate_complex_covariance(p, unit_det=True)
     tau = generate_textures(N)
     X = sample_complex_compound_distribution(tau, sigma)
     assert X.dtype == np.complex128
