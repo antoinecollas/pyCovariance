@@ -26,6 +26,18 @@ def test_generate_covariance():
     eigvals, _ = np.linalg.eigh(sigma)
     assert (eigvals > 0).all()
 
+    sigma = generate_covariance(p, unit_det=True)
+
+    # test if sigma is SPD
+    assert sigma.dtype == np.float64
+    np_test.assert_almost_equal(sigma, sigma.T, decimal=3)
+    eigvals, _ = np.linalg.eigh(sigma)
+    assert (eigvals > 0).all()
+
+    # test unit det
+    det = np.linalg.det(sigma)
+    np_test.assert_almost_equal(det, 1)
+
 
 def test_generate_complex_covariance():
     p = 5
@@ -36,6 +48,18 @@ def test_generate_complex_covariance():
     np_test.assert_almost_equal(sigma, sigma.conj().T, decimal=3)
     eigvals, _ = np.linalg.eigh(sigma)
     assert (eigvals > 0).all()
+
+    sigma = generate_complex_covariance(p, unit_det=True)
+
+    # test if sigma is HPD
+    assert sigma.dtype == np.complex128
+    np_test.assert_almost_equal(sigma, sigma.conj().T, decimal=3)
+    eigvals, _ = np.linalg.eigh(sigma)
+    assert (eigvals > 0).all()
+
+    # test unit det
+    det = np.linalg.det(sigma)
+    np_test.assert_almost_equal(det, 1)
 
 
 def test_generate_toeplitz():
