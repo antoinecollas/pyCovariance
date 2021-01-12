@@ -13,7 +13,7 @@ def generate_covariance(p, unit_det=False):
     D = np.diag(np.ones((p)) + random.rand(p))
 
     # Generate an orthogonal matrix.
-    Q, _ = la.qr(random.randn(p, p))
+    Q = generate_stiefel(p, p)
 
     sigma = Q@D@Q.T
 
@@ -29,7 +29,7 @@ def generate_complex_covariance(p, unit_det=False):
     D = np.diag(np.ones((p)) + random.rand(p))
 
     # Generate an orthogonal matrix.
-    Q, _ = la.qr(random.randn(p, p)+1j*random.randn(p, p))
+    Q = generate_complex_stiefel(p, p)
 
     sigma = Q@D@Q.conj().T
 
