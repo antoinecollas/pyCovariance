@@ -206,7 +206,7 @@ if __name__ == '__main__':
                 covariance_texture(k, w*w),
                 tau_UUH(w*w, p, k),
                 tau_UUH(w*w, p, k, weights=(0, 1)),
-                subspace_SCM(w*w, p)
+                subspace_SCM(p, k)
             ])
         return features_list
 
