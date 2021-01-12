@@ -49,8 +49,7 @@ def generate_toeplitz(p, rho):
     return toeplitz(np.power(rho, np.arange(0, p)))
 
 
-def generate_textures(N):
-    mu = 0.1
+def generate_textures(N, mu=0.1):
     texture = random.gamma(mu, 1/mu, size=(N, 1))
     return texture
 
