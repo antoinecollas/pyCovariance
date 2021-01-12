@@ -89,7 +89,7 @@ def tyler_estimator_location_covariance_normalisedet(
     return (mu, tau, sigma, delta, iteration)
 
 
-def estimation_location_covariance_texture_MLE(
+def estimate_location_covariance_texture_MLE(
     X,
     init=None,
     tol=0.001,
@@ -223,7 +223,7 @@ def create_cost_egrad_location_covariance_texture(X, autodiff=False):
         return cost, egrad
 
 
-def estimation_location_covariance_texture_RGD(
+def estimate_location_covariance_texture_RGD(
     X,
     init=None,
     tol=1e-3,
@@ -280,10 +280,6 @@ def estimation_location_covariance_texture_RGD(
     Xopt, log = solver.solve(problem, x=init)
     Xopt[0] = Xopt[0].reshape((-1, 1))
 
-    # TODO: handle real data
-    # if X.dtype == np.float:
-    #    Xopt[0] = Xopt[0].real.astype(np.float64)
-    #    Xopt[2] = Xopt[2].real.astype(np.float64)
     return Xopt[0], Xopt[1], Xopt[2], log
 
 
@@ -300,7 +296,7 @@ def location_covariance_texture(N, p, weights=(1, 1, 1)):
     }
 
     def _estimation(X):
-        mu, tau, sigma, _ = estimation_location_covariance_texture_RGD(X)
+        mu, tau, sigma, _ = estimate_location_covariance_texture_RGD(X)
         return mu, tau, sigma
 
     return Feature(name, _estimation, M, args_M)
