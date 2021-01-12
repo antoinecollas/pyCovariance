@@ -2,6 +2,7 @@ import autograd.numpy as np
 import autograd.numpy.linalg as la
 from autograd.numpy import random
 from scipy.linalg import toeplitz
+from scipy.stats import ortho_group, unitary_group
 
 from .matrix_operators import sqrtm
 
@@ -55,12 +56,18 @@ def generate_textures(N):
 
 
 def generate_stiefel(p, k):
-    Q, _ = la.qr(random.randn(p, k))
+    if k < p:
+        Q = ortho_group.rvs(p)[:, :k]
+    else:
+        Q = ortho_group.rvs(p)
     return Q
 
 
 def generate_complex_stiefel(p, k):
-    Q, _ = la.qr(random.randn(p, k)+1j*random.randn(p, k))
+    if k < p:
+        Q = unitary_group.rvs(p)[:, :k]
+    else:
+        Q = unitary_group.rvs(p)
     return Q
 
 
