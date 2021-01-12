@@ -10,6 +10,7 @@ from pyCovariance.features import\
         pixel_euclidean,\
         covariance,\
         covariance_texture,\
+        subspace_SCM,\
         tau_UUH
 
 from pyCovariance.datasets.hyperspectral import\
@@ -205,6 +206,7 @@ if __name__ == '__main__':
                 covariance_texture(k, w*w),
                 tau_UUH(w*w, p, k),
                 tau_UUH(w*w, p, k, weights=(0, 1)),
+                subspace_SCM(w*w, p)
             ])
         return features_list
 
