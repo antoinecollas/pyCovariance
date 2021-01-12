@@ -2,7 +2,8 @@ import autograd
 import autograd.numpy as np
 import autograd.numpy.linalg as la
 import pymanopt
-from pymanopt.manifolds import ComplexGrassmann,\
+from pymanopt.manifolds import\
+        ComplexGrassmann,\
         StrictlyPositiveVectors
 from pymanopt import Problem
 from pymanopt.solvers import SteepestDescent
@@ -11,26 +12,24 @@ import warnings
 from .base import Feature, Product
 
 
-# SUBOPTIMAL ESTIMATION
+# SUBSPACE SCM ESTIMATION
 
 
-def estimate_tau_UUH_SCM(X, k):
-    """ A function that estimates parameters of a 'tau UUH' model
-    from the sample covariance matrix (SCM).
+def estimate_subspace_SCM(X, k):
+    """ A function that estimates the subspace of
+    the sample covariance matrix (SCM).
         Inputs:
             * X = a matrix of size (p, N)
             with each observation along column dimension
             * k = dimension of the subspace
         Outputs:
-            * U = orthogonal basis of subspace
-            * tau """
+            * U = orthogonal basis of subspace"""
     U, _, _ = la.svd(X, full_matrices=False)
     U = U[:, :k]
-    tau = np.ones((X.shape[1], 1))
-    return tau, U
+    return U
 
 
-# ESTIMATION USING RIEMANNIAN GEOMETRY
+# tau UUH ESTIMATION
 
 
 def _cost(U, tau, X):
@@ -80,18 +79,25 @@ def create_cost_egrad(backend, X):
     return cost, egrad
 
 
-def estimate_tau_UUH_RGD(X, k, autodiff):
+def estimate_tau_UUH_RGD(X, k, init=None, autodiff=False):
     """ A function that estimates parameters of a 'tau UUH' model.
         Inputs:
             * X = a matrix of size (p, N)
             with each observation along column dimension
             * k = dimension of the subspace
+            * init = point on manifold to initliase estimation
             * autodiff = use or not autodiff
         Outputs:
             * U = orthogonal basis of subspace
             * tau """
 
-    p, n = X.shape
+    p, N = X.shape
+
+    # Initialisation
+    if init is None:
+        tau = np.ones((N, 1))
+        U = estimate_subspace_SCM(X, k)
+        init = (U, tau)
 
     if autodiff:
         backend = 'Autograd'
@@ -99,16 +105,14 @@ def estimate_tau_UUH_RGD(X, k, autodiff):
         backend = 'Callable'
 
     cost, egrad = create_cost_egrad(backend, X)
-    manifold = Product([ComplexGrassmann(p, k), StrictlyPositiveVectors(n)])
+    manifold = Product([ComplexGrassmann(p, k),
+                        StrictlyPositiveVectors(N)])
 
     problem = Problem(manifold=manifold, cost=cost, egrad=egrad, verbosity=0)
     solver = SteepestDescent()
 
-    parameters = solver.solve(problem)
+    parameters = solver.solve(problem, x=init)
     return parameters[1], parameters[0]
-
-
-# ESTIMATION
 
 
 def estimate_tau_UUH(X, k, tol=0.001, iter_max=100):
@@ -162,6 +166,17 @@ def estimate_tau_UUH(X, k, tol=0.001, iter_max=100):
 
 
 # CLASSES
+
+
+def subspace_SCM(p, k):
+    name = 'subspace_SCM'
+    M = ComplexGrassmann
+    args_M = {'sizes': (p, k)}
+
+    def _estimate_subspace_SCM(X):
+        return estimate_subspace_SCM(X, k)
+
+    return Feature(name, _estimate_subspace_SCM, M, args_M)
 
 
 def tau_UUH(N, p, k, weights=None):

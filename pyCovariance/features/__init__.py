@@ -17,4 +17,4 @@ from .location_covariance_texture import location_covariance_texture
 from .pixel import intensity_euclidean,\
         mean_pixel_euclidean,\
         pixel_euclidean
-from .tau_UUH import tau_UUH
+from .low_rank_models import tau_UUH

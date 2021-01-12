@@ -3,10 +3,36 @@ import autograd.numpy.linalg as la
 import numpy.testing as np_test
 
 from pyCovariance.features.base import _FeatureArray
-from pyCovariance.features.tau_UUH import tau_UUH
-from pyCovariance.generation_data import generate_stiefel,\
+from pyCovariance.features.low_rank_models import\
+        subspace_SCM,\
+        tau_UUH
+from pyCovariance.generation_data import\
+        generate_covariance,\
+        generate_stiefel,\
         generate_textures,\
+        sample_normal_distribution,\
         sample_tau_UUH_distribution
+
+
+def test_real_subspace_SCM():
+    p = 5
+    k = 2
+    N = int(1e2)
+
+    feature = subspace_SCM(p, k)
+
+    # test estimation
+    cov = generate_covariance(p)
+    X = sample_normal_distribution(N, cov)
+    SCM = (1/N) * X@X.T
+    d, Q = la.eigh(SCM)
+    Q = Q[:, -1:-k-1:-1]
+
+    U = feature.estimation(X).export()
+    assert U.shape == (p, k)
+    assert U.dtype == np.float64
+
+    assert la.norm(Q@Q.T - U@U.T) / la.norm(Q@Q.T) < 1e-8
 
 
 def test_real_tau_UUH():
