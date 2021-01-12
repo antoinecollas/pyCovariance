@@ -49,7 +49,7 @@ def main(plot=True):
     if plot:
         plt.show(block=False)
     else:
-        plt.cla()
+        plt.clf()
 
     f = plt.figure(2)
 
@@ -71,7 +71,7 @@ def main(plot=True):
     if plot:
         plt.show()
     else:
-        plt.cla()
+        plt.clf()
 
 
 if __name__ == '__main__':

@@ -48,7 +48,7 @@ def main(plot=True):
     if plot:
         plt.show()
     else:
-        plt.cla()
+        plt.clf()
 
 
 if __name__ == '__main__':
