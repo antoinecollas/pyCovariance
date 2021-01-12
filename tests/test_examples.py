@@ -5,6 +5,9 @@ from pyCovariance.features import covariance_texture,\
         tau_UUH
 
 from examples.hyperspectral import k_means
+from examples.numerical_simulations.plot import\
+        subspace,\
+        tyler_type_estimator
 
 
 def test_hyperspectral_indian_pines():
@@ -82,3 +85,11 @@ def test_hyperspectral_salinas():
         nb_init=1,
         nb_iter_max=2
     )
+
+
+def test_plot_subspace():
+    subspace.main(plot=False)
+
+
+def test_plot_tyler_type_estimator():
+    tyler_type_estimator.main(plot=False)
