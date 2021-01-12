@@ -64,4 +64,5 @@ def test_complex_covariance_texture():
     m = feature.mean(data).export()
     np_test.assert_almost_equal(la.det(m[0]), 1)
     assert la.norm(m[0] - mean_sigma) / la.norm(mean_sigma) < 1e-7
-    assert la.norm(m[1] - mean_text) / la.norm(mean_text) < 1e-7
+    assert la.norm(m[0] - mean_sigma) / la.norm(mean_sigma) < 1e-6
+    assert la.norm(m[1] - mean_text) / la.norm(mean_text) < 1e-6
