@@ -33,10 +33,10 @@ def main(plot=True):
     U_est_perp = np.cross(U_est[:, 0], U_est[:, 1])
 
     # plot of subspaces
-    min_x= np.min(X[0, :])
-    max_x= np.max(X[0, :])
-    min_y= np.min(X[1, :])
-    max_y= np.max(X[1, :])
+    min_x = np.min(X[0, :])
+    max_x = np.max(X[0, :])
+    min_y = np.min(X[1, :])
+    max_y = np.max(X[1, :])
     interval_x = np.linspace(min_x-1, max_x+1, num=10)
     interval_y = np.linspace(min_y-1, max_y+1, num=10)
     x, y = np.meshgrid(interval_x, interval_y)

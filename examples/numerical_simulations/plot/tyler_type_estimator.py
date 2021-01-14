@@ -30,18 +30,20 @@ def main(plot=True):
     x, y = np.meshgrid(x, y)
     pos = np.array([x.flatten(), y.flatten()]).T
 
-    f = plt.figure(1)
+    plt.figure(1)
 
     # plot contour of real dist
     dist = multivariate_normal(mu.reshape(-1), cov)
-    plt.contour(x, y, dist.pdf(pos).reshape((nb_points, nb_points)), colors=['orange'], alpha=transparency)
+    plt.contour(x, y, dist.pdf(pos).reshape((nb_points, nb_points)),
+                colors=['orange'], alpha=transparency)
 
     # plot contour of dist estimated with mean and scm
     mean = np.mean(X, axis=1, keepdims=True)
     scm = compute_scm(X - mean)
     scm = scm/(np.linalg.det(scm)**(1/2))
     dist = multivariate_normal(mean.reshape(-1), scm)
-    plt.contour(x, y, dist.pdf(pos).reshape((nb_points, nb_points)), colors = ['red'], alpha=transparency)
+    plt.contour(x, y, dist.pdf(pos).reshape((nb_points, nb_points)),
+                colors=['red'], alpha=transparency)
 
     # scatter plot of points
     plt.scatter(X[0, :], X[1, :], alpha=1)
@@ -51,11 +53,12 @@ def main(plot=True):
     else:
         plt.clf()
 
-    f = plt.figure(2)
+    plt.figure(2)
 
     # plot contour of real dist
     dist = multivariate_normal(mu.reshape(-1), cov)
-    plt.contour(x, y, dist.pdf(pos).reshape((nb_points, nb_points)), colors=['orange'], alpha=transparency)
+    plt.contour(x, y, dist.pdf(pos).reshape((nb_points, nb_points)),
+                colors=['orange'], alpha=transparency)
 
     # plot contour of dist estimated with Riemannian gradient descent
     mu_est, _, cov_est, _ = estimate_location_covariance_texture_RGD(
@@ -63,7 +66,8 @@ def main(plot=True):
         iter_max=int(1e3)
     )
     dist = multivariate_normal(mu_est.reshape(-1), cov_est)
-    plt.contour(x, y, dist.pdf(pos).reshape((nb_points, nb_points)), colors = ['red'], alpha=transparency)
+    plt.contour(x, y, dist.pdf(pos).reshape((nb_points, nb_points)),
+                colors=['red'], alpha=transparency)
 
     # scatter plot of points
     plt.scatter(X[0, :], X[1, :], alpha=1)
