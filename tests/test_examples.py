@@ -5,6 +5,7 @@ from pyCovariance.features import covariance_texture,\
         tau_UUH
 
 from examples.hyperspectral import k_means
+from examples.numerical_simulations import tau_UUH_CRB
 from examples.numerical_simulations.plot import\
         subspace,\
         tyler_type_estimator
@@ -93,3 +94,7 @@ def test_plot_subspace():
 
 def test_plot_tyler_type_estimator():
     tyler_type_estimator.main(plot=False)
+
+
+def test_tau_UUH_CRB():
+    tau_UUH_CRB.main(nb_points=2, nb_MC=10)

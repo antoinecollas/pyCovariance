@@ -202,9 +202,11 @@ class Feature():
             ---------
                 * distance = a real number
             """
-        assert type(x1) is _FeatureArray
-        assert type(x2) is _FeatureArray
-        d = self._M.dist(x1.export(), x2.export())
+        if type(x1) is _FeatureArray:
+            x1 = x1.export()
+        if type(x2) is _FeatureArray:
+            x2 = x2.export()
+        d = self._M.dist(x1, x2)
         if d.ndim != 0:
             d = np.squeeze(d)
         return d
