@@ -185,8 +185,8 @@ def tau_UUH(N, p, k, weights=None):
     if weights is None:
         name = 'tau_UUH'
     else:
-        name = 'tau_' + str(round(weights[0], 2)) +\
-               '_UUH_' + str(round(weights[1], 2))
+        name = 'tau_' + str(round(weights[0], 4)) +\
+               '_UUH_' + str(round(weights[1], 4))
 
     if weights is None:
         weights = (1/N, 1/k)
