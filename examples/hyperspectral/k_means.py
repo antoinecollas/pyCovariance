@@ -1,9 +1,10 @@
 import autograd.numpy as np
-from datetime import datetime
 import matplotlib
 import matplotlib.pyplot as plt
 import os
 import re
+
+from pyCovariance.evaluation import create_directory
 
 from pyCovariance.features import\
         mean_pixel_euclidean,\
@@ -33,8 +34,7 @@ def main(
     matplotlib.use('Agg')
 
     # folder path to save files
-    date_str = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
-    folder_main = os.path.join('results', dataset.name, date_str)
+    folder_main = create_directory(dataset.name)
 
     # get biggest window size to eliminate borders of the image in the mask
     ws = list()

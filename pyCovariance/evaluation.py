@@ -1,5 +1,6 @@
 import autograd.numpy as np
 from copy import deepcopy
+from datetime import datetime
 import matplotlib.pyplot as plt
 import os
 from sklearn.metrics import\
@@ -166,6 +167,17 @@ def plot_segmentation(C, aspect=1, title=None):
         plt.title(title)
 
     plt.grid(b=False)
+
+
+def create_directory(name):
+    """ A function that creates a directory to save results.
+    The path has the 'results/name/date'.
+    """
+    date_str = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
+    path = os.path.join('results', name, date_str)
+    if not os.path.exists(path):
+        os.makedirs(path, exist_ok=True)
+    return path
 
 
 def save_segmentation(folder, filename, np_array):
