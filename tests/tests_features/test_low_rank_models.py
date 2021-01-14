@@ -5,6 +5,8 @@ import numpy.testing as np_test
 from pyCovariance.features.base import _FeatureArray
 from pyCovariance.features.low_rank_models import\
         subspace_SCM,\
+        subspace_tau_UUH,\
+        subspace_tau_UUH_RGD,\
         tau_UUH
 from pyCovariance.generation_data import\
         generate_covariance,\
@@ -33,6 +35,64 @@ def test_real_subspace_SCM():
     assert U.dtype == np.float64
 
     assert la.norm(Q@Q.T - U@U.T) / la.norm(Q@Q.T) < 1e-8
+
+
+def test_real_subspace_tau_UUH():
+    p = 5
+    k = 2
+    N = int(1e6)
+
+    feature = subspace_tau_UUH(p, k)
+
+    # test estimation
+    tau = generate_textures(N)
+    U = generate_stiefel(p, k)
+    X = sample_tau_UUH_distribution(tau, U)
+    assert X.dtype == np.float64
+    U_est = feature.estimation(X).export()
+    assert U_est.shape == (p, k)
+    assert U_est.dtype == np.float64
+
+    sym_U_est = U_est@U_est.T
+    sym_U = U@U.T
+    error = la.norm(sym_U_est - sym_U) / la.norm(sym_U)
+    assert error < 0.01
+
+
+def test_real_subspace_tau_UUH_RGD():
+    p = 5
+    k = 2
+    N = int(1e4)
+
+    feature = subspace_tau_UUH_RGD(p, k)
+
+    # test estimation
+    tau = generate_textures(N)
+    U = generate_stiefel(p, k)
+    X = sample_tau_UUH_distribution(tau, U)
+    assert X.dtype == np.float64
+    U_est = feature.estimation(X).export()
+    assert U_est.shape == (p, k)
+    assert U_est.dtype == np.float64
+
+    sym_U_est = U_est@U_est.conj().T
+    sym_U = U@U.conj().T
+    error = la.norm(sym_U_est - sym_U) / la.norm(sym_U)
+    assert error < 0.05
+    # increasing N should decrease the error but it is too slow...
+
+    # test with autodiff
+    feature = subspace_tau_UUH_RGD(p, k, autodiff=True)
+
+    U_est = feature.estimation(X).export()
+    assert U_est.shape == (p, k)
+    assert U_est.dtype == np.float64
+
+    sym_U_est = U_est@U_est.conj().T
+    sym_U = U@U.conj().T
+    error = la.norm(sym_U_est - sym_U) / la.norm(sym_U)
+    assert error < 0.05
+    # increasing N should decrease the error but it is too slow...
 
 
 def test_real_tau_UUH():

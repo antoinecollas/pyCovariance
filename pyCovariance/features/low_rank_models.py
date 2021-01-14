@@ -179,6 +179,30 @@ def subspace_SCM(p, k):
     return Feature(name, _estimate_subspace_SCM, M, args_M)
 
 
+def subspace_tau_UUH(p, k):
+    name = 'subspace_tau_UUH'
+    M = ComplexGrassmann
+    args_M = {'sizes': (p, k)}
+
+    def _estimate_subspace_tau_UUH(X):
+        _, U = estimate_tau_UUH(X, k)
+        return U
+
+    return Feature(name, _estimate_subspace_tau_UUH, M, args_M)
+
+
+def subspace_tau_UUH_RGD(p, k, autodiff=False):
+    name = 'subspace_tau_UUH_RGD'
+    M = ComplexGrassmann
+    args_M = {'sizes': (p, k)}
+
+    def _estimate_subspace_tau_UUH_RGD(X):
+        _, U = estimate_tau_UUH_RGD(X, k, autodiff=autodiff)
+        return U
+
+    return Feature(name, _estimate_subspace_tau_UUH_RGD, M, args_M)
+
+
 def tau_UUH(N, p, k, weights=None):
     M = (StrictlyPositiveVectors, ComplexGrassmann)
 
