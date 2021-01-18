@@ -204,7 +204,10 @@ if __name__ == '__main__':
                 mean_pixel_euclidean(k),
                 covariance(k),
                 covariance_texture(k, w*w),
-                tau_UUH(w*w, p, k),
+                covariance_texture(k, w*w, weights=(1, 0)),
+                tau_UUH(w*w, p, k, weights=(1/(w*w), 1/k)),
+                tau_UUH(w*w, p, k, weights=(1/(10*w*w), 1/k)),
+                tau_UUH(w*w, p, k, weights=(1/(100*w*w), 1/k)),
                 tau_UUH(w*w, p, k, weights=(0, 1)),
                 subspace_SCM(p, k)
             ])
