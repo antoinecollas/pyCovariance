@@ -47,6 +47,26 @@ def test_complex_covariance_texture():
     d = np.sqrt(d)
     np_test.assert_almost_equal(feature.distance(data[0], data[1]), d)
 
+    # test distances
+    data = _FeatureArray((p, p), (N, 1))
+    data.append([generate_complex_covariance(p, unit_det=True),
+                 generate_textures(N)])
+    data.append([generate_complex_covariance(p, unit_det=True),
+                 generate_textures(N)])
+
+    sigma0_isqrtm = invsqrtm(data[0].export()[0])
+    prod = sigma0_isqrtm@data[1].export()[0]@sigma0_isqrtm
+    eigvals = la.eigvalsh(prod)
+    d_sigma = np.sqrt(np.sum(np.log(eigvals)**2))
+
+    temp = np.log(data[0].export()[1]) - np.log(data[1].export()[1])
+    d_tau = la.norm(temp)
+
+    d_M = np.sqrt((1/p) * d_sigma**2 + (1/N) * d_tau**2)
+    d = [d_M, d_sigma, d_tau]
+
+    np_test.assert_almost_equal(feature.distances(data[0], data[1]), d)
+
     # test mean
     N = 5
     N_mean = 10

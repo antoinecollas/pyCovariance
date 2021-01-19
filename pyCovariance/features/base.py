@@ -150,6 +150,7 @@ class Feature():
         elif type(manifold) in [list, tuple]:
             self._weights = tuple(np.ones(len(manifold)))
 
+        self._prod_M = None
         if type(manifold) in [list, tuple]:
             self._dimensions = list()
             nb_M = len(manifold)
@@ -158,8 +159,8 @@ class Feature():
                 if type(temp) not in [list, tuple]:
                     temp = [temp]
                 self._dimensions.append(tuple(temp))
-            temp = [manifold[i](*(self._dimensions[i])) for i in range(nb_M)]
-            self._M = Product(temp, self._weights)
+            self._prod_M = [manifold[i](*(self._dimensions[i])) for i in range(nb_M)]
+            self._M = Product(self._prod_M, self._weights)
         else:
             temp = args_manifold['sizes']
             if type(temp) not in [list, tuple]:
@@ -191,6 +192,33 @@ class Feature():
         """
         return self._estimation(X)
 
+    def distances(self, x1, x2):
+        """ Compute the different distances of a product manifold
+            between two features.
+            ----------------------------------------------------------------------
+            Inputs:
+            --------
+                * x1 = point n°1 on manifold self.M
+                * x2 = point n°2 on manifold self.M
+            Outputs:
+            ---------
+                * distances = list of distances of the different manifolds
+            """
+        distances = [self.distance(x1, x2)]
+        if self._prod_M != None:
+            if type(x1) is _FeatureArray:
+                assert len(x1) == 1
+                x1 = x1.export()
+            if type(x2) is _FeatureArray:
+                assert len(x2) == 1
+                x2 = x2.export()
+            for M, p1, p2 in zip(self._prod_M, x1, x2):
+                d = M.dist(p1, p2)
+                if d.ndim != 0:
+                    d = np.squeeze(d)
+                distances.append(d)
+        return distances
+
     def distance(self, x1, x2):
         """ Compute distance between two features.
             ----------------------------------------------------------------------
@@ -203,8 +231,10 @@ class Feature():
                 * distance = a real number
             """
         if type(x1) is _FeatureArray:
+            assert len(x1) == 1
             x1 = x1.export()
         if type(x2) is _FeatureArray:
+            assert len(x2) == 1
             x2 = x2.export()
         d = self._M.dist(x1, x2)
         if d.ndim != 0:
