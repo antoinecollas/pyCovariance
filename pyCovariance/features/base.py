@@ -159,7 +159,8 @@ class Feature():
                 if type(temp) not in [list, tuple]:
                     temp = [temp]
                 self._dimensions.append(tuple(temp))
-            self._prod_M = [manifold[i](*(self._dimensions[i])) for i in range(nb_M)]
+            self._prod_M = [manifold[i](*(self._dimensions[i]))
+                            for i in range(nb_M)]
             self._M = Product(self._prod_M, self._weights)
         else:
             temp = args_manifold['sizes']
@@ -205,7 +206,7 @@ class Feature():
                 * distances = list of distances of the different manifolds
             """
         distances = [self.distance(x1, x2)]
-        if self._prod_M != None:
+        if self._prod_M is not None:
             if type(x1) is _FeatureArray:
                 assert len(x1) == 1
                 x1 = x1.export()
