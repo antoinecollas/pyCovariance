@@ -97,4 +97,4 @@ def test_plot_tyler_type_estimator():
 
 
 def test_tau_UUH_CRB():
-    tau_UUH_CRB.main(nb_points=2, nb_MC=10)
+    tau_UUH_CRB.main(nb_points=2, nb_MC=2)

@@ -75,7 +75,7 @@ def test_egrad_location_covariance_texture():
     np_test.assert_allclose(gc[2], gn[2])
 
 
-def test_location_covariance_texture():
+def test_real_location_covariance_texture():
     N = int(1e2)
     p = 5
     feature = location_covariance_texture(N, p)
