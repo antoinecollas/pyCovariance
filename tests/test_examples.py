@@ -4,11 +4,15 @@ from pyCovariance.features import covariance_texture,\
         pixel_euclidean,\
         tau_UUH
 
-from examples.hyperspectral import k_means
+from examples.hyperspectral import demo, k_means
 from examples.numerical_simulations import tau_UUH_CRB
 from examples.numerical_simulations.plot import\
         subspace,\
         tyler_type_estimator
+
+
+def demo_hyperspectral_K_means():
+    demo.main(plot=False)
 
 
 def test_hyperspectral_indian_pines():
