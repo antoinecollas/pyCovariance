@@ -15,7 +15,8 @@ from pyCovariance.features import covariance
 def main(
     dataset_name='Indian_Pines',
     window_size=7,
-    nb_bands=5
+    nb_bands=5,
+    plot=True
 ):
     dataset = Dataset(dataset_name)
 
@@ -51,9 +52,15 @@ def main(
 
     # plot
     plot_segmentation(C + 1, min_C=0, max_C=16)
-    plt.show(block=False)
+    if plot:
+        plt.show(block=False)
+    else:
+        plt.clf()
     plot_segmentation(gt + 1)
-    plt.show()
+    if plot:
+        plt.show()
+    else:
+        plt.clf()
 
 
 if __name__ == '__main__':
