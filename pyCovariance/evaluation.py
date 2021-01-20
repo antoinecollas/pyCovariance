@@ -143,17 +143,22 @@ def compute_ARI(C, gt):
     return ARI
 
 
-def plot_segmentation(C, aspect=1, title=None):
+def plot_segmentation(C, aspect=1, title=None, min_C=None, max_C=None):
     """ Plot a segmentation map.
         Inputs:
             * C: a (height, width) numpy array of integers (classes.
             * aspect: aspect ratio of the image.
             * title: string used for the title of the figure
+            * min_C: minimum class number
+            * max_C: maximum class number
     """
-    max_C, min_C = np.max(C), np.min(C)
+    if min_C is None:
+        min_C = np.min(C)
+    if max_C is None:
+        max_C = np.max(C)
 
     # get discrete colormap
-    cmap = plt.get_cmap('RdBu', max_C-min_C+1)
+    cmap = plt.get_cmap('RdBu', max_C - min_C + 1)
 
     # set limits .5 outside true range
     mat = plt.matshow(C, aspect=aspect, cmap=cmap,
