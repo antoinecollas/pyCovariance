@@ -15,7 +15,7 @@ def pca_image(image, nb_components):
     image = image - mean
     X = X - mean
     # check pixels are centered
-    assert (np.abs(np.mean(X, axis=0)) < 1e-10).all()
+    assert (np.abs(np.mean(X, axis=0)) < 1e-8).all()
 
     # apply PCA
     SCM = (1/len(X))*X.conj().T@X
