@@ -74,7 +74,7 @@ class Dataset():
             print('\n Download', self.name, 'ground truth.')
             wget.download(self.url_gt, _dir)
 
-    def load(self, crop_image, border_size=0):
+    def load(self, crop_image=False, border_size=0):
         image = loadmat(self.path)[self.key_dict]
         gt = loadmat(self.path_gt)[self.key_dict_gt]
         gt = gt.astype(np.int64)
