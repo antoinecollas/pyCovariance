@@ -25,7 +25,7 @@ def main(nb_points, nb_MC):
     print('seed:', seed)
 
     # path to save plot
-    folder = create_directory('numerical_experiment')
+    folder = create_directory('numerical_simulations')
     path = os.path.join(folder, 'tau_UUH_CRB')
 
     # parameters simu
