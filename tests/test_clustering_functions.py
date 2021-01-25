@@ -3,7 +3,6 @@ import autograd.numpy.linalg as la
 import autograd.numpy.random as rnd
 import numpy.testing as np_test
 import os
-import sys
 
 from pyCovariance import K_means
 from pyCovariance.clustering_functions import \
@@ -155,24 +154,6 @@ def test_K_means():
         nb_threads=1,
         verbose=False
     )[0]
-    precision = np.sum(y == y_predict)/(2*N)
-    if precision < 0.5:
-        y_predict = np.mod(y_predict+1, 2)
-    precision = np.sum(y == y_predict)/(2*N)
-    assert precision >= 0.95
-
-    # single thread with verbose
-    sys.stdout = open(os.devnull, 'w')
-    y_predict = K_means(
-        X,
-        K=2,
-        distance=pix.distance,
-        mean_function=pix.mean,
-        init=None,
-        nb_threads=1,
-        verbose=True
-    )[0]
-    sys.stdout = sys.__stdout__
     precision = np.sum(y == y_predict)/(2*N)
     if precision < 0.5:
         y_predict = np.mod(y_predict+1, 2)

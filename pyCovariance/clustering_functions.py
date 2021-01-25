@@ -227,29 +227,30 @@ def K_means(
     mean_function,
     init=None,
     eps=1e-2,
+    nb_init=1,
     iter_max=20,
     nb_threads=1,
     verbose=False
 ):
     """ K-means algorithm in a general multivariate context with an arbitary
-        distance and an arbitray way to chose clusters center:
+        distance and an arbitray way to choose clusters center:
         Objective is to obtain a partion C = {C_0,..., C_{K-1}} of the data,
         by computing centers mu_i and assigning samples by closest distance.
         ----------------------------------------------------------------------
         Inputs:
         --------
-            * X = a list of N data points
+            * X = a _FeatureArray
             * K = number of classes
-            * distance = function to compute distance between two samples
-                         ** x_1 = sample 1
-                         ** x_2 = sample 2
-            * mean_function = function that computes means
+            * distance = a distance function from class Feature
+            * mean_function = a mean computation function from class Feature
             * init = a (N) array with one class per point
             (for example coming from a H-alpha decomposition).
             If None, centers are randomly chosen among samples.
+            * nb_init = number of initialisations of K-means
+            * eps = stopping threshold
             * iter_max = number of maximum iterations of algorithm
             * nb_threads = number of parallel threads (cores of machine)
-            * verbose = boolean
+            * verbose = bool
 
         Outputs:
         ---------
@@ -259,105 +260,93 @@ def K_means(
             * delta = convergence criterion
             * criterion_values = list of values of within-classes variances
     """
-    N = len(X)
+    if nb_init > 1:
+        assert init is None
+    t_beginning = time.time()
+    best_criterion_value = np.inf
+    all_criterion_values = list()
+    iterator = range(nb_init)
+    if verbose:
+        iterator = tqdm(iterator)
+    for _ in iterator:
+        N = len(X)
 
-    # -------------------------------
-    # Initialisation of center means
-    # -------------------------------
-    if init is None:
-        indexes = random_index_for_initialisation(K, N)
-        mu = X[indexes]
-    else:
-        mu = compute_means_parallel(
-            X,
-            init,
-            mean_function,
-            nb_threads,
-            verbose=verbose
-        )
+        # -------------------------------
+        # Initialisation of center means
+        # -------------------------------
+        if init is None:
+            indexes = random_index_for_initialisation(K, N)
+            mu = X[indexes]
+        else:
+            mu = compute_means_parallel(
+                X,
+                init,
+                mean_function,
+                nb_threads,
+                verbose=verbose
+            )
 
-    criterion_value = np.inf
-    criterion_values = list()
-    delta = np.inf  # Diff between previous value of criterion and new value
-    i = 0  # Iteration
-    C = np.empty(N)  # To store clustering results
-    time_distances = 0
-    time_means = 0
+        criterion_value = np.inf
+        criterion_values = list()
+        delta = np.inf  # Diff between previous and new value of criterion
+        i = 0  # Iteration
+        C = np.empty(N)  # To store clustering results
 
-    while True:
+        while True:
+            # -----------------------------------------
+            # Computing distance
+            # -----------------------------------------
+            d = compute_pairwise_distances_parallel(
+                X,
+                mu,
+                distance,
+                nb_threads
+            )
 
-        if verbose:
-            print("K-mean algorithm iteration %d" % i)
+            # -----------------------------------------
+            # Assigning classes
+            # -----------------------------------------
+            C = np.argmin(d, axis=1)
 
-        # -----------------------------------------
-        # Computing distance
-        # -----------------------------------------
-        if verbose:
-            print("Computing distances of %d samples\
-                  to %d classes' means" % (N, K))
-        tb = time.time()
-        d = compute_pairwise_distances_parallel(
-            X,
-            mu,
-            distance,
-            nb_threads
-        )
-        te = time.time()
-        time_distances += te-tb
+            # ---------------------------------------------
+            # Managing algorithm convergence
+            # ---------------------------------------------
+            new_criterion_value = compute_objective_function(d)
+            criterion_values.append(new_criterion_value)
 
-        # -----------------------------------------
-        # Assigning classes
-        # -----------------------------------------
-        C = np.argmin(d, axis=1)
-
-        # ---------------------------------------------
-        # Managing algorithm convergence
-        # ---------------------------------------------
-        new_criterion_value = compute_objective_function(d)
-        if verbose:
-            print('############################################')
-            print('K-means criterion:', round(new_criterion_value, 2))
-        criterion_values.append(new_criterion_value)
-
-        if criterion_value != np.inf:
-            delta = np.abs(criterion_value - new_criterion_value)
-            delta = delta / criterion_value
-            if delta < eps:
-                if verbose:
-                    print('Convergence reached:', delta)
+            if criterion_value != np.inf:
+                delta = np.abs(criterion_value - new_criterion_value)
+                delta = delta / criterion_value
+                if delta < eps:
+                    break
+            if (i == iter_max) and (iter_max != 1):
+                warnings.warn('K-means algorithm did not converge')
                 break
-        if (i == iter_max) and (iter_max != 1):
-            warnings.warn('K-means algorithm did not converge')
-            break
 
-        criterion_value = new_criterion_value
+            criterion_value = new_criterion_value
 
-        # -----------------------------------------
-        # Computing new means using assigned samples
-        # -----------------------------------------
-        if verbose:
-            print('############################################')
-            print("Computing means of %d classes" % K)
-        tb = time.time()
-        mu = compute_means_parallel(
-            X,
-            C,
-            mean_function,
-            nb_threads,
-            verbose=verbose
-        )
+            # -----------------------------------------
+            # Computing new means using assigned samples
+            # -----------------------------------------
+            mu = compute_means_parallel(
+                X,
+                C,
+                mean_function,
+                nb_threads,
+                verbose=verbose
+            )
 
-        i = i + 1
+            i = i + 1
 
-        te = time.time()
-        time_means += te-tb
+        all_criterion_values.append(criterion_values)
 
-        if verbose:
-            print()
+        if criterion_values[-1] < best_criterion_value:
+            C_best = C
+            mu_best = mu
+            i_best = i
+            delta_best = delta
 
     if verbose:
-        print('Total time to compute distances\
-              between samples and classes: ', int(time_distances), 's.')
-        print('Total time to compute new means: ', int(time_means), 's.')
+        print('K-means done in %f s.' % (time.time()-t_beginning))
 
-    return (C, mu, i, delta, criterion_values)
+    return C_best, mu_best, i_best, delta_best, all_criterion_values

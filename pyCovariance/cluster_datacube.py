@@ -92,32 +92,26 @@ def K_means_datacube(
         mask = mask.reshape((-1)).astype(bool)
         X = X[mask]
 
-    best_criterion_value = np.inf
-    all_criterion_values = list()
-    iterator = range(n_init)
-    if verbose:
-        iterator = tqdm(iterator)
-    for _ in iterator:
-        C, _, _, _, criterion_values = K_means(
-            X,
-            n_classes,
-            features.distance,
-            features.mean,
-            init=None,
-            eps=eps,
-            iter_max=n_iter_max,
-            nb_threads=nb_threads_rows*nb_threads_columns
-        )
-        all_criterion_values.append(criterion_values)
+    C, _, _, _, all_criterion_values = K_means(
+        X,
+        n_classes,
+        features.distance,
+        features.mean,
+        init=None,
+        eps=eps,
+        nb_init=n_init,
+        iter_max=n_iter_max,
+        nb_threads=nb_threads_rows*nb_threads_columns,
+        verbose=verbose
+    )
 
-        if criterion_values[-1] < best_criterion_value:
-            if mask is not None:
-                C_best = np.zeros((mask.shape[0], 1), dtype=np.int64) - 1
-                C_best[mask] = C.reshape((C.shape[0], 1))
-            else:
-                C_best = C.reshape((C.shape[0], 1))
-            C_best = C_best.reshape((n_r-m_r+1, n_c-m_c+1))
-            C = None
+    if mask is not None:
+        C_best = np.zeros((mask.shape[0], 1), dtype=np.int64) - 1
+        C_best[mask] = C.reshape((C.shape[0], 1))
+    else:
+        C_best = C.reshape((C.shape[0], 1))
+    C_best = C_best.reshape((n_r-m_r+1, n_c-m_c+1))
+
     if verbose:
         print('K-means done in %f s.' % (time.time()-t_beginning))
 
