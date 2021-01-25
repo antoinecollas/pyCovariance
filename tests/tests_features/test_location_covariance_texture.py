@@ -4,7 +4,10 @@ import autograd.numpy.linalg as la
 from autograd.numpy import random
 import numpy.testing as np_test
 
-from pyCovariance.features import location_covariance_texture_RGD
+from pyCovariance.features import\
+        location_covariance_texture_Gaussian,\
+        location_covariance_texture_Tyler,\
+        location_covariance_texture_RGD
 from pyCovariance.features.location_covariance_texture import\
         create_cost_egrad_location_covariance_texture
 from pyCovariance.generation_data import\
@@ -12,7 +15,88 @@ from pyCovariance.generation_data import\
         generate_covariance,\
         generate_textures,\
         sample_complex_compound_distribution,\
-        sample_compound_distribution
+        sample_complex_normal_distribution,\
+        sample_compound_distribution,\
+        sample_normal_distribution
+
+
+def test_real_location_covariance_texture_Gaussian():
+    N = int(1e6)
+    p = 5
+    feature = location_covariance_texture_Gaussian(p, N)
+
+    mu = random.randn(p, 1)
+    sigma = generate_covariance(p)
+    X = sample_normal_distribution(N, sigma)
+    X = X + mu
+    assert X.dtype == np.float64
+
+    res = feature.estimation(X).export()
+    assert res[0].dtype == np.float64
+    assert res[1].dtype == np.float64
+    assert res[2].dtype == np.float64
+    assert la.norm(mu - res[0])/la.norm(mu) < 0.01
+    assert la.norm(sigma - res[1]*res[2][0])/la.norm(sigma) < 0.01
+
+
+def test_complex_location_covariance_texture_Gaussian():
+    N = int(1e6)
+    p = 5
+    feature = location_covariance_texture_Gaussian(p, N)
+
+    mu = random.randn(p, 1) + 1j*random.randn(p, 1)
+    sigma = generate_complex_covariance(p)
+    tau = generate_textures(N)
+    X = sample_complex_normal_distribution(N, sigma)
+    X = X + mu
+    assert X.dtype == np.complex128
+
+    res = feature.estimation(X).export()
+    assert res[0].dtype == np.complex128
+    assert res[1].dtype == np.complex128
+    assert res[2].dtype == np.float64
+    assert la.norm(mu - res[0])/la.norm(mu) < 0.01
+    assert la.norm(sigma - res[1]*res[2][0])/la.norm(sigma) < 0.01
+
+
+def test_real_location_covariance_texture_Tyler():
+    N = int(1e5)
+    p = 5
+    feature = location_covariance_texture_Tyler(p, N)
+
+    mu = random.randn(p, 1)
+    sigma = generate_covariance(p, unit_det=True)
+    tau = generate_textures(N)
+    X = sample_compound_distribution(tau, sigma)
+    X = X + mu
+    assert X.dtype == np.float64
+
+    res = feature.estimation(X).export()
+    assert res[0].dtype == np.float64
+    assert res[1].dtype == np.float64
+    assert res[2].dtype == np.float64
+    assert la.norm(mu - res[0])/la.norm(mu) < 0.01
+    assert la.norm(sigma - res[1])/la.norm(sigma) < 0.05
+
+
+def test_complex_location_covariance_texture_Tyler():
+    N = int(1e5)
+    p = 5
+    feature = location_covariance_texture_Tyler(p, N)
+
+    mu = random.randn(p, 1) + 1j*random.randn(p, 1)
+    sigma = generate_complex_covariance(p, unit_det=True)
+    tau = generate_textures(N)
+    X = sample_complex_compound_distribution(tau, sigma)
+    X = X + mu
+    assert X.dtype == np.complex128
+
+    res = feature.estimation(X).export()
+    assert res[0].dtype == np.complex128
+    assert res[1].dtype == np.complex128
+    assert res[2].dtype == np.float64
+    assert la.norm(mu - res[0])/la.norm(mu) < 0.01
+    assert la.norm(sigma - res[1])/la.norm(sigma) < 0.05
 
 
 def test_cost_location_covariance_texture_RGD():
@@ -78,7 +162,7 @@ def test_egrad_location_covariance_texture_RGD():
 def test_real_location_covariance_texture_RGD():
     N = int(1e2)
     p = 5
-    feature = location_covariance_texture_RGD(N, p, iter_max=200)
+    feature = location_covariance_texture_RGD(p, N, iter_max=200)
 
     mu = random.randn(p, 1)
     sigma = generate_covariance(p, unit_det=True)
@@ -95,10 +179,10 @@ def test_real_location_covariance_texture_RGD():
     # assert la.norm(sigma - res[2])/la.norm(sigma) < 0.01
 
 
-def test_complex_location_covariance_texture():
+def test_complex_location_covariance_texture_RGD():
     N = int(1e2)
     p = 5
-    feature = location_covariance_texture_RGD(N, p, iter_max=200)
+    feature = location_covariance_texture_RGD(p, N, iter_max=200)
 
     mu = random.randn(p, 1) + 1j*random.randn(p, 1)
     sigma = generate_complex_covariance(p, unit_det=True)
