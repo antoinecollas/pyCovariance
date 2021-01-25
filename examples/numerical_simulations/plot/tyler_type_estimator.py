@@ -61,7 +61,7 @@ def main(plot=True):
                 colors=['orange'], alpha=transparency)
 
     # plot contour of dist estimated with Riemannian gradient descent
-    mu_est, _, cov_est, _ = estimate_location_covariance_texture_RGD(
+    mu_est, cov_est, _, _ = estimate_location_covariance_texture_RGD(
         X,
         iter_max=int(1e3)
     )

@@ -4,7 +4,7 @@ import autograd.numpy.linalg as la
 from autograd.numpy import random
 import numpy.testing as np_test
 
-from pyCovariance.features import location_covariance_texture
+from pyCovariance.features import location_covariance_texture_RGD
 from pyCovariance.features.location_covariance_texture import\
         create_cost_egrad_location_covariance_texture
 from pyCovariance.generation_data import\
@@ -15,7 +15,7 @@ from pyCovariance.generation_data import\
         sample_compound_distribution
 
 
-def test_cost_location_covariance_texture():
+def test_cost_location_covariance_texture_RGD():
     p = 3
     N = 20
 
@@ -50,7 +50,7 @@ def test_cost_location_covariance_texture():
     np_test.assert_almost_equal(L, L_true)
 
 
-def test_egrad_location_covariance_texture():
+def test_egrad_location_covariance_texture_RGD():
     p = 3
     N = 20
 
@@ -75,14 +75,14 @@ def test_egrad_location_covariance_texture():
     np_test.assert_allclose(gc[2], gn[2])
 
 
-def test_real_location_covariance_texture():
+def test_real_location_covariance_texture_RGD():
     N = int(1e2)
     p = 5
-    feature = location_covariance_texture(N, p)
+    feature = location_covariance_texture_RGD(N, p, iter_max=200)
 
     mu = random.randn(p, 1)
-    tau = generate_textures(N)
     sigma = generate_covariance(p, unit_det=True)
+    tau = generate_textures(N)
     X = sample_compound_distribution(tau, sigma)
     X = X + mu
     assert X.dtype == np.float64
@@ -98,18 +98,18 @@ def test_real_location_covariance_texture():
 def test_complex_location_covariance_texture():
     N = int(1e2)
     p = 5
-    feature = location_covariance_texture(N, p)
+    feature = location_covariance_texture_RGD(N, p, iter_max=200)
 
     mu = random.randn(p, 1) + 1j*random.randn(p, 1)
-    tau = generate_textures(N)
     sigma = generate_complex_covariance(p, unit_det=True)
+    tau = generate_textures(N)
     X = sample_complex_compound_distribution(tau, sigma)
     X = X + mu
     assert X.dtype == np.complex128
 
     res = feature.estimation(X).export()
     assert res[0].dtype == np.complex128
-    assert res[1].dtype == np.float64
-    assert res[2].dtype == np.complex128
+    assert res[1].dtype == np.complex128
+    assert res[2].dtype == np.float64
     assert la.norm(mu - res[0])/la.norm(mu) < 0.01
     # assert la.norm(sigma - res[2])/la.norm(sigma) < 0.01

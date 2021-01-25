@@ -13,10 +13,29 @@ import warnings
 from .base import Feature, Product
 
 
+# Gaussian estimation
+
+
+def Gaussian_estimation(X):
+    """ Function that computes Gaussian estimators: sample mean and SCM
+        Inputs:
+            * X = a matrix of size p*N
+        Outputs:
+            * mu = estimate of location
+            * sigma = estimate of covariance"""
+    p, N = X.shape
+    mu = np.mean(X, axis=1).reshape((-1, 1))
+    sigma = (1/N) * (X-mu) @ (X-mu).conj().T
+    c = np.real(la.det(sigma)**(1/p))
+    tau = c * np.ones((N, 1))
+    sigma = sigma / c
+    return mu, sigma, tau
+
+
 # ESTIMATION
 
 
-def tyler_estimator_location_covariance_normalisedet(
+def tyler_estimator_location_covariance_normalized_det(
     X,
     init=None,
     tol=0.001,
@@ -86,7 +105,7 @@ def tyler_estimator_location_covariance_normalisedet(
     mu = mu.reshape((-1, 1))
     tau = tau.reshape((-1, 1))
 
-    return (mu, tau, sigma, delta, iteration)
+    return mu, sigma, tau, delta, iteration
 
 
 def estimate_location_covariance_texture_MLE(
@@ -161,7 +180,7 @@ def estimate_location_covariance_texture_MLE(
     mu = mu.reshape((-1, 1))
     tau = tau.reshape((-1, 1))
 
-    return (mu, tau, sigma, delta, iteration)
+    return mu, sigma, tau, delta, iteration
 
 
 def create_cost_egrad_location_covariance_texture(X, autodiff=False):
@@ -227,7 +246,7 @@ def estimate_location_covariance_texture_RGD(
     X,
     init=None,
     tol=1e-3,
-    iter_max=int(1e3),
+    iter_max=3*int(1e4),
     autodiff=False,
     solver='conjugate'
 ):
@@ -245,7 +264,7 @@ def estimate_location_covariance_texture_RGD(
             * sigma = estimate of covariance """
 
     # The estimation is done using Riemannian geometry.
-    # The manifold is: C^p x (R++)^n x SHp++
+    # The manifold is: C^p x SHp++ x (R++)^n
     p, N = X.shape
 
     # Initialisation
@@ -280,23 +299,55 @@ def estimate_location_covariance_texture_RGD(
     Xopt, log = solver.solve(problem, x=init)
     Xopt[0] = Xopt[0].reshape((-1, 1))
 
-    return Xopt[0], Xopt[1], Xopt[2], log
+    return Xopt[0], Xopt[2], Xopt[1], log
 
 
 # CLASSES
 
-
-def location_covariance_texture(N, p, weights=(1, 1, 1)):
-    name = 'location_covariance_texture'
-    M = (ComplexEuclidean, StrictlyPositiveVectors,
-         SpecialHermitianPositiveDefinite)
+def location_covariance_texture_Gaussian(p, N, weights=(1, 1, 1)):
+    name = 'location_covariance_texture_Gaussian'
+    M = (ComplexEuclidean,
+         SpecialHermitianPositiveDefinite,
+         StrictlyPositiveVectors)
     args_M = {
-        'sizes': (p, N, p),
+        'sizes': (p, p, N),
+        'weights': weights
+    }
+
+    return Feature(name, Gaussian_estimation, M, args_M)
+
+
+def location_covariance_texture_Tyler(p, N, weights=(1, 1, 1)):
+    name = 'location_covariance_texture_Tyler'
+    M = (ComplexEuclidean,
+         SpecialHermitianPositiveDefinite,
+         StrictlyPositiveVectors)
+    args_M = {
+        'sizes': (p, p, N),
         'weights': weights
     }
 
     def _estimation(X):
-        mu, tau, sigma, _ = estimate_location_covariance_texture_RGD(X)
-        return mu, tau, sigma
+        mu, sigma, tau, _, _ =\
+                tyler_estimator_location_covariance_normalized_det(X)
+        return mu, sigma, tau
+
+    return Feature(name, _estimation, M, args_M)
+
+
+def location_covariance_texture_RGD(p, N, iter_max, weights=(1, 1, 1)):
+    name = 'location_covariance_texture_RGD'
+    M = (ComplexEuclidean,
+         SpecialHermitianPositiveDefinite,
+         StrictlyPositiveVectors)
+    args_M = {
+        'sizes': (p, p, N),
+        'weights': weights
+    }
+
+    def _estimation(X):
+        mu, sigma, tau, _ = estimate_location_covariance_texture_RGD(
+            X, iter_max=iter_max)
+        return mu, sigma, tau
 
     return Feature(name, _estimation, M, args_M)
