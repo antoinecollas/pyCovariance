@@ -16,12 +16,15 @@ def main(
     dataset_name='Indian_Pines',
     window_size=7,
     nb_bands=5,
-    plot=True
+    plot=True,
+    crop_image=False,
+    n_init=5,
+    n_iter_max=100
 ):
     dataset = Dataset(dataset_name)
 
     # load image and gt
-    image, gt = dataset.load()
+    image, gt = dataset.load(crop_image)
     n_r, n_c, p = image.shape
     nb_classes = np.sum(np.unique(gt) >= 0)
 
@@ -36,8 +39,8 @@ def main(
         features=feature,
         window_size=window_size,
         n_classes=nb_classes,
-        n_init=5,
-        n_iter_max=100,
+        n_init=n_init,
+        n_iter_max=n_iter_max,
         eps=1e-2,
         nb_threads_rows=os.cpu_count()//2,
         nb_threads_columns=2

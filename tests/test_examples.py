@@ -11,8 +11,13 @@ from examples.numerical_simulations.plot import\
         tyler_type_estimator
 
 
-def demo_hyperspectral_K_means():
-    demo.main(plot=False)
+def test_hyperspectral_demo_K_means():
+    demo.main(
+        plot=False,
+        crop_image=True,
+        n_init=1,
+        n_iter_max=1
+    )
 
 
 def test_hyperspectral_indian_pines():
