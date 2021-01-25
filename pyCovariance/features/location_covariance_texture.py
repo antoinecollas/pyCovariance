@@ -261,7 +261,11 @@ def location_covariance_texture_Tyler(p, N, weights=(1, 1, 1)):
 
 
 def location_covariance_texture_RGD(
-    p, N, iter_max=3*int(1e4), weights=(1, 1, 1)):
+    p,
+    N,
+    iter_max=3*int(1e4),
+    weights=(1, 1, 1)
+):
     name = 'location_covariance_texture_RGD'
     M = (ComplexEuclidean,
          SpecialHermitianPositiveDefinite,

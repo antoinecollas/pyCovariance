@@ -112,4 +112,8 @@ def test_tau_UUH_CRB():
 
 
 def test_location_covariance_texture_MSE():
-    location_covariance_texture_MSE.main(nb_points=2, nb_MC=2, iter_max_RGD=100)
+    location_covariance_texture_MSE.main(
+        nb_points=2,
+        nb_MC=2,
+        iter_max_RGD=100
+    )

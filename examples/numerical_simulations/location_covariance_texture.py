@@ -44,7 +44,8 @@ def main(nb_points, nb_MC, iter_max_RGD):
     # features
     features_list = [location_covariance_texture_Gaussian,
                      location_covariance_texture_Tyler,
-                     partial(location_covariance_texture_RGD, iter_max=iter_max_RGD)]
+                     partial(location_covariance_texture_RGD,
+                             iter_max=iter_max_RGD)]
 
     # simu
     list_n_points = np.geomspace(N_min, N_max, num=nb_points).astype(int)

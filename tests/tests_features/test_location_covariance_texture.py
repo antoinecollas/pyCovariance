@@ -46,7 +46,6 @@ def test_complex_location_covariance_texture_Gaussian():
 
     mu = random.randn(p, 1) + 1j*random.randn(p, 1)
     sigma = generate_complex_covariance(p)
-    tau = generate_textures(N)
     X = sample_complex_normal_distribution(N, sigma)
     X = X + mu
     assert X.dtype == np.complex128
