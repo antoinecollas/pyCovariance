@@ -1,6 +1,5 @@
 import autograd.numpy as np
 import os
-import sys
 
 from pyCovariance import K_means_datacube
 from pyCovariance.features.base import _FeatureArray
@@ -29,8 +28,6 @@ def test_sliding_window_parallel():
 
     window_size = 3
     fct = pixel_euclidean(p).estimation
-    sys.stdout = open(os.devnull, 'w')
-    sys.stderr = open(os.devnull, 'w')
     res = sliding_window_parallel(
         image,
         window_size,
@@ -38,10 +35,8 @@ def test_sliding_window_parallel():
         nb_threads_rows=os.cpu_count()//2,
         nb_threads_columns=2,
         overlapping_window=True,
-        verbose=True
+        verbose=False
     )
-    sys.stdout = sys.__stdout__
-    sys.stderr = sys.__stderr__
     assert type(res) == list
     assert type(res[0]) == list
     assert type(res[0][0]) == _FeatureArray
@@ -91,8 +86,6 @@ def test_real_K_means_datacube():
     h = w = WINDOW_SIZE//2
     gt = gt[h:-h, w:-w]
 
-    sys.stdout = open(os.devnull, 'w')
-    sys.stderr = open(os.devnull, 'w')
     C, criterion_values = K_means_datacube(
         image,
         MASK,
@@ -104,9 +97,8 @@ def test_real_K_means_datacube():
         EPS,
         NUMBER_OF_THREADS_ROWS,
         NUMBER_OF_THREADS_COLUMNS,
+        verbose=False
     )
-    sys.stdout = sys.__stdout__
-    sys.stderr = sys.__stderr__
 
     assert C.shape == gt.shape
     assert C.dtype == np.int64
@@ -130,8 +122,6 @@ def test_real_K_means_datacube():
     MASK = np.zeros((H, W))
     MASK[int(H/2)-10:int(H/2)+10, int(W/2)-10:int(W/2)+10] = 1
 
-    sys.stdout = open(os.devnull, 'w')
-    sys.stderr = open(os.devnull, 'w')
     C, criterion_values = K_means_datacube(
         image,
         MASK,
@@ -143,9 +133,8 @@ def test_real_K_means_datacube():
         EPS,
         NUMBER_OF_THREADS_ROWS,
         NUMBER_OF_THREADS_COLUMNS,
+        verbose=False
     )
-    sys.stdout = sys.__stdout__
-    sys.stderr = sys.__stderr__
 
     assert C.shape == gt.shape
     assert C.dtype == np.int64
@@ -174,8 +163,6 @@ def test_real_K_means_datacube():
     NUMBER_OF_THREADS_ROWS = os.cpu_count()//2
     NUMBER_OF_THREADS_COLUMNS = 2
 
-    sys.stdout = open(os.devnull, 'w')
-    sys.stderr = open(os.devnull, 'w')
     C, criterion_values = K_means_datacube(
         image,
         MASK,
@@ -187,9 +174,8 @@ def test_real_K_means_datacube():
         EPS,
         NUMBER_OF_THREADS_ROWS,
         NUMBER_OF_THREADS_COLUMNS,
+        verbose=False
     )
-    sys.stdout = sys.__stdout__
-    sys.stderr = sys.__stderr__
 
     assert C.shape == gt.shape
     assert C.dtype == np.int64
@@ -248,8 +234,6 @@ def test_complex_K_means_datacube():
     h = w = WINDOW_SIZE//2
     gt = gt[h:-h, w:-w]
 
-    sys.stdout = open(os.devnull, 'w')
-    sys.stderr = open(os.devnull, 'w')
     C, criterion_values = K_means_datacube(
         image,
         MASK,
@@ -261,9 +245,8 @@ def test_complex_K_means_datacube():
         EPS,
         NUMBER_OF_THREADS_ROWS,
         NUMBER_OF_THREADS_COLUMNS,
+        verbose=False
     )
-    sys.stdout = sys.__stdout__
-    sys.stderr = sys.__stderr__
 
     assert C.shape == gt.shape
     assert C.dtype == np.int64

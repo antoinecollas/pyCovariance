@@ -23,7 +23,8 @@ def K_means_datacube(
     n_iter_max,
     eps,
     nb_threads_rows,
-    nb_threads_columns
+    nb_threads_columns,
+    verbose=True
 ):
     """ K-means algorithm applied on an image datacube.
     It uses distances and means on locally computed features
@@ -46,6 +47,7 @@ def K_means_datacube(
         * eps = epsilon to stop K-means
         * nb_threads_rows = number of threads in height
         * nb_threads_columns = number of threads to be used in column
+        * verbose = bool
 
     Outputs:
     ---------
@@ -60,7 +62,8 @@ def K_means_datacube(
         h = w = window_size//2
         mask = mask[h:-h, w:-w]
 
-    print('#################### COMPUTING FEATURES ####################')
+    if verbose:
+        print('#################### COMPUTING FEATURES ####################')
     t_beginning = time.time()
     m_r = m_c = window_size
     n_r, n_c, p = image.shape
@@ -80,9 +83,9 @@ def K_means_datacube(
                 X.append(X_temp[row][col])
 
     image = None
-    print("Done in %f s." % (time.time()-t_beginning))
-
-    print('###################### K-MEANS CLUSTERING ######################')
+    if verbose:
+        print("Done in %f s." % (time.time()-t_beginning))
+        print('##################### K-MEANS CLUSTERING #####################')
     t_beginning = time.time()
 
     if mask is not None:
@@ -91,7 +94,10 @@ def K_means_datacube(
 
     best_criterion_value = np.inf
     all_criterion_values = list()
-    for _ in tqdm(range(n_init)):
+    iterator = range(n_init)
+    if verbose:
+        iterator = tqdm(iterator)
+    for _ in iterator:
         C, _, _, _, criterion_values = K_means(
             X,
             n_classes,
@@ -112,8 +118,8 @@ def K_means_datacube(
                 C_best = C.reshape((C.shape[0], 1))
             C_best = C_best.reshape((n_r-m_r+1, n_c-m_c+1))
             C = None
-
-    print('K-means done in %f s.' % (time.time()-t_beginning))
+    if verbose:
+        print('K-means done in %f s.' % (time.time()-t_beginning))
 
     return C_best, all_criterion_values
 

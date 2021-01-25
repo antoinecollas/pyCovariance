@@ -19,7 +19,8 @@ def main(
     plot=True,
     crop_image=False,
     n_init=5,
-    n_iter_max=100
+    n_iter_max=100,
+    verbose=True
 ):
     dataset = Dataset(dataset_name)
 
@@ -43,7 +44,8 @@ def main(
         n_iter_max=n_iter_max,
         eps=1e-2,
         nb_threads_rows=os.cpu_count()//2,
-        nb_threads_columns=2
+        nb_threads_columns=2,
+        verbose=verbose
     )
 
     # evaluation
@@ -51,7 +53,8 @@ def main(
     gt = gt[h:-h, w:-w]
     C = assign_segmentation_classes_to_gt_classes(C, gt)
     OA = compute_OA(C, gt)
-    print('OA=', round(OA, 2))
+    if verbose:
+        print('OA=', round(OA, 2))
 
     # plot
     plot_segmentation(C + 1, min_C=0, max_C=16)

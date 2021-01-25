@@ -18,7 +18,8 @@ def test_hyperspectral_demo_K_means():
         plot=False,
         crop_image=True,
         n_init=1,
-        n_iter_max=1
+        n_iter_max=1,
+        verbose=False
     )
 
 
@@ -47,7 +48,8 @@ def test_hyperspectral_indian_pines():
         mask=True,
         features_list=features_list,
         nb_init=2,
-        nb_iter_max=2
+        nb_iter_max=1,
+        verbose=False
     )
 
 
@@ -71,7 +73,8 @@ def test_hyperspectral_pavia():
         mask=True,
         features_list=features_list,
         nb_init=1,
-        nb_iter_max=2
+        nb_iter_max=1,
+        verbose=False
     )
 
 
@@ -95,7 +98,8 @@ def test_hyperspectral_salinas():
         mask=True,
         features_list=features_list,
         nb_init=1,
-        nb_iter_max=2
+        nb_iter_max=1,
+        verbose=False
     )
 
 
@@ -108,12 +112,17 @@ def test_plot_tyler_type_estimator():
 
 
 def test_tau_UUH_CRB():
-    tau_UUH_CRB.main(nb_points=2, nb_MC=2)
+    tau_UUH_CRB.main(
+        nb_points=2,
+        nb_MC=2,
+        verbose=False
+    )
 
 
 def test_location_covariance_texture_MSE():
     location_covariance_texture_MSE.main(
         nb_points=2,
         nb_MC=2,
-        iter_max_RGD=100
+        iter_max_RGD=100,
+        verbose=False
     )

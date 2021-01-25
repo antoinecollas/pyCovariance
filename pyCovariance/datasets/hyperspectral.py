@@ -165,13 +165,15 @@ class HyperparametersKMeans():
         self.eps = eps
 
 
-def K_means_hyperspectral_image(dataset, hyperparams):
+def K_means_hyperspectral_image(dataset, hyperparams, verbose=True):
     t_beginning = time.time()
 
-    print("###################### PREPROCESSING ######################")
+    if verbose:
+        print("###################### PREPROCESSING ######################")
     # load image and gt
     image, gt = dataset.load(hyperparams.crop_image)
-    print('Crop image:', hyperparams.crop_image)
+    if verbose:
+        print('Crop image:', hyperparams.crop_image)
 
     nb_classes = np.sum(np.unique(gt) >= 0)
 
@@ -184,7 +186,8 @@ def K_means_hyperspectral_image(dataset, hyperparams):
     # pca
     if hyperparams.pca:
         image = pca_image(image, hyperparams.nb_bands_to_select)
-    print('PCA:', hyperparams.pca)
+    if verbose:
+        print('PCA:', hyperparams.pca)
 
     n_r, n_c, p = image.shape
 
@@ -199,7 +202,8 @@ def K_means_hyperspectral_image(dataset, hyperparams):
     if hyperparams.mask:
         mask[gt < 0] = False
 
-    print('image.shape:', image.shape)
+    if verbose:
+        print('image.shape:', image.shape)
 
     h = w = hyperparams.window_size//2
     if hyperparams.feature == 'sklearn':
@@ -231,13 +235,15 @@ def K_means_hyperspectral_image(dataset, hyperparams):
             hyperparams.nb_iter_max,
             hyperparams.eps,
             hyperparams.nb_threads_rows,
-            hyperparams.nb_threads_columns
+            hyperparams.nb_threads_columns,
+            verbose
         )
         C = np.zeros((n_r, n_c)) - 1
         C[h:-h, w:-w] = temp
 
     t_end = time.time()
-    print('TOTAL TIME ELAPSED:', round(t_end-t_beginning, 1), 's')
+    if verbose:
+        print('TOTAL TIME ELAPSED:', round(t_end-t_beginning, 1), 's')
 
     return C, criterion_values
 
@@ -247,9 +253,11 @@ def evaluate_and_save_clustering(
     dataset,
     hyperparams,
     folder,
-    prefix_filename
+    prefix_filename,
+    verbose=True
 ):
-    print('###################### EVALUATION ######################')
+    if verbose:
+        print('###################### EVALUATION ######################')
 
     _, gt = dataset.load(hyperparams.crop_image, hyperparams.border_size)
 
@@ -282,23 +290,27 @@ def evaluate_and_save_clustering(
     for i in range(len(IoU)):
         temp += ' class ' + str(i + 1) +\
                 ': ' + str(round(IoU[i], 2))
-    print(temp)
-    print('mIoU=', mIoU)
+    if verbose:
+        print(temp)
+        print('mIoU=', mIoU)
 
     # OA
     OA = compute_OA(segmentation, gt)
     OA = round(OA, 2)
-    print('OA=', OA)
+    if verbose:
+        print('OA=', OA)
 
     # AMI
     AMI = compute_AMI(segmentation, gt)
     AMI = round(AMI, 2)
-    print('AMI=', AMI)
+    if verbose:
+        print('AMI=', AMI)
 
     # ARI
     ARI = compute_ARI(segmentation, gt)
     ARI = round(ARI, 2)
-    print('ARI=', ARI)
+    if verbose:
+        print('ARI=', ARI)
 
     plot_segmentation(gt + 1, title='Ground truth')
     plt.savefig(os.path.join(folder_segmentation, 'gt'))

@@ -29,7 +29,8 @@ def main(
     mask,
     features_list,
     nb_init,
-    nb_iter_max
+    nb_iter_max,
+    verbose=True
 ):
     matplotlib.use('Agg')
 
@@ -68,11 +69,12 @@ def main(
     matrix_OAs = np.zeros((len(pairs_w_p), nb_features))
 
     for i, (w_size, p) in enumerate(pairs_w_p):
-        print()
-        print('########################################################')
-        print('w_size =', w_size)
-        print('p =', p)
-        print('########################################################')
+        if verbose:
+            print()
+            print('########################################################')
+            print('w_size =', w_size)
+            print('p =', p)
+            print('########################################################')
 
         hp.window_size = w_size
         hp.nb_bands_to_select = p
@@ -94,7 +96,8 @@ def main(
         for j, feature in enumerate(features):
             hp.feature = feature
 
-            print()
+            if verbose:
+                print()
 
             pattern = re.compile(r'tau_?\w*_UUH_?\w*|subspace_SCM')
             if pattern.match(str(hp.feature)):
@@ -102,13 +105,21 @@ def main(
             else:
                 hp.pca = True
 
-            print('Feature:', str(hp.feature))
+            if verbose:
+                print('Feature:', str(hp.feature))
 
-            C, criterion_values = K_means_hyperspectral_image(dataset, hp)
+            C, criterion_values = K_means_hyperspectral_image(
+                dataset,
+                hp,
+                verbose
+            )
 
             prefix_f_name = str(j)
             mIoU, OA = evaluate_and_save_clustering(C, dataset,
-                                                    hp, folder, prefix_f_name)
+                                                    hp,
+                                                    folder,
+                                                    prefix_f_name,
+                                                    verbose)
             mIoUs.append(mIoU)
             OAs.append(OA)
 

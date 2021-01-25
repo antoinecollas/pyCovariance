@@ -325,7 +325,7 @@ def K_means(
                 if verbose:
                     print('Convergence reached:', delta)
                 break
-        if i == iter_max:
+        if (i == iter_max) and (iter_max != 1):
             warnings.warn('K-means algorithm did not converge')
             break
 

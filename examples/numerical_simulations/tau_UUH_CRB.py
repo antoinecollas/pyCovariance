@@ -17,12 +17,14 @@ from pyCovariance.generation_data import\
         sample_complex_tau_UUH_distribution
 
 
-def main(nb_points, nb_MC):
-    print('################ tau_UUH model CRB ################')
+def main(nb_points, nb_MC, verbose=True):
+    if verbose:
+        print('################ tau_UUH model CRB ################')
 
     seed = 0
     np.random.seed(seed)
-    print('seed:', seed)
+    if verbose:
+        print('seed:', seed)
 
     # path to save plot
     folder = create_directory('numerical_simulations')
@@ -50,7 +52,13 @@ def main(nb_points, nb_MC):
     for i, n in enumerate(list_n_points):
         def sample_fct():
             return sample_complex_tau_UUH_distribution(tau_full[:n], U)
-        mean_errors[:, i] = monte_carlo(U, sample_fct, features_list, nb_MC)
+        mean_errors[:, i] = monte_carlo(
+            U,
+            sample_fct,
+            features_list,
+            nb_MC,
+            verbose
+        )
 
     c_tau = np.mean((tau_full*tau_full)/(1+tau_full))
     bound = (((p-k)*k)/(list_n_points*c_tau))

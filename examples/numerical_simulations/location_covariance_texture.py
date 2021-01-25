@@ -20,12 +20,19 @@ from pyCovariance.generation_data import\
         sample_complex_compound_distribution
 
 
-def main(nb_points, nb_MC, iter_max_RGD):
-    print('################ Compound Gaussian estimation ################')
+def main(
+    nb_points,
+    nb_MC,
+    iter_max_RGD,
+    verbose=True
+):
+    if verbose:
+        print('################ Compound Gaussian estimation ################')
 
     seed = 0
     rnd.seed(seed)
-    print('seed:', seed)
+    if verbose:
+        print('seed:', seed)
 
     # path to save plot
     folder = os.path.join('numerical_simulations')
@@ -54,7 +61,8 @@ def main(nb_points, nb_MC, iter_max_RGD):
     mean_errors = np.zeros((4, len(features_list)+1, nb_points))
 
     for i, N in enumerate(list_n_points):
-        print('##### N=' + str(N) + ' #####')
+        if verbose:
+            print('##### N=' + str(N) + ' #####')
         t = tau_full[:N]
 
         # location + covariance + texture estimators
@@ -66,7 +74,8 @@ def main(nb_points, nb_MC, iter_max_RGD):
             true_parameters,
             sample_fct,
             features,
-            nb_MC
+            nb_MC,
+            verbose
         )
 
         # Tyler estimator
@@ -78,7 +87,8 @@ def main(nb_points, nb_MC, iter_max_RGD):
             true_parameters,
             sample_fct,
             features,
-            nb_MC
+            nb_MC,
+            verbose
         ).reshape(-1)
 
     # plot MSE of location estimation
