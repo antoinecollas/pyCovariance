@@ -29,7 +29,8 @@ def compute_pairwise_distances_parallel(
     X,
     mu,
     distance,
-    nb_threads=1
+    nb_threads=1,
+    verbose=False
 ):
     """ A simple function to compute all distances in parallel for K-mean
         ----------------------------------------------------------------------
@@ -63,7 +64,7 @@ def compute_pairwise_distances_parallel(
                 temp.append(X[i])
             X_subsets.append(temp)
         queues = [Queue() for i in range(nb_threads)]
-        args = [(X_subsets[i], mu, distance, queues[i])
+        args = [(X_subsets[i], mu, distance, queues[i], verbose)
                 for i in range(nb_threads)]
         jobs = [Process(target=compute_pairwise_distances, args=a)
                 for a in args]
@@ -84,7 +85,7 @@ def compute_pairwise_distances_parallel(
     # Case: Multiprocessing is not enabled
     # -----------------------------------------------------------
     else:
-        d = compute_pairwise_distances(X, mu, distance)
+        d = compute_pairwise_distances(X, mu, distance, None, verbose)
 
     return d
 
