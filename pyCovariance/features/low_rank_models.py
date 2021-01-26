@@ -6,7 +6,7 @@ from pymanopt.manifolds import\
         ComplexGrassmann,\
         StrictlyPositiveVectors
 from pymanopt import Problem
-from pymanopt.solvers import SteepestDescent
+from pymanopt.solvers import ConjugateGradient
 import warnings
 
 from .base import Feature, Product
@@ -79,13 +79,20 @@ def create_cost_egrad(backend, X):
     return cost, egrad
 
 
-def estimate_tau_UUH_RGD(X, k, init=None, autodiff=False):
+def estimate_tau_UUH_RGD(
+    X,
+    k,
+    init=None,
+    iter_max=int(1e3),
+    autodiff=False
+):
     """ A function that estimates parameters of a 'tau UUH' model.
         Inputs:
             * X = a matrix of size (p, N)
             with each observation along column dimension
             * k = dimension of the subspace
             * init = point on manifold to initliase estimation
+            * iter_max = maximum number of iterations
             * autodiff = use or not autodiff
         Outputs:
             * U = orthogonal basis of subspace
@@ -109,13 +116,16 @@ def estimate_tau_UUH_RGD(X, k, init=None, autodiff=False):
                         StrictlyPositiveVectors(N)])
 
     problem = Problem(manifold=manifold, cost=cost, egrad=egrad, verbosity=0)
-    solver = SteepestDescent()
 
+    solver = ConjugateGradient(
+        maxiter=iter_max
+    )
     parameters = solver.solve(problem, x=init)
+
     return parameters[1], parameters[0]
 
 
-def estimate_tau_UUH(X, k, tol=0.001, iter_max=100):
+def estimate_tau_UUH(X, k, tol=-1, iter_max=100):
     """ A function that estimates parameters of a 'tau UUH' model.
         Inputs:
             * X = a matrix of size (p, N)
