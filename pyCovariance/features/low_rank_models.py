@@ -125,7 +125,7 @@ def estimate_tau_UUH_RGD(
     return parameters[1], parameters[0]
 
 
-def estimate_tau_UUH(X, k, tol=-1, iter_max=100):
+def estimate_tau_UUH(X, k, tol=0.001, iter_max=100):
     """ A function that estimates parameters of a 'tau UUH' model.
         Inputs:
             * X = a matrix of size (p, N)
