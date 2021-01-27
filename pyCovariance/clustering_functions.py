@@ -263,6 +263,9 @@ def _K_means(
     """
     assert type(X) == _FeatureArray
 
+    if verbose:
+        print('K-means: ' + str(nb_init) + ' init ...')
+
     if nb_init > 1:
         assert init is None
     t_beginning = time.time()
@@ -397,18 +400,20 @@ def K_means(
     assert type(feature) == Feature
 
     if verbose:
-        print('########## Estimation: ' + str(feature) + ' ##########')
+        print('########## K-means: ' + str(feature) + ' ##########')
+        print('Estimation ...')
 
     features_array = feature.estimation(X[0])
-
     if verbose:
-        pbar = tqdm(X.shape[0])
+        pbar = tqdm(total=X.shape[0])
         pbar.update(1)
 
     for i in range(1, X.shape[0]):
         features_array.append(feature.estimation(X[i]))
         if verbose:
             pbar.update(1)
+    if verbose:
+        pbar.close()
 
     C, mu, i, delta, criterion_values = _K_means(
         features_array,
