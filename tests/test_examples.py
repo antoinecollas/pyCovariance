@@ -1,7 +1,7 @@
 from pyCovariance.datasets.hyperspectral import Dataset
 from pyCovariance.features import covariance_texture,\
-        intensity_euclidean,\
-        pixel_euclidean
+        center_intensity_euclidean,\
+        center_euclidean
 
 from examples.hyperspectral import demo, k_means
 from examples.numerical_simulations import\
@@ -31,9 +31,9 @@ def test_hyperspectral_indian_pines():
     features_list = list()
     for w, k in pairs_w_k:
         features_list.append([
-            intensity_euclidean(),
+            center_intensity_euclidean(),
             'sklearn',
-            pixel_euclidean(k),
+            center_euclidean(k),
             covariance_texture(k, w*w),
         ])
 

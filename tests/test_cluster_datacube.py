@@ -4,7 +4,7 @@ import os
 from pyCovariance import K_means_datacube
 from pyCovariance.features.base import _FeatureArray
 from pyCovariance.cluster_datacube import sliding_window_parallel
-from pyCovariance.features import pixel_euclidean
+from pyCovariance.features import center_euclidean
 from pyCovariance.generation_data import\
         generate_complex_covariance,\
         generate_covariance,\
@@ -27,7 +27,7 @@ def test_sliding_window_parallel():
     assert image.dtype == np.complex128
 
     window_size = 3
-    fct = pixel_euclidean(p).estimation
+    fct = center_euclidean(p).estimation
     res = sliding_window_parallel(
         image,
         window_size,
@@ -75,7 +75,7 @@ def test_real_K_means_datacube():
     # clustering with one thread
     WINDOW_SIZE = 3
     MASK = None
-    FEATURE = pixel_euclidean(p)
+    FEATURE = center_euclidean(p)
     NUMBER_CLASSES = 2
     NUMBER_INIT = 1
     K_MEANS_NB_ITER_MAX = 100
@@ -155,7 +155,7 @@ def test_real_K_means_datacube():
     # clustering with multiple threads
     WINDOW_SIZE = 3
     MASK = None
-    FEATURE = pixel_euclidean(p)
+    FEATURE = center_euclidean(p)
     NUMBER_CLASSES = 2
     NUMBER_INIT = 1
     K_MEANS_NB_ITER_MAX = 100
@@ -223,7 +223,7 @@ def test_complex_K_means_datacube():
     # clustering with one thread
     WINDOW_SIZE = 3
     MASK = None
-    FEATURE = pixel_euclidean(p)
+    FEATURE = center_euclidean(p)
     NUMBER_CLASSES = 2
     NUMBER_INIT = 1
     K_MEANS_NB_ITER_MAX = 100

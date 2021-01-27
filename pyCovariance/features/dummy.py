@@ -1,10 +1,21 @@
 import numpy as np
+import numpy.linalg as la
 from pymanopt.manifolds import ComplexEuclidean, Euclidean
 
 from .base import Feature
 
 
 # ESTIMATION
+
+
+def identity(X):
+    """ Identity function.
+            Inputs:
+                * X = a np.array of dim (p, N)
+                with each observation along column dimension
+            Outputs:
+                * X"""
+    return X
 
 
 def get_center_vector(X):
@@ -27,37 +38,62 @@ def compute_mean_vector(X):
     return np.mean(X, axis=1)
 
 
-def compute_intensity_vector(X):
-    """ A function that intensity of center vector.
+def compute_intensity_center_vector(X):
+    """ A function that computes intensity of center vector.
             Inputs:
                 * X = a np.array of dim (p, N)
                 with each observation along column dimension
             Outputs:
                 * intensity"""
     x = get_center_vector(X)
-    intensity = np.linalg.norm(x)
+    intensity = la.norm(x)
+    return intensity
+
+
+def compute_intensity_vector(X):
+    """ A function that computes a size N intensity vector.
+            Inputs:
+                * X = a np.array of dim (p, N)
+                with each observation along column dimension
+            Outputs:
+                * intensity vector"""
+    intensity = la.norm(X, axis=0)
     return intensity
 
 
 # CLASSES
 
 
-def pixel_euclidean(p):
-    name = 'Pixel_Euclidean'
+def identity_euclidean(p, N):
+    name = 'Identity_Euclidean'
+    M = ComplexEuclidean
+    args_M = {'sizes': (p, N)}
+    return Feature(name, identity, M, args_M)
+
+
+def center_euclidean(p):
+    name = 'Center_Euclidean'
     M = ComplexEuclidean
     args_M = {'sizes': p}
     return Feature(name, get_center_vector, M, args_M)
 
 
-def mean_pixel_euclidean(p):
-    name = 'Mean_Pixel_Euclidean'
+def center_intensity_euclidean():
+    name = 'Center_Intensity_Euclidean'
+    M = Euclidean
+    args_M = {'sizes': 1}
+    return Feature(name, compute_intensity_center_vector, M, args_M)
+
+
+def mean_vector_euclidean(p):
+    name = 'Mean_Vector_Euclidean'
     M = ComplexEuclidean
     args_M = {'sizes': p}
     return Feature(name, compute_mean_vector, M, args_M)
 
 
-def intensity_euclidean():
+def intensity_vector_euclidean(N):
     name = 'Intensity_Euclidean'
     M = Euclidean
-    args_M = {'sizes': 1}
+    args_M = {'sizes': N}
     return Feature(name, compute_intensity_vector, M, args_M)

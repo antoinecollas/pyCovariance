@@ -7,10 +7,10 @@ import re
 from pyCovariance.evaluation import create_directory
 
 from pyCovariance.features import\
-        mean_pixel_euclidean,\
-        pixel_euclidean,\
+        center_euclidean,\
         covariance,\
         covariance_texture,\
+        mean_vector_euclidean,\
         subspace_SCM,\
         tau_UUH
 
@@ -211,8 +211,8 @@ if __name__ == '__main__':
         for w, k in pairs_w_k:
             features_list.append([
                 'sklearn',
-                pixel_euclidean(k),
-                mean_pixel_euclidean(k),
+                center_euclidean(k),
+                mean_vector_euclidean(k),
                 covariance(k),
                 covariance_texture(k, w*w),
                 covariance_texture(k, w*w, weights=(1, 0)),

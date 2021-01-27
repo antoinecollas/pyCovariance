@@ -10,7 +10,7 @@ from pyCovariance.clustering_functions import \
         compute_means_parallel,\
         compute_pairwise_distances_parallel,\
         random_index_for_initialisation
-from pyCovariance.features import pixel_euclidean
+from pyCovariance.features import center_euclidean
 from pyCovariance.features.base import _FeatureArray
 from pyCovariance.generation_data import \
         generate_covariance,\
@@ -26,7 +26,7 @@ def test_compute_pairwise_distances_parallel():
     X.append(np.random.randn(N, p))
     mu = _FeatureArray((p, ))
     mu.append(np.random.randn(N_mean, p))
-    pix = pixel_euclidean(p)
+    pix = center_euclidean(p)
 
     # single thread
     d = compute_pairwise_distances_parallel(X,
@@ -60,7 +60,7 @@ def test_compute_means_parallel():
     X.append(np.random.randn(N, p))
     C = np.random.randint(K, size=N)
     assert C.shape == (N, )
-    pix = pixel_euclidean(p)
+    pix = center_euclidean(p)
 
     # single thread
     m = compute_means_parallel(X,
@@ -125,7 +125,7 @@ def test_K_means():
     # plt.scatter(X.export()[:, 0], X.export()[:, 1], c=y)
     # plt.show()
 
-    pix = pixel_euclidean(p)
+    pix = center_euclidean(p)
 
     # single thread
     y_predict = K_means(

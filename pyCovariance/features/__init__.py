@@ -6,9 +6,11 @@ __all__ = [
     'location_covariance_texture_Gaussian',
     'location_covariance_texture_Tyler',
     'location_covariance_texture_RGD',
-    'intensity_euclidean',
-    'mean_pixel_euclidean',
-    'pixel_euclidean',
+    'center_euclidean',
+    'center_intensity_euclidean',
+    'identity_euclidean',
+    'intensity_vector_euclidean',
+    'mean_vector_euclidean',
     'subspace_SCM',
     'subspace_tau_UUH',
     'subspace_tau_UUH_RGD',
@@ -22,10 +24,12 @@ from .location_covariance_texture import\
         location_covariance_texture_Gaussian,\
         location_covariance_texture_Tyler,\
         location_covariance_texture_RGD
-from .pixel import\
-        intensity_euclidean,\
-        mean_pixel_euclidean,\
-        pixel_euclidean
+from .dummy import\
+        center_euclidean,\
+        center_intensity_euclidean,\
+        identity_euclidean,\
+        intensity_vector_euclidean,\
+        mean_vector_euclidean
 from .low_rank_models import\
         subspace_SCM,\
         subspace_tau_UUH,\
