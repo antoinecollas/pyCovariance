@@ -4,6 +4,8 @@ from tqdm import tqdm
 import time
 import warnings
 
+from pyCovariance.features.base import Feature, _FeatureArray
+
 
 def compute_pairwise_distances(
     X,
@@ -220,7 +222,7 @@ def compute_objective_function(distances):
     return result
 
 
-def K_means(
+def _K_means(
     X,
     K,
     distance,
@@ -230,7 +232,7 @@ def K_means(
     nb_init=1,
     iter_max=20,
     nb_threads=1,
-    verbose=False
+    verbose=True
 ):
     """ K-means algorithm in a general multivariate context with an arbitary
         distance and an arbitray way to choose clusters center:
@@ -245,7 +247,6 @@ def K_means(
             * mean_function = a mean computation function from class Feature
             * init = a (N) array with one class per point
             (for example coming from a H-alpha decomposition).
-            If None, centers are randomly chosen among samples.
             * nb_init = number of initialisations of K-means
             * eps = stopping threshold
             * iter_max = number of maximum iterations of algorithm
@@ -260,6 +261,8 @@ def K_means(
             * delta = convergence criterion
             * criterion_values = list of values of within-classes variances
     """
+    assert type(X) == _FeatureArray
+
     if nb_init > 1:
         assert init is None
     t_beginning = time.time()
@@ -350,3 +353,74 @@ def K_means(
         print('K-means done in %f s.' % (time.time()-t_beginning))
 
     return C_best, mu_best, i_best, delta_best, all_criterion_values
+
+
+def K_means(
+    X,
+    K,
+    feature,
+    init=None,
+    eps=1e-2,
+    nb_init=1,
+    iter_max=20,
+    nb_threads=1,
+    verbose=True
+):
+    """ K-means algorithm.
+        ----------------------------------------------------------------------
+        Inputs:
+        --------
+            * X = a numpy Array of shape (batch_size, p, N)
+                * batch_size: number of batch
+                * p: dimension
+                * N: number of vectors for one batch
+            * K = number of classes
+            * a Feature: for example see pyCovariance/features/covariance.py
+            * init = a (batch_size) array with one class per point
+            If None, centers are randomly chosen among samples.
+            * nb_init = number of initialisations of K-means
+            * eps = stopping threshold
+            * iter_max = number of maximum iterations of algorithm
+            * nb_threads = number of parallel threads (cores of machine)
+            * verbose = bool
+
+        Outputs:
+        ---------
+            * C = an array of shape (N,) containing labels in {0,..., K-1}
+            * mu = an array of shape (p,K) corresponding to classes centers
+            * i = number of iterations done
+            * delta = convergence criterion
+            * criterion_values = list of values of within-classes variances
+    """
+    assert type(X) == np.ndarray
+    assert X.ndim == 3
+    assert type(feature) == Feature
+
+    if verbose:
+        print('########## Estimation: ' + str(feature) + ' ##########')
+
+    features_array = feature.estimation(X[0])
+
+    if verbose:
+        pbar = tqdm(X.shape[0])
+        pbar.update(1)
+
+    for i in range(1, X.shape[0]):
+        features_array.append(feature.estimation(X[i]))
+        if verbose:
+            pbar.update(1)
+
+    C, mu, i, delta, criterion_values = _K_means(
+        features_array,
+        K,
+        feature.distance,
+        feature.mean,
+        init,
+        eps,
+        nb_init,
+        iter_max,
+        nb_threads,
+        verbose
+    )
+
+    return C, mu, i, delta, criterion_values

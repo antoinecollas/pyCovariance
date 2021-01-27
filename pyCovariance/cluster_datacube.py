@@ -5,7 +5,7 @@ import seaborn as sns
 import time
 from tqdm import tqdm
 
-from .clustering_functions import K_means
+from .clustering_functions import _K_means
 
 sns.set_style("darkgrid")
 
@@ -92,7 +92,7 @@ def K_means_datacube(
         mask = mask.reshape((-1)).astype(bool)
         X = X[mask]
 
-    C, _, _, _, all_criterion_values = K_means(
+    C, _, _, _, all_criterion_values = _K_means(
         X,
         n_classes,
         features.distance,
