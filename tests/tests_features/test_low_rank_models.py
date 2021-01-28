@@ -4,6 +4,9 @@ import numpy.testing as np_test
 
 from pyCovariance.features.base import _FeatureArray
 from pyCovariance.features.low_rank_models import\
+        estimate_tau_UUH,\
+        estimate_tau_UUH_RGD
+from pyCovariance.features import\
         subspace_SCM,\
         subspace_tau_UUH,\
         subspace_tau_UUH_RGD,\
@@ -174,3 +177,42 @@ def test_real_tau_UUH():
     grad_norm = np.sqrt(temp_tau + temp_U)
 
     assert grad_norm < 1e-6
+
+
+def test_real_estimation_tau_UUH():
+    p = 15
+    k = 3
+    N = int(1e5)
+
+    # data generation
+    tau = generate_textures(N)
+    U = generate_stiefel(p, k)
+    X = sample_tau_UUH_distribution(tau, U)
+    assert X.dtype == np.float64
+
+    tau_BCD, U_BCD = estimate_tau_UUH(X, k)
+    assert tau_BCD.shape == (N, 1)
+    assert tau_BCD.dtype == np.float64
+    assert U_BCD.shape == (p, k)
+    assert U_BCD.dtype == np.float64
+    error = la.norm(U_BCD@U_BCD.T - U@U.T) / la.norm(U@U.T)
+    assert error < 0.05
+
+    N = int(1e3)
+    tau = generate_textures(N)
+    U = generate_stiefel(p, k)
+    X = sample_tau_UUH_distribution(tau, U)
+    assert X.dtype == np.float64
+
+    tau_BCD, U_BCD = estimate_tau_UUH(X, k)
+    tau_RGD, U_RGD = estimate_tau_UUH_RGD(X, k)
+    assert tau_RGD.shape == (N, 1)
+    assert tau_RGD.dtype == np.float64
+    assert U_RGD.shape == (p, k)
+    assert U_RGD.dtype == np.float64
+
+    delta_U = la.norm(U_BCD@U_BCD.T - U_RGD@U_RGD.T) / la.norm(U_BCD@U_BCD.T)
+    _, theta, _ = la.svd(U_BCD.T@U_RGD)
+    delta_tau = la.norm(tau_BCD - tau_RGD) / la.norm(tau_BCD)
+    assert delta_U < 0.01
+    assert delta_tau < 0.01

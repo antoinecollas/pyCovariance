@@ -10,12 +10,13 @@ from pymanopt.solvers import ConjugateGradient
 import warnings
 
 from .base import Feature, Product
+from .covariance import compute_scm
 
 
 # SUBSPACE SCM ESTIMATION
 
 
-def estimate_subspace_SCM(X, k):
+def compute_subspace_SCM(X, k):
     """ A function that estimates the subspace of
     the sample covariance matrix (SCM).
         Inputs:
@@ -100,10 +101,16 @@ def estimate_tau_UUH_RGD(
 
     p, N = X.shape
 
+    # normalize vectors by sigma
+    eigv = la.eigvalsh(compute_scm(X))[::-1]
+    eigv = eigv[k:min(p, N)]
+    sigma_2 = np.mean(eigv)
+    X = X / np.sqrt(sigma_2)
+
     # Initialisation
     if init is None:
         tau = np.ones((N, 1))
-        U = estimate_subspace_SCM(X, k)
+        U = compute_subspace_SCM(X, k)
         init = (U, tau)
 
     if autodiff:
@@ -121,8 +128,11 @@ def estimate_tau_UUH_RGD(
         maxiter=iter_max
     )
     parameters = solver.solve(problem, x=init)
+    tau, U = parameters[1], parameters[0]
 
-    return parameters[1], parameters[0]
+    tau = sigma_2 * tau
+
+    return tau, U
 
 
 def estimate_tau_UUH(X, k, tol=0.001, iter_max=100):
@@ -136,13 +146,18 @@ def estimate_tau_UUH(X, k, tol=0.001, iter_max=100):
         Outputs:
             * U = orthogonal basis of subspace
             * tau """
+    p, N = X.shape
+
+    # normalize vectors by sigma
+    eigv = la.eigvalsh(compute_scm(X))[::-1]
+    eigv = eigv[k:min(p, N)]
+    sigma_2 = np.mean(eigv)
+    X = X / np.sqrt(sigma_2)
 
     # Initialisation
-    (p, N) = X.shape
     delta = np.inf  # Distance between two iterations
     tau = np.ones((N, 1))
-    U, _, _ = la.svd(X, full_matrices=False)
-    U = U[:, :k]
+    U = compute_subspace_SCM(X, k)
     iteration = 0
 
     while (delta > tol) and (iteration < iter_max):
@@ -168,6 +183,7 @@ def estimate_tau_UUH(X, k, tol=0.001, iter_max=100):
         U = U_new
 
     tau = tau.reshape((-1, 1))
+    tau = sigma_2 * tau
 
     if iteration == iter_max:
         warnings.warn('Estimation algorithm did not converge')
@@ -183,10 +199,10 @@ def subspace_SCM(p, k):
     M = ComplexGrassmann
     args_M = {'sizes': (p, k)}
 
-    def _estimate_subspace_SCM(X):
-        return estimate_subspace_SCM(X, k)
+    def _subspace_SCM(X):
+        return compute_subspace_SCM(X, k)
 
-    return Feature(name, _estimate_subspace_SCM, M, args_M)
+    return Feature(name, _subspace_SCM, M, args_M)
 
 
 def subspace_tau_UUH(p, k):
@@ -194,11 +210,11 @@ def subspace_tau_UUH(p, k):
     M = ComplexGrassmann
     args_M = {'sizes': (p, k)}
 
-    def _estimate_subspace_tau_UUH(X):
+    def _subspace_tau_UUH(X):
         _, U = estimate_tau_UUH(X, k)
         return U
 
-    return Feature(name, _estimate_subspace_tau_UUH, M, args_M)
+    return Feature(name, _subspace_tau_UUH, M, args_M)
 
 
 def subspace_tau_UUH_RGD(p, k, autodiff=False):
@@ -206,11 +222,11 @@ def subspace_tau_UUH_RGD(p, k, autodiff=False):
     M = ComplexGrassmann
     args_M = {'sizes': (p, k)}
 
-    def _estimate_subspace_tau_UUH_RGD(X):
+    def _subspace_tau_UUH_RGD(X):
         _, U = estimate_tau_UUH_RGD(X, k, autodiff=autodiff)
         return U
 
-    return Feature(name, _estimate_subspace_tau_UUH_RGD, M, args_M)
+    return Feature(name, _subspace_tau_UUH_RGD, M, args_M)
 
 
 def tau_UUH(N, p, k, weights=None):
