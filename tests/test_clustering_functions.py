@@ -183,6 +183,44 @@ def test__K_means():
     precision = np.sum(y == y_predict)/(2*N)
     assert precision >= 0.95
 
+    # test final criteria and mu
+    # generating data points to cluster
+    X = _FeatureArray((p, ))
+    cov1 = generate_covariance(p)
+    temp = sample_normal_distribution(N, cov1)
+    X.append(temp.T)
+    cov2 = generate_covariance(p)
+    temp = sample_normal_distribution(N, cov2)
+    X.append(temp.T)
+    y = np.concatenate([np.zeros(N), np.ones(N)])
+    idx = np.random.permutation(np.arange(2*N))
+    y = y[idx]
+    X = X[idx]
+    y_predict, mu, _, _, criterion_values = _K_means(
+        X,
+        K=2,
+        distance=pix.distance,
+        mean_function=pix.mean,
+        init=None,
+        nb_init=20,
+        nb_threads=1,
+        iter_max=1,
+        verbose=False
+    )
+    best_criterion_value = np.inf
+    for i in range(len(criterion_values)):
+        for j in range(len(criterion_values[i])):
+            if best_criterion_value > criterion_values[i][j]:
+                best_criterion_value = criterion_values[i][j]
+    d = compute_pairwise_distances_parallel(
+        X,
+        mu,
+        pix.distance,
+        nb_threads=1
+    )
+    criterion_value = compute_objective_function(d)
+    assert np.abs(best_criterion_value - criterion_value) < 1e-8
+
 
 def test_K_means():
     batch_size = 100

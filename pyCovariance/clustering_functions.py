@@ -347,6 +347,7 @@ def _K_means(
         all_criterion_values.append(criterion_values)
 
         if criterion_values[-1] < best_criterion_value:
+            best_criterion_value = criterion_values[-1]
             C_best = C
             mu_best = mu
             i_best = i
