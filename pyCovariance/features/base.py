@@ -89,17 +89,6 @@ class _FeatureArray():
 
         self._len += len(d)
 
-    def __mul__(self, other):
-        assert type(other) in [int, float, complex]
-        a = self._array
-        temp = [other*a[i][:len(self)] for i in range(len(a))]
-        f_a = _FeatureArray(*[temp[i].shape[1:] for i in range(len(temp))])
-        f_a.append(temp)
-        return f_a
-
-    def __rmul__(self, other):
-        return self.__mul__(other)
-
     def export(self):
         a = [self._array[i][:len(self)] for i in range(self.nb_manifolds)]
         for i in range(len(a)):
@@ -276,14 +265,12 @@ class Feature():
                 theta_batch.append(theta)
             minus_grad = M.log(theta_batch.export(), X.export())
             if type(minus_grad) is np.ndarray:
-                minus_grad = [minus_grad]
-            minus_grad = [np.array(np.mean(minus_grad[i],
-                                           axis=0, keepdims=True))
-                          for i in range(len(minus_grad))]
-            a = _FeatureArray(*[minus_grad[i].shape[1:]
-                                for i in range(len(minus_grad))])
-            a.append(minus_grad)
-            return a
+                minus_grad = np.array(np.mean(minus_grad, axis=0))
+            else:
+                minus_grad = [np.array(np.mean(minus_grad[i],
+                                               axis=0))
+                              for i in range(len(minus_grad))]
+            return minus_grad
 
         def _create_cost_minus_grad(X):
             def cost(theta):
@@ -301,10 +288,14 @@ class Feature():
         g = minus_grad(theta)
         _iter = 0
         lr = 1
-        grad_norm = float(self._M.norm(theta.export(), g.export()))
+        grad_norm = float(self._M.norm(theta.export(), g))
         # grad_norm_values = [grad_norm]
         while ((grad_norm > self._eps_grad) and (_iter < self._iter_max)):
-            temp = self._M.exp(theta.export(), (lr*g).export())
+            if type(g) is list:
+                g = [lr * g[i] for i in range(len(g))]
+            else:
+                g = lr * g
+            temp = self._M.exp(theta.export(), g)
             if type(temp) not in [list, np.ndarray]:
                 temp = np.array(temp)
             if type(temp) is np.ndarray:
@@ -316,8 +307,7 @@ class Feature():
             theta.append(temp)
 
             g = minus_grad(theta)
-
-            grad_norm = float(self._M.norm(theta.export(), g.export()))
+            grad_norm = float(self._M.norm(theta.export(), g))
             # grad_norm_values.append(grad_norm)
             _iter += 1
 
