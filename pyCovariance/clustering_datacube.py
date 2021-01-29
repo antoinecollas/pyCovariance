@@ -5,7 +5,7 @@ import seaborn as sns
 import time
 from tqdm import tqdm
 
-from .clustering_functions import _K_means
+from .clustering import _K_means
 
 sns.set_style("darkgrid")
 

@@ -6,7 +6,7 @@ from sklearn.cluster import KMeans
 import time
 import wget
 
-from ..cluster_datacube import K_means_datacube
+from ..clustering_datacube import K_means_datacube
 from ..pca import pca_image
 from ..evaluation import\
         assign_segmentation_classes_to_gt_classes,\

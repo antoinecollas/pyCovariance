@@ -4,7 +4,7 @@ __all__ = [
     'monte_carlo',
     'pca_image']
 
-from .cluster_datacube import K_means_datacube
-from .clustering_functions import K_means
+from .clustering import K_means
+from .clustering_datacube import K_means_datacube
 from .monte_carlo import monte_carlo
 from .pca import pca_image

@@ -4,7 +4,7 @@ import os
 
 from pyCovariance.datasets.hyperspectral import Dataset
 from pyCovariance import pca_image
-from pyCovariance.cluster_datacube import K_means_datacube
+from pyCovariance.clustering_datacube import K_means_datacube
 from pyCovariance.evaluation import\
         assign_segmentation_classes_to_gt_classes,\
         compute_OA,\

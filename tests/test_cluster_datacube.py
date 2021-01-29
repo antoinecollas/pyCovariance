@@ -3,7 +3,7 @@ import os
 
 from pyCovariance import K_means_datacube
 from pyCovariance.features.base import _FeatureArray
-from pyCovariance.cluster_datacube import sliding_window_parallel
+from pyCovariance.clustering_datacube import sliding_window_parallel
 from pyCovariance.features import center_euclidean
 from pyCovariance.generation_data import\
         generate_complex_covariance,\

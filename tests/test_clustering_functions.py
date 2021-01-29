@@ -6,7 +6,7 @@ import os
 
 from pyCovariance import K_means
 
-from pyCovariance.clustering_functions import \
+from pyCovariance.clustering import \
         compute_objective_function,\
         compute_means_parallel,\
         compute_pairwise_distances_parallel,\
