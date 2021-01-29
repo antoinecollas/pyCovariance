@@ -291,10 +291,10 @@ class Feature():
         grad_norm = float(self._M.norm(theta.export(), g))
         # grad_norm_values = [grad_norm]
         while ((grad_norm > self._eps_grad) and (_iter < self._iter_max)):
-            if type(g) is list:
-                g = [lr * g[i] for i in range(len(g))]
-            else:
+            if type(g) is np.ndarray:
                 g = lr * g
+            else:
+                g = [lr * g[i] for i in range(len(g))]
             temp = self._M.exp(theta.export(), g)
             if type(temp) not in [list, np.ndarray]:
                 temp = np.array(temp)
