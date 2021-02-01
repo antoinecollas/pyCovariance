@@ -48,7 +48,6 @@ def test_MDM_single_thread():
         X_test = X[idx[n_samples//2:]]
         y_test = y[idx[n_samples//2:]]
 
-
         # fit + predict on train set
         mdm.fit(X_train, y_train)
         means = mdm._means

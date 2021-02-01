@@ -1,8 +1,7 @@
 import autograd.numpy as np
-
+from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin
 from sklearn.utils.extmath import softmax
-from joblib import Parallel, delayed
 
 
 class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
@@ -26,6 +25,39 @@ class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
         self.base_feature = feature
         self.n_jobs = n_jobs
 
+    @staticmethod
+    def _estimate_features(feature, X, n_jobs=1):
+        if n_jobs == 1:
+            temp = feature.estimation(X[0])
+            for i in range(1, len(X)):
+                temp.append(feature.estimation(X[i]))
+            X = temp
+        return X
+
+    @staticmethod
+    def _compute_centroids(feature, X, y, n_jobs=1):
+        classes = np.unique(y)
+        if n_jobs == 1:
+            temp = [feature.mean(X[y == i]) for i in classes]
+        #else:
+            #self.covmeans_ = Parallel(n_jobs=self.n_jobs)(
+            #    delayed(mean_covariance)(X[y == l], metric=self.metric_mean,
+            #                             sample_weight=sample_weight[y == l])
+            #    for l in self.classes_)
+        means = temp[0]
+        for m in temp[1:]:
+            means.append(m)
+        return means
+
+    @staticmethod
+    def _compute_pairwise_distances(feature, X, means, n_jobs=1):
+        distances = np.zeros((len(X), len(means)))
+        if n_jobs == 1:
+            for i in range(len(means)):
+                for j in range(len(X)):
+                    distances[j, i] = feature.distance(X[j], means[i])
+        return distances
+
     def fit(self, X, y):
         """Estimate features and centroids.
 
@@ -38,28 +70,19 @@ class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
         -------
         self : MDM instance.
         """
+        n_jobs = self.n_jobs
+
         p, N = X.shape[1:]
+        feature = self.feature = self.base_feature(p, N)
+
         self._classes = np.unique(y)
         classes = self._classes
 
-        self.feature = self.base_feature(p, N)
-        feature = self.feature
-
         # features estimation
-        if self.n_jobs == 1:
-            temp = feature.estimation(X[0])
-            for i in range(1, len(X)):
-                temp.append(feature.estimation(X[i]))
-            X = temp
+        X = self._estimate_features(feature, X, n_jobs)
 
-        # centroids estimation
-        if self.n_jobs == 1:
-            self._means = [feature.mean(X[y == i]) for i in classes]
-        #else:
-            #self.covmeans_ = Parallel(n_jobs=self.n_jobs)(
-            #    delayed(mean_covariance)(X[y == l], metric=self.metric_mean,
-            #                             sample_weight=sample_weight[y == l])
-            #    for l in self.classes_)
+        # centroids computation
+        self._means = self._compute_centroids(feature, X, y, n_jobs)
 
         return self
 
@@ -90,26 +113,16 @@ class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
         dist : ndarray, shape (n_samples, n_classes)
             the distance to each centroid according to the metric.
         """
+        n_jobs = self.n_jobs
         feature = self.feature
         classes = self._classes
         means = self._means
 
-        if self.n_jobs == 1:
-            # estimation
-            temp = feature.estimation(X[0])
-            for i in range(1, len(X)):
-                temp.append(feature.estimation(X[i]))
-            X = temp
+        # features estimation
+        X = self._estimate_features(feature, X, n_jobs)
 
-            # compute distances
-            distances = np.zeros((len(X), len(classes)))
-            for i in range(len(classes)):
-                for j in range(len(X)):
-                    distances[j, i] = feature.distance(X[j], means[i])
-        #else:
-        #    dist = Parallel(n_jobs=self.n_jobs)(delayed(distance)(
-        #        covtest, self.covmeans_[m], self.metric_dist)
-        #        for m in range(Nc))
+        # centroids computation
+        distances = self._compute_pairwise_distances(feature, X, means, n_jobs)
 
         return distances
 
