@@ -24,7 +24,7 @@ def test_real_subspace_SCM():
     k = 2
     N = int(1e2)
 
-    feature = subspace_SCM(p, k)
+    feature = subspace_SCM(k)(p, N)
 
     # test estimation
     cov = generate_covariance(p)
@@ -45,7 +45,7 @@ def test_real_subspace_tau_UUH():
     k = 2
     N = int(1e6)
 
-    feature = subspace_tau_UUH(p, k)
+    feature = subspace_tau_UUH(k)(p, N)
 
     # test estimation
     tau = generate_textures(N)
@@ -67,7 +67,7 @@ def test_real_subspace_tau_UUH_RGD():
     k = 2
     N = int(1e4)
 
-    feature = subspace_tau_UUH_RGD(p, k)
+    feature = subspace_tau_UUH_RGD(k)(p, N)
 
     # test estimation
     tau = generate_textures(N)
@@ -85,7 +85,7 @@ def test_real_subspace_tau_UUH_RGD():
     # increasing N should decrease the error but it is too slow...
 
     # test with autodiff
-    feature = subspace_tau_UUH_RGD(p, k, autodiff=True)
+    feature = subspace_tau_UUH_RGD(k, autodiff=True)(p, N)
 
     U_est = feature.estimation(X).export()
     assert U_est.shape == (p, k)
@@ -103,7 +103,7 @@ def test_real_tau_UUH():
     k = 2
     N = int(1e6)
 
-    feature = tau_UUH(N, p, k)
+    feature = tau_UUH(k)(p, N)
 
     # test estimation
     tau = generate_textures(N)

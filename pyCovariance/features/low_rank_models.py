@@ -9,7 +9,7 @@ from pymanopt import Problem
 from pymanopt.solvers import ConjugateGradient
 import warnings
 
-from .base import Feature, Product
+from .base import Feature, make_feature_prototype, Product
 from .covariance import compute_scm
 
 
@@ -194,7 +194,10 @@ def estimate_tau_UUH(X, k, tol=0.001, iter_max=100):
 # CLASSES
 
 
-def subspace_SCM(p, k):
+@make_feature_prototype
+def subspace_SCM(k, **kwargs):
+    p = kwargs['p']
+
     name = 'subspace_SCM'
     M = ComplexGrassmann
     args_M = {'sizes': (p, k)}
@@ -205,7 +208,10 @@ def subspace_SCM(p, k):
     return Feature(name, _subspace_SCM, M, args_M)
 
 
-def subspace_tau_UUH(p, k):
+@make_feature_prototype
+def subspace_tau_UUH(k, **kwargs):
+    p = kwargs['p']
+
     name = 'subspace_tau_UUH'
     M = ComplexGrassmann
     args_M = {'sizes': (p, k)}
@@ -217,7 +223,10 @@ def subspace_tau_UUH(p, k):
     return Feature(name, _subspace_tau_UUH, M, args_M)
 
 
-def subspace_tau_UUH_RGD(p, k, autodiff=False):
+@make_feature_prototype
+def subspace_tau_UUH_RGD(k, autodiff=False, **kwargs):
+    p = kwargs['p']
+
     name = 'subspace_tau_UUH_RGD'
     M = ComplexGrassmann
     args_M = {'sizes': (p, k)}
@@ -229,7 +238,11 @@ def subspace_tau_UUH_RGD(p, k, autodiff=False):
     return Feature(name, _subspace_tau_UUH_RGD, M, args_M)
 
 
-def tau_UUH(N, p, k, weights=None):
+@make_feature_prototype
+def tau_UUH(k, weights=None, **kwargs):
+    p = kwargs['p']
+    N = kwargs['N']
+
     M = (StrictlyPositiveVectors, ComplexGrassmann)
 
     if weights is None:

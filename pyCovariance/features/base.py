@@ -116,6 +116,19 @@ def _feature_estimation(method):
     return wrapper
 
 
+def make_feature_prototype(feature):
+    class TwoStepInitFeature():
+        def __init__(self, *args, **kwargs):
+            self.args = args
+            self.kwargs = kwargs
+
+        def __call__(self, p, N):
+            args = self.args
+            kwargs = self.kwargs
+            return feature(*args, **kwargs, p=p, N=N)
+    return TwoStepInitFeature
+
+
 class Feature():
     def __init__(self, name, estimation, manifold, args_manifold):
         """ Serve to instantiate a Feature object.
