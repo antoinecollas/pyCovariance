@@ -41,9 +41,9 @@ def main(nb_points, nb_MC, verbose=True):
     U = generate_complex_stiefel(p, k)
 
     # 3 methods of estimation of U
-    features_list = [subspace_SCM(p, k),
-                     subspace_tau_UUH(p, k),
-                     subspace_tau_UUH_RGD(p, k)]
+    features_list = [subspace_SCM(k),
+                     subspace_tau_UUH(k),
+                     subspace_tau_UUH_RGD(k)]
 
     # simu
     list_n_points = np.geomspace(p, N_max, num=nb_points).astype(int)
