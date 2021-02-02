@@ -19,7 +19,7 @@ def test_real_covariance():
     p = 5
     N = int(1e6)
     N_mean = 10
-    cov = covariance(p)
+    cov = covariance()(p, N)
     assert type(str(cov)) is str
 
     # test estimation 1
@@ -85,7 +85,7 @@ def test_complex_covariance():
     p = 5
     N = int(1e6)
     N_mean = 10
-    cov = covariance(p)
+    cov = covariance()(p, N)
     assert type(str(cov)) is str
 
     # test estimation 1
@@ -151,7 +151,7 @@ def test_real_covariance_euclidean():
     p = 5
     N = int(1e6)
     N_mean = 10
-    cov = covariance_euclidean(p)
+    cov = covariance_euclidean()(p, N)
     assert type(str(cov)) is str
 
     # test estimation
