@@ -67,7 +67,7 @@ class _FeatureArray():
         assert self.nb_manifolds == len(data)
 
         for i, (a, d) in enumerate(zip(self._array, data)):
-            assert type(d) == np.ndarray
+            assert type(d) in [np.ndarray, np.memmap]
             if a is not None:
                 assert d.dtype == a.dtype, 'Wrong dtype !'
 
