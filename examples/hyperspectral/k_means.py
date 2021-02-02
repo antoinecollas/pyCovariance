@@ -100,7 +100,7 @@ def main(
                 print()
 
             pattern = re.compile(r'tau_?\w*_UUH_?\w*|subspace_SCM')
-            if hp.feature is str:
+            if type(hp.feature) is str:
                 condition = pattern.match(hp.feature)
             else:
                 N = w_size**2
