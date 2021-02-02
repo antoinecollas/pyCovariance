@@ -106,7 +106,11 @@ def main(
                 hp.pca = True
 
             if verbose:
-                print('Feature:', str(hp.feature))
+                if type(hp.feature) is str:
+                    _str = hp.feature
+                else:
+                    _str = str(hp.feature(p, w_size**2))
+                print('Feature:', _str)
 
             C, criterion_values = K_means_hyperspectral_image(
                 dataset,
