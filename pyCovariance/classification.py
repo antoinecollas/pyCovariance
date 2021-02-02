@@ -56,7 +56,8 @@ def _compute_pairwise_distances(X, means, distance_fct, n_jobs=1):
 
 
 class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
-    """Classification by Minimum Distance to Mean.
+    """Classification by Minimum Distance to Mean
+    using covariance estimation and Riemannian geometry.
 
     Parameters
     ----------
