@@ -5,7 +5,7 @@ from pymanopt.manifolds import\
         StrictlyPositiveVectors
 import warnings
 
-from .base import Feature
+from .base import Feature, make_feature_prototype
 from ..matrix_operators import invsqrtm
 
 
@@ -115,7 +115,11 @@ def tyler_estimator_normalized_trace(X, init=None, tol=1e-4, iter_max=100):
 # CLASSES
 
 
-def covariance_texture(p, N, weights=None):
+@make_feature_prototype
+def covariance_texture(weights=None, **kwargs):
+    p = kwargs['p']
+    N = kwargs['N']
+
     M = (SpecialHermitianPositiveDefinite, StrictlyPositiveVectors)
 
     if weights is None:

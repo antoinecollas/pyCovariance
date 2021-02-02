@@ -14,7 +14,7 @@ from pyCovariance.matrix_operators import invsqrtm
 def test_complex_covariance_texture():
     p = 5
     N = int(1e5)
-    feature = covariance_texture(p, N)
+    feature = covariance_texture()(p, N)
     assert type(str(feature)) is str
 
     # test estimation
@@ -75,7 +75,7 @@ def test_complex_covariance_texture():
         data.append([generate_complex_covariance(p, unit_det=True),
                      generate_textures(N)])
 
-    cov = covariance(p)
+    cov = covariance()(p, N)
     sigma = _FeatureArray((p, p))
     sigma.append(data.export()[0])
     mean_sigma = cov.mean(sigma).export()
