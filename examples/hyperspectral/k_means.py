@@ -235,7 +235,7 @@ if __name__ == '__main__':
                 tau_UUH(k, weights=(1/(10*w*w), 1/k)),
                 tau_UUH(k, weights=(1/(100*w*w), 1/k)),
                 tau_UUH(k, weights=(0, 1)),
-                subspace_SCM()
+                subspace_SCM(k)
             ])
         return features_list
 
