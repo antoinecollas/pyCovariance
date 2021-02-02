@@ -269,7 +269,11 @@ def location_covariance_texture_Tyler(weights=(1, 1, 1), **kwargs):
 
 
 @make_feature_prototype
-def location_covariance_texture_RGD(iter_max=3*int(1e4), weights=(1, 1, 1), **kwargs):
+def location_covariance_texture_RGD(
+    iter_max=3*int(1e4),
+    weights=(1, 1, 1),
+    **kwargs
+):
     p = kwargs['p']
     N = kwargs['N']
 
