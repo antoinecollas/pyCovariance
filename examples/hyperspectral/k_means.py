@@ -100,7 +100,12 @@ def main(
                 print()
 
             pattern = re.compile(r'tau_?\w*_UUH_?\w*|subspace_SCM')
-            if pattern.match(str(hp.feature)):
+            if hp.feature is str:
+                condition = pattern.match(hp.feature)
+            else:
+                N = w_size**2
+                condition = pattern.match(str(hp.feature(p, N)))
+            if condition:
                 hp.pca = False
             else:
                 hp.pca = True
