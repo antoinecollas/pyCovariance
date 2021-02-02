@@ -81,7 +81,7 @@ def test_real_subspace_tau_UUH_RGD():
     sym_U_est = U_est@U_est.conj().T
     sym_U = U@U.conj().T
     error = la.norm(sym_U_est - sym_U) / la.norm(sym_U)
-    assert error < 0.05
+    assert error < 0.10
     # increasing N should decrease the error but it is too slow...
 
     # test with autodiff
@@ -94,7 +94,7 @@ def test_real_subspace_tau_UUH_RGD():
     sym_U_est = U_est@U_est.conj().T
     sym_U = U@U.conj().T
     error = la.norm(sym_U_est - sym_U) / la.norm(sym_U)
-    assert error < 0.05
+    assert error < 0.10
     # increasing N should decrease the error but it is too slow...
 
 
