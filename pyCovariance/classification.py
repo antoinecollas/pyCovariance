@@ -4,6 +4,56 @@ from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin
 from sklearn.utils.extmath import softmax
 
 
+def _estimate_features(X, estimation_fct, n_jobs=1):
+    if n_jobs == 1:
+        temp = [estimation_fct(X[i]) for i in range(len(X))]
+    else:
+        temp = Parallel(n_jobs=n_jobs)(
+            delayed(estimation_fct)(X[i]) for i in range(len(X)))
+
+    X = temp[0]
+    for t in temp[1:]:
+        X.append(t)
+
+    return X
+
+
+def _compute_means(X, y, mean_fct, n_jobs=1):
+    classes = np.unique(y)
+    if n_jobs == 1:
+        temp = [mean_fct(X[y == i]) for i in classes]
+    else:
+        temp = Parallel(n_jobs=n_jobs)(
+            delayed(mean_fct)(X[y == i]) for i in classes)
+
+    means = temp[0]
+    for m in temp[1:]:
+        means.append(m)
+
+    return means
+
+
+def _compute_pairwise_distances(X, means, distance_fct, n_jobs=1):
+
+    def _compute_distances_to_mean(X, mean, distance_fct):
+        distances = np.zeros((len(X)))
+        for j in range(len(X)):
+            distances[j] = distance_fct(X[j], mean)
+        return distances
+
+    if n_jobs == 1:
+        distances = np.zeros((len(X), len(means)))
+        for i in range(len(means)):
+            distances[:, i] = _compute_distances_to_mean(X, means[i], distance_fct)
+    else:
+        temp = Parallel(n_jobs=n_jobs)(
+            delayed(_compute_distances_to_mean)(X, means[i], distance_fct)
+            for i in range(len(means)))
+        distances = np.stack(temp, axis=1)
+
+    return distances
+
+
 class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
     """Classification by Minimum Distance to Mean.
 
@@ -24,39 +74,6 @@ class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
     def __init__(self, feature, n_jobs=1):
         self.base_feature = feature
         self.n_jobs = n_jobs
-
-    @staticmethod
-    def _estimate_features(feature, X, n_jobs=1):
-        if n_jobs == 1:
-            temp = feature.estimation(X[0])
-            for i in range(1, len(X)):
-                temp.append(feature.estimation(X[i]))
-            X = temp
-        return X
-
-    @staticmethod
-    def _compute_centroids(feature, X, y, n_jobs=1):
-        classes = np.unique(y)
-        if n_jobs == 1:
-            temp = [feature.mean(X[y == i]) for i in classes]
-        #else:
-            #self.covmeans_ = Parallel(n_jobs=self.n_jobs)(
-            #    delayed(mean_covariance)(X[y == l], metric=self.metric_mean,
-            #                             sample_weight=sample_weight[y == l])
-            #    for l in self.classes_)
-        means = temp[0]
-        for m in temp[1:]:
-            means.append(m)
-        return means
-
-    @staticmethod
-    def _compute_pairwise_distances(feature, X, means, n_jobs=1):
-        distances = np.zeros((len(X), len(means)))
-        if n_jobs == 1:
-            for i in range(len(means)):
-                for j in range(len(X)):
-                    distances[j, i] = feature.distance(X[j], means[i])
-        return distances
 
     def fit(self, X, y):
         """Estimate features and centroids.
@@ -79,10 +96,10 @@ class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
         classes = self._classes
 
         # features estimation
-        X = self._estimate_features(feature, X, n_jobs)
+        X = _estimate_features(X, feature.estimation, n_jobs)
 
         # centroids computation
-        self._means = self._compute_centroids(feature, X, y, n_jobs)
+        self._means = _compute_means(X, y, feature.mean, n_jobs)
 
         return self
 
@@ -119,10 +136,10 @@ class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
         means = self._means
 
         # features estimation
-        X = self._estimate_features(feature, X, n_jobs)
+        X = _estimate_features(X, feature.estimation, n_jobs)
 
         # centroids computation
-        distances = self._compute_pairwise_distances(feature, X, means, n_jobs)
+        distances = _compute_pairwise_distances(X, means, feature.distance, n_jobs)
 
         return distances
 
