@@ -1,29 +1,23 @@
 import autograd.numpy as np
 from multiprocessing import Process, Queue
 import os
-import seaborn as sns
 import time
 from tqdm import tqdm
 
 from .clustering import _K_means
 
-sns.set_style("darkgrid")
-
-# The code is already multi threaded so we block OpenBLAS multi thread.
-os.environ['OPENBLAS_NUM_THREADS'] = '1'
-
 
 def K_means_datacube(
     image,
     mask,
-    features,
+    feature,
     window_size,
     n_classes,
     n_init,
-    n_iter_max,
-    eps,
-    nb_threads_rows,
-    nb_threads_columns,
+    n_max_iter,
+    tol,
+    n_jobs_rows,
+    n_jobs_columns,
     verbose=True
 ):
     """ K-means algorithm applied on an image datacube.
@@ -39,14 +33,15 @@ def K_means_datacube(
         * mask = (h, w) numpy array to select pixels to cluster:
             * h = height of the image
             * w = width of the image
-        * features = an instance of the class Feature
+        * feature = a Feature from pyCovariance.features
+            e.g see pyCovariance/features/covariance.py
         * window_size = int
         * n_classes = number of classes.
         * n_init = number of initialisations of K-means
-        * n_iter_max = maximum number of iterations for the K-means algorithm
-        * eps = epsilon to stop K-means
-        * nb_threads_rows = number of threads in height
-        * nb_threads_columns = number of threads to be used in column
+        * n_max_iter = maximum number of iterations for the K-means algorithm
+        * tol = tolilon to stop K-means
+        * n_jobs_rows = number of threads in height
+        * n_jobs_columns = number of threads to be used in column
         * verbose = bool
 
     Outputs:
@@ -67,12 +62,15 @@ def K_means_datacube(
     t_beginning = time.time()
     m_r = m_c = window_size
     n_r, n_c, p = image.shape
+    p = image.shape[2]
+    N = window_size**2
+    feature = feature(p, N)
     X_temp = sliding_window_parallel(
         image,
         window_size,
-        features.estimation,
-        nb_threads_rows=nb_threads_rows,
-        nb_threads_columns=nb_threads_columns
+        feature.estimation,
+        n_jobs_rows=n_jobs_rows,
+        n_jobs_columns=n_jobs_columns
     )
     X = None
     for row in range(len(X_temp)):
@@ -95,13 +93,13 @@ def K_means_datacube(
     C, _, _, _, all_criterion_values = _K_means(
         X,
         n_classes,
-        features.distance,
-        features.mean,
+        feature.distance,
+        feature.mean,
         init=None,
-        eps=eps,
-        nb_init=n_init,
-        iter_max=n_iter_max,
-        nb_threads=nb_threads_rows*nb_threads_columns,
+        tol=tol,
+        n_init=n_init,
+        max_iter=n_max_iter,
+        n_jobs=n_jobs_rows*n_jobs_columns,
         verbose=verbose
     )
 
@@ -181,8 +179,8 @@ def sliding_window_parallel(
     image,
     window_size,
     function_to_compute,
-    nb_threads_rows=1,
-    nb_threads_columns=1,
+    n_jobs_rows=1,
+    n_jobs_columns=1,
     overlapping_window=True,
     verbose=False
 ):
@@ -194,43 +192,43 @@ def sliding_window_parallel(
                 * p is the number of canals
             * window_size = size of the squared window (3 means a 3x3 window)
             * function_to_compute = a function to compute the desired quantity
-            * nb_threads_rows = number of thread to use in columns
-            * nb_threads_columns = number of thread to use in columns
+            * n_jobs_rows = number of thread to use in columns
+            * n_jobs_columns = number of thread to use in columns
             * overlapping_window = boolean: overlapping window or not
             * verbose = boolean
         Outputs:
             * result.
             """
 
-    if (nb_threads_rows > 1) or (nb_threads_columns > 1):
+    if (n_jobs_rows > 1) or (n_jobs_columns > 1):
         # Slicing original image while taking into accound borders effects
         n_r, n_c, p = image.shape
         m_r = m_c = window_size
         image_slices_list = list()
-        for i_row in range(nb_threads_rows):
+        for i_row in range(n_jobs_rows):
             # Indexes for the sub_image for rows
             if i_row == 0:
                 index_row_start = 0
             else:
-                index_row_start = int(n_r/nb_threads_rows)*i_row - int(m_r/2)
-            if i_row == nb_threads_rows-1:
+                index_row_start = int(n_r/n_jobs_rows)*i_row - int(m_r/2)
+            if i_row == n_jobs_rows-1:
                 index_row_end = n_r
             else:
-                index_row_end = int(n_r/nb_threads_rows)*(i_row+1) + int(m_r/2)
+                index_row_end = int(n_r/n_jobs_rows)*(i_row+1) + int(m_r/2)
 
             # Slices for each row
             image_slices_list_row = list()
-            for i_column in range(nb_threads_columns):
+            for i_column in range(n_jobs_columns):
                 # Indexes for the sub_image for colums
                 if i_column == 0:
                     index_column_start = 0
                 else:
-                    index_column_start = (int(n_c/nb_threads_columns)
+                    index_column_start = (int(n_c/n_jobs_columns)
                                           * i_column - int(m_c/2))
-                if i_column == nb_threads_columns-1:
+                if i_column == n_jobs_columns-1:
                     index_column_end = n_c
                 else:
-                    index_column_end = (int(n_c/nb_threads_columns)
+                    index_column_end = (int(n_c/n_jobs_columns)
                                         * (i_column+1) + int(m_c/2))
 
                 # Obtaining each slice and putting it in the list
@@ -246,8 +244,8 @@ def sliding_window_parallel(
         image_slices_list_row = None
 
         # Serves to obtain result for each thread
-        queues = [[Queue() for i_c in range(nb_threads_columns)]
-                  for i_r in range(nb_threads_rows)]
+        queues = [[Queue() for i_c in range(n_jobs_columns)]
+                  for i_r in range(n_jobs_rows)]
 
         # Arguments to pass to each thread
         args = [(
@@ -257,8 +255,8 @@ def sliding_window_parallel(
             True,
             queues[i_r][i_c],
             overlapping_window
-        ) for i_r in range(nb_threads_rows)
-            for i_c in range(nb_threads_columns)]
+        ) for i_r in range(n_jobs_rows)
+            for i_c in range(n_jobs_columns)]
 
         # Initialising the threads
         jobs = [Process(target=sliding_window, args=a) for a in args]
@@ -269,9 +267,9 @@ def sliding_window_parallel(
 
         # Obtaining result for each thread
         results_list = list()
-        for i_r in range(nb_threads_rows):
+        for i_r in range(n_jobs_rows):
             results_row_list = list()
-            for i_c in range(nb_threads_columns):
+            for i_c in range(n_jobs_columns):
                 results_row_list.append(queues[i_r][i_c].get())
             results_list.append(results_row_list)
         results_row_list = None
@@ -286,11 +284,11 @@ def sliding_window_parallel(
 
         # Now we reform the resulting image from the slices of results
         results = list()
-        for i_r in range(nb_threads_rows):
+        for i_r in range(n_jobs_rows):
             line = 0
             for line in range(len(results_list[i_r][i_c])):
                 final_array_row = list()
-                for i_c in range(nb_threads_columns):
+                for i_c in range(n_jobs_columns):
                     final_array_row += results_list[i_r][i_c][line]
                 results.append(final_array_row)
         final_array_row = None
