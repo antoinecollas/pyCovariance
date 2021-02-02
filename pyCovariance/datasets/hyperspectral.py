@@ -105,15 +105,15 @@ class HyperparametersKMeans():
     def __init__(
         self,
         crop_image,
-        nb_threads,
+        n_jobs,
         pca,
         nb_bands_to_select,
         mask,
         border_size,
         window_size,
         feature,
-        nb_init,
-        nb_iter_max,
+        n_init,
+        max_iter,
         eps
     ):
         '''
@@ -121,7 +121,7 @@ class HyperparametersKMeans():
             Inputs:
                 crop_image: bool. If true, it crops image before
                     applying K means.
-                    nb_threads: int. Number of threads for parallelisation.
+                    n_jobs: int. Number of threads for parallelisation.
                 pca: bool. If true, pca is applied to reduce dimention
                     of pixels before applying K means.
                 nb_bands_to_select: int. Number of dimentions to keep
@@ -132,9 +132,9 @@ class HyperparametersKMeans():
                 window_size: int. Number of pixels of height and
                     width in the window.
                 feature: Feature to use to cluster.
-                nb_init: int. Number of initialisations.
+                n_init: int. Number of initialisations.
                     Best clustering is kept.
-                nb_iter_max: int. Maximum number of iterations
+                max_iter: int. Maximum number of iterations
                     done by K means.
                 eps: float. Stopping criteria.
         '''
@@ -142,12 +142,12 @@ class HyperparametersKMeans():
         self.crop_image = crop_image
 
         # multi processing
-        if nb_threads > 1:
-            self.nb_threads_rows = nb_threads//2
-            self.nb_threads_columns = 2
+        if n_jobs > 1:
+            self.n_jobs_rows = n_jobs//2
+            self.n_jobs_columns = 2
         else:
-            self.nb_threads_rows = 1
-            self.nb_threads_columns = 1
+            self.n_jobs_rows = 1
+            self.n_jobs_columns = 1
 
         # preprocessing
         self.pca = pca
@@ -160,8 +160,8 @@ class HyperparametersKMeans():
         self.feature = feature
 
         # K-means
-        self.nb_init = nb_init
-        self.nb_iter_max = nb_iter_max
+        self.n_init = n_init
+        self.max_iter = max_iter
         self.eps = eps
 
 
@@ -213,8 +213,8 @@ def K_means_hyperspectral_image(dataset, hyperparams, verbose=True):
             image = image.reshape((-1, hyperparams.nb_bands_to_select))
         sklearn_K_means = KMeans(
             n_clusters=nb_classes,
-            n_init=hyperparams.nb_init,
-            max_iter=hyperparams.nb_iter_max,
+            n_init=hyperparams.n_init,
+            max_iter=hyperparams.max_iter,
             tol=hyperparams.eps
         )
         temp = sklearn_K_means.fit_predict(image)
@@ -231,11 +231,11 @@ def K_means_hyperspectral_image(dataset, hyperparams, verbose=True):
             hyperparams.feature,
             hyperparams.window_size,
             nb_classes,
-            hyperparams.nb_init,
-            hyperparams.nb_iter_max,
+            hyperparams.n_init,
+            hyperparams.max_iter,
             hyperparams.eps,
-            hyperparams.nb_threads_rows,
-            hyperparams.nb_threads_columns,
+            hyperparams.n_jobs_rows,
+            hyperparams.n_jobs_columns,
             verbose
         )
         C = np.zeros((n_r, n_c)) - 1
@@ -259,6 +259,12 @@ def evaluate_and_save_clustering(
     if verbose:
         print('###################### EVALUATION ######################')
 
+    p = hyperparams.nb_bands_to_select
+    N = hyperparams.window_size ** 2
+    feature = hyperparams.feature
+    if type(feature) is not str:
+        feature = feature(p, N)
+
     _, gt = dataset.load(hyperparams.crop_image, hyperparams.border_size)
 
     assert segmentation.shape == gt.shape,\
@@ -272,7 +278,7 @@ def evaluate_and_save_clustering(
     folder_segmentation = os.path.join(folder, 'segmentations')
     if not os.path.isdir(folder_segmentation):
         os.makedirs(folder_segmentation, exist_ok=True)
-    f_name = prefix_filename+'_'+str(hyperparams.feature)
+    f_name = prefix_filename+'_'+str(feature)
     folder_detailed_analyses = os.path.join(folder,
                                             'detailed_analyses', f_name)
     if not os.path.isdir(folder_detailed_analyses):
@@ -280,7 +286,7 @@ def evaluate_and_save_clustering(
 
     segmentation = assign_segmentation_classes_to_gt_classes(
         segmentation, gt, normalize=False)
-    f_name = prefix_filename + '_K_means_' + str(hyperparams.feature)
+    f_name = prefix_filename + '_K_means_' + str(feature)
     save_segmentation(folder_npy, f_name, segmentation)
 
     # mIoU
@@ -317,7 +323,7 @@ def evaluate_and_save_clustering(
 
     title = 'mIoU='+str(round(mIoU, 2))+' OA='+str(round(OA, 2))
     plot_segmentation(segmentation + 1, title=title)
-    f_name = prefix_filename + '_K_means_' + str(hyperparams.feature)
+    f_name = prefix_filename + '_K_means_' + str(feature)
     plt.savefig(os.path.join(folder_segmentation, f_name))
 
     classes_labels = np.unique(gt[gt >= 0]) + 1

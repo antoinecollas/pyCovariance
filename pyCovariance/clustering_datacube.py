@@ -13,7 +13,7 @@ def K_means_datacube(
     window_size,
     n_classes,
     n_init,
-    n_max_iter,
+    max_iter,
     tol,
     n_jobs_rows,
     n_jobs_columns,
@@ -37,7 +37,7 @@ def K_means_datacube(
         * window_size = int
         * n_classes = number of classes.
         * n_init = number of initialisations of K-means
-        * n_max_iter = maximum number of iterations for the K-means algorithm
+        * max_iter = maximum number of iterations for the K-means algorithm
         * tol = tolilon to stop K-means
         * n_jobs_rows = number of threads in height
         * n_jobs_columns = number of threads to be used in column
@@ -97,7 +97,7 @@ def K_means_datacube(
         init=None,
         tol=tol,
         n_init=n_init,
-        max_iter=n_max_iter,
+        max_iter=max_iter,
         n_jobs=n_jobs_rows*n_jobs_columns,
         verbose=verbose
     )

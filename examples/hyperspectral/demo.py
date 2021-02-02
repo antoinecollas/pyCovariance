@@ -15,11 +15,11 @@ from pyCovariance.features import covariance
 def main(
     dataset_name='Indian_Pines',
     window_size=7,
-    nb_bands=5,
+    n_bands=5,
     plot=True,
     crop_image=False,
     n_init=5,
-    n_iter_max=100,
+    max_iter=100,
     verbose=True
 ):
     dataset = Dataset(dataset_name)
@@ -30,21 +30,21 @@ def main(
     nb_classes = np.sum(np.unique(gt) >= 0)
 
     # pca
-    image = pca_image(image, nb_bands)
+    image = pca_image(image, n_bands)
 
     # Riemannian clustering
-    feature = covariance(nb_bands)
+    feature = covariance()
     C, _ = K_means_datacube(
         image,
         mask=None,
-        features=feature,
+        feature=feature,
         window_size=window_size,
         n_classes=nb_classes,
         n_init=n_init,
-        n_iter_max=n_iter_max,
-        eps=1e-2,
-        nb_threads_rows=os.cpu_count()//2,
-        nb_threads_columns=2,
+        max_iter=max_iter,
+        tol=1e-2,
+        n_jobs_rows=os.cpu_count()//2,
+        n_jobs_columns=2,
         verbose=verbose
     )
 

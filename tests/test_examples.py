@@ -17,7 +17,7 @@ def test_hyperspectral_demo_K_means():
         plot=False,
         crop_image=True,
         n_init=1,
-        n_iter_max=1,
+        max_iter=1,
         verbose=False
     )
 
@@ -33,19 +33,19 @@ def test_hyperspectral_indian_pines():
         features_list.append([
             center_intensity_euclidean(),
             'sklearn',
-            center_euclidean(k),
-            covariance_texture(k, w*w),
+            center_euclidean(),
+            covariance_texture(),
         ])
 
     k_means.main(
         dataset=dataset,
         crop_image=True,
-        nb_threads=1,
+        n_jobs=1,
         pairs_window_size_nb_bands=pairs_w_k,
         mask=True,
         features_list=features_list,
-        nb_init=1,
-        nb_iter_max=1,
+        n_init=1,
+        max_iter=1,
         verbose=False
     )
 
@@ -65,12 +65,12 @@ def test_hyperspectral_pavia():
     k_means.main(
         dataset=dataset,
         crop_image=True,
-        nb_threads=1,
+        n_jobs=1,
         pairs_window_size_nb_bands=pairs_w_k,
         mask=True,
         features_list=features_list,
-        nb_init=1,
-        nb_iter_max=1,
+        n_init=1,
+        max_iter=1,
         verbose=False
     )
 
@@ -90,12 +90,12 @@ def test_hyperspectral_salinas():
     k_means.main(
         dataset=dataset,
         crop_image=True,
-        nb_threads=1,
+        n_jobs=1,
         pairs_window_size_nb_bands=pairs_w_k,
         mask=True,
         features_list=features_list,
-        nb_init=1,
-        nb_iter_max=1,
+        n_init=1,
+        max_iter=1,
         verbose=False
     )
 
