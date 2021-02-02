@@ -44,7 +44,8 @@ def _compute_pairwise_distances(X, means, distance_fct, n_jobs=1):
     if n_jobs == 1:
         distances = np.zeros((len(X), len(means)))
         for i in range(len(means)):
-            distances[:, i] = _compute_distances_to_mean(X, means[i], distance_fct)
+            distances[:, i] = _compute_distances_to_mean(
+                X, means[i], distance_fct)
     else:
         temp = Parallel(n_jobs=n_jobs)(
             delayed(_compute_distances_to_mean)(X, means[i], distance_fct)
@@ -93,7 +94,6 @@ class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
         feature = self.feature = self.base_feature(p, N)
 
         self._classes = np.unique(y)
-        classes = self._classes
 
         # features estimation
         X = _estimate_features(X, feature.estimation, n_jobs)
@@ -132,14 +132,14 @@ class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
         """
         n_jobs = self.n_jobs
         feature = self.feature
-        classes = self._classes
         means = self._means
 
         # features estimation
         X = _estimate_features(X, feature.estimation, n_jobs)
 
         # centroids computation
-        distances = _compute_pairwise_distances(X, means, feature.distance, n_jobs)
+        distances = _compute_pairwise_distances(
+            X, means, feature.distance, n_jobs)
 
         return distances
 

@@ -7,6 +7,7 @@ from sklearn.metrics import accuracy_score
 
 from pyCovariance.features.base import _FeatureArray
 from pyCovariance.classification import\
+        _estimate_features,\
         _compute_means,\
         _compute_pairwise_distances,\
         MDM
@@ -18,14 +19,41 @@ from pyCovariance.generation_data import\
         sample_normal_distribution
 
 
+def test__estimate_features():
+    p = 5
+    N = int(1e2)
+    n_samples = int(1e1)
+
+    X = rnd.randn(n_samples, p, N)
+    feature = center_euclidean()(p, N)
+
+    # single thread
+    f = _estimate_features(X,
+                           feature.estimation,
+                           n_jobs=1).export()
+    assert f.dtype == np.float64
+    assert f.shape == (n_samples, p)
+    for i in range(n_samples):
+        np_test.assert_almost_equal(f[i], X[i, :, N//2])
+
+    # multiple threads
+    f = _estimate_features(X,
+                           feature.estimation,
+                           n_jobs=-1).export()
+    assert f.dtype == np.float64
+    assert f.shape == (n_samples, p)
+    for i in range(n_samples):
+        np_test.assert_almost_equal(f[i], X[i, :, N//2])
+
+
 def test__compute_means():
     p = 5
     N = int(1e2)
     K = int(1e1)
 
     X = _FeatureArray((p, ))
-    X.append(np.random.randn(N, p))
-    C = np.random.randint(K, size=N)
+    X.append(rnd.randn(N, p))
+    C = rnd.randint(K, size=N)
     assert C.shape == (N, )
     feature = center_euclidean()(p, N)
 
@@ -56,9 +84,9 @@ def test__compute_pairwise_distances():
     N_mean = int(1e1)
 
     X = _FeatureArray((p, ))
-    X.append(np.random.randn(N, p))
+    X.append(rnd.randn(N, p))
     mu = _FeatureArray((p, ))
-    mu.append(np.random.randn(N_mean, p))
+    mu.append(rnd.randn(N_mean, p))
     feature = center_euclidean()(p, N)
 
     # single thread
@@ -90,10 +118,10 @@ def helper_test_classification(clf):
     n_datasets = 3
     n_samples = size_class * n_classes
 
-    for l in range(n_datasets):
+    for j in range(n_datasets):
         # test several p, N
-        N = 20 + 5*l
-        p = 3 + l
+        N = 20 + 5*j
+        p = 3 + j
 
         X = np.zeros((n_samples, p, N))
 
