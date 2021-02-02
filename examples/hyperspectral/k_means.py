@@ -217,16 +217,16 @@ if __name__ == '__main__':
         for w, k in pairs_w_k:
             features_list.append([
                 'sklearn',
-                center_euclidean(k),
-                mean_vector_euclidean(k),
-                covariance(k),
-                covariance_texture(k, w*w),
-                covariance_texture(k, w*w, weights=(1, 0)),
-                tau_UUH(w*w, p, k, weights=(1/(w*w), 1/k)),
-                tau_UUH(w*w, p, k, weights=(1/(10*w*w), 1/k)),
-                tau_UUH(w*w, p, k, weights=(1/(100*w*w), 1/k)),
-                tau_UUH(w*w, p, k, weights=(0, 1)),
-                subspace_SCM(p, k)
+                center_euclidean(),
+                mean_vector_euclidean(),
+                covariance(),
+                covariance_texture(),
+                covariance_texture(weights=(1, 0)),
+                tau_UUH(k, weights=(1/(w*w), 1/k)),
+                tau_UUH(k, weights=(1/(10*w*w), 1/k)),
+                tau_UUH(k, weights=(1/(100*w*w), 1/k)),
+                tau_UUH(k, weights=(0, 1)),
+                subspace_SCM()
             ])
         return features_list
 
