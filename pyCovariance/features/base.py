@@ -252,7 +252,7 @@ class Feature():
                 * X = _FeatureArray
             Outputs:
             ---------
-                * mean = a (feature_size) array
+                * mean = _FeatureArray
             """
         assert type(X) is _FeatureArray
         dim = self._dimensions
