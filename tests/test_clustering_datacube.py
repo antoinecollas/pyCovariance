@@ -77,6 +77,7 @@ def test_real_K_means_datacube():
     MASK = None
     FEATURE = center_euclidean()
     NUMBER_CLASSES = 2
+    INIT = 'k-means++'
     NUMBER_INIT = 1
     K_MEANS_NB_ITER_MAX = 100
     EPS = 1e-3
@@ -92,6 +93,7 @@ def test_real_K_means_datacube():
         FEATURE,
         WINDOW_SIZE,
         NUMBER_CLASSES,
+        INIT,
         NUMBER_INIT,
         K_MEANS_NB_ITER_MAX,
         EPS,
@@ -128,6 +130,7 @@ def test_real_K_means_datacube():
         FEATURE,
         WINDOW_SIZE,
         NUMBER_CLASSES,
+        INIT,
         NUMBER_INIT,
         K_MEANS_NB_ITER_MAX,
         EPS,
@@ -157,6 +160,7 @@ def test_real_K_means_datacube():
     MASK = None
     FEATURE = center_euclidean()
     NUMBER_CLASSES = 2
+    INIT = 'k-means++'
     NUMBER_INIT = 1
     K_MEANS_NB_ITER_MAX = 100
     EPS = 1e-3
@@ -169,6 +173,7 @@ def test_real_K_means_datacube():
         FEATURE,
         WINDOW_SIZE,
         NUMBER_CLASSES,
+        INIT,
         NUMBER_INIT,
         K_MEANS_NB_ITER_MAX,
         EPS,
@@ -225,6 +230,7 @@ def test_complex_K_means_datacube():
     MASK = None
     FEATURE = center_euclidean()
     NUMBER_CLASSES = 2
+    INIT = 'k-means++'
     NUMBER_INIT = 1
     K_MEANS_NB_ITER_MAX = 100
     EPS = 1e-3
@@ -240,6 +246,7 @@ def test_complex_K_means_datacube():
         FEATURE,
         WINDOW_SIZE,
         NUMBER_CLASSES,
+        INIT,
         NUMBER_INIT,
         K_MEANS_NB_ITER_MAX,
         EPS,

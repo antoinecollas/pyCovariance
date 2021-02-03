@@ -53,6 +53,7 @@ def main(
         border_size=max_w,
         window_size=None,
         feature=None,
+        init='k-means++',
         n_init=n_init,
         max_iter=max_iter,
         eps=1e-3

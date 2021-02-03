@@ -11,12 +11,13 @@ def K_means_datacube(
     mask,
     feature,
     window_size,
-    n_classes,
-    n_init,
-    max_iter,
-    tol,
-    n_jobs_rows,
-    n_jobs_columns,
+    n_clusters,
+    init='k-means++',
+    n_init=1,
+    max_iter=20,
+    tol=1e-2,
+    n_jobs_rows=1,
+    n_jobs_columns=1,
     verbose=True
 ):
     """ K-means algorithm applied on an image datacube.
@@ -35,7 +36,8 @@ def K_means_datacube(
         * feature = a Feature from pyCovariance.features
             e.g see pyCovariance/features/covariance.py
         * window_size = int
-        * n_classes = number of classes.
+        * n_clusters = number of classes.
+        * init = 'random' or 'k-means++'
         * n_init = number of initialisations of K-means
         * max_iter = maximum number of iterations for the K-means algorithm
         * tol = tolilon to stop K-means
@@ -91,10 +93,10 @@ def K_means_datacube(
 
     C, _, _, _, all_criterion_values = _K_means(
         X,
-        n_classes,
+        n_clusters,
         feature.distance,
         feature.mean,
-        init=None,
+        init=init,
         tol=tol,
         n_init=n_init,
         max_iter=max_iter,

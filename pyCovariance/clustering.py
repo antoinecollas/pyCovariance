@@ -45,12 +45,36 @@ def _random_index_for_initialisation(n_clusters, n_samples):
     return indexes
 
 
+def _init_K_means_plus_plus(
+    X,
+    n_clusters,
+    distance,
+    n_jobs=1
+):
+    indexes = list()
+    indexes.append(np.random.randint(len(X)))
+    for k in range(1, n_clusters):
+        mu = X[indexes]
+        d = _compute_pairwise_distances(
+            X,
+            mu,
+            distance,
+            n_jobs
+        )
+        d = d**2
+        d = np.min(d, axis=1)
+        d = d / np.sum(d)
+        index = np.argmax(d)
+        indexes.append(index)
+    return indexes
+
+
 def _K_means(
     X,
     n_clusters,
     distance,
     mean_function,
-    init=None,
+    init='k-means++',
     tol=1e-2,
     n_init=1,
     max_iter=20,
@@ -67,8 +91,7 @@ def _K_means(
             * n_clusters = number of classes
             * distance = a distance function from class Feature
             * mean_function = a mean computation function from class Feature
-            * init = a (N) array with one class per point
-            (for example coming from a H-alpha decomposition).
+            * init = 'random' or 'k-means++'
             * tol = stopping threshold
             * n_init = number of initialisations of K-means
             * max_iter = number of maximum iterations of algorithm
@@ -85,12 +108,11 @@ def _K_means(
             * criterion_values = list of values of within-classes variances
     """
     assert type(X) == _FeatureArray
+    assert init in ['random', 'k-means++']
 
     if verbose:
         print('K-means: ' + str(n_init) + ' init ...')
 
-    if n_init > 1:
-        assert init is None
     t_beginning = time.time()
     best_criterion_value = np.inf
     all_criterion_values = list()
@@ -103,21 +125,21 @@ def _K_means(
         # -------------------------------
         # Initialisation of center means
         # -------------------------------
-        if init is None:
+        if init == 'random':
             indexes = _random_index_for_initialisation(n_clusters, N)
-            mu = X[indexes]
-        else:
-            mu = _compute_means(
+        elif init == 'k-means++':
+            indexes = _init_K_means_plus_plus(
                 X,
-                init,
-                mean_function,
-                n_jobs,
+                n_clusters,
+                distance,
+                n_jobs
             )
+        mu = X[indexes]
 
         criterion_value = np.inf
         criterion_values = list()
         delta = np.inf  # Diff between previous and new value of criterion
-        i = 0  # Iteration
+        i = 1  # Iteration
         C = np.empty(N)  # To store clustering results
 
         while True:
@@ -149,6 +171,7 @@ def _K_means(
                     break
             if (i == max_iter) and (max_iter != 1):
                 warnings.warn('K-means algorithm did not converge')
+            if i == max_iter:
                 break
 
             criterion_value = new_criterion_value
@@ -192,6 +215,7 @@ class K_means(BaseEstimator, ClassifierMixin, ClusterMixin, TransformerMixin):
         e.g see pyCovariance/features/covariance.py
     n_clusters: int (default: 2)
         number of clusters.
+    init : 'random' or 'k-means++'
     max_iter : int (default: 100)
         The maximum number of iteration to reach convergence.
     n_init : int, (default: 10)
@@ -215,14 +239,17 @@ class K_means(BaseEstimator, ClassifierMixin, ClusterMixin, TransformerMixin):
         self,
         feature,
         n_clusters=2,
+        init='k-means++',
         max_iter=100,
         n_init=10,
         n_jobs=1,
         tol=1e-4,
         verbose=False
     ):
+        assert init in ['random', 'k-means++']
         self.base_feature = feature
         self.n_clusters = n_clusters
+        self.init = init
         self.max_iter = max_iter
         self.n_init = n_init
         self.tol = tol
@@ -249,6 +276,7 @@ class K_means(BaseEstimator, ClassifierMixin, ClusterMixin, TransformerMixin):
         p, N = X.shape[1:]
         feature = self.feature = self.base_feature(p, N)
         n_clusters = self.n_clusters
+        init = self.init
         max_iter = self.max_iter
         n_init = self.n_init
         tol = self.tol
@@ -263,7 +291,7 @@ class K_means(BaseEstimator, ClassifierMixin, ClusterMixin, TransformerMixin):
             n_clusters,
             feature.distance,
             feature.mean,
-            init=None,
+            init=init,
             tol=tol,
             n_init=n_init,
             max_iter=max_iter,

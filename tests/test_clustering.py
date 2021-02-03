@@ -8,6 +8,7 @@ from pyCovariance import K_means
 from pyCovariance.clustering import \
         _compute_objective_function,\
         _compute_pairwise_distances,\
+        _init_K_means_plus_plus,\
         _K_means,\
         _random_index_for_initialisation
 
@@ -39,7 +40,38 @@ def test__random_index_for_initialisation():
     K = 10
     N = 20
     idx = _random_index_for_initialisation(K, N)
-    assert len(np.unique(idx)) == len(idx)
+    assert len(np.unique(idx)) == len(idx) == K
+
+
+def test__init_K_means_plus_plus():
+    p = 5
+    K = 10
+    N = 20
+
+    # generating data points to cluster
+    X = _FeatureArray((p, ))
+    cov1 = generate_covariance(p)
+    temp = sample_normal_distribution(N, cov1) + 2*np.ones((p, 1))
+    X.append(temp.T)
+
+    feature = center_euclidean()(p, N=1)
+    idx = _init_K_means_plus_plus(X, K, feature.distance)
+    assert len(np.unique(idx)) == len(idx) == K
+
+    # clustering a rectangle
+    p = 2
+    K = 2
+    X = _FeatureArray((p, ))
+    X.append(np.array([0, 0]))
+    X.append(np.array([0, 1]))
+    X.append(np.array([10, 1]))
+    X.append(np.array([10, 0]))
+    feature = center_euclidean()(p, N=1)
+
+    idx = _init_K_means_plus_plus(X, K, feature.distance)
+    idx.sort()
+    assert len(np.unique(idx)) == len(idx) == K
+    assert idx == [0, 2] or idx == [1, 3]
 
 
 def test__K_means():
@@ -64,7 +96,7 @@ def test__K_means():
     # plt.scatter(X.export()[:, 0], X.export()[:, 1], c=y)
     # plt.show()
 
-    pix = center_euclidean()(p, N)
+    pix = center_euclidean()(p, 1)
 
     # single thread
     y_pred = _K_means(
@@ -72,24 +104,7 @@ def test__K_means():
         n_clusters=2,
         distance=pix.distance,
         mean_function=pix.mean,
-        init=None,
-        n_jobs=1,
-        verbose=False
-    )[0]
-    precision = np.sum(y == y_pred)/(2*N)
-    if precision < 0.5:
-        y_pred = np.mod(y_pred+1, 2)
-    precision = np.sum(y == y_pred)/(2*N)
-    assert precision >= 0.95
-
-    # single thread with init
-    init = np.concatenate([np.zeros(N), np.ones(N)])
-    y_pred = _K_means(
-        X,
-        n_clusters=2,
-        distance=pix.distance,
-        mean_function=pix.mean,
-        init=init,
+        init='k-means++',
         n_jobs=1,
         verbose=False
     )[0]
@@ -105,7 +120,7 @@ def test__K_means():
         n_clusters=2,
         distance=pix.distance,
         mean_function=pix.mean,
-        init=None,
+        init='k-means++',
         n_jobs=os.cpu_count(),
         verbose=False
     )[0]
@@ -133,7 +148,7 @@ def test__K_means():
         n_clusters=2,
         distance=pix.distance,
         mean_function=pix.mean,
-        init=None,
+        init='random',
         n_init=20,
         n_jobs=1,
         max_iter=1,

@@ -39,7 +39,7 @@ def main(
         mask=None,
         feature=feature,
         window_size=window_size,
-        n_classes=nb_classes,
+        n_clusters=nb_classes,
         n_init=n_init,
         max_iter=max_iter,
         tol=1e-2,

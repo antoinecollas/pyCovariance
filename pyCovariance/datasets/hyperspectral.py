@@ -112,6 +112,7 @@ class HyperparametersKMeans():
         border_size,
         window_size,
         feature,
+        init,
         n_init,
         max_iter,
         eps
@@ -132,6 +133,7 @@ class HyperparametersKMeans():
                 window_size: int. Number of pixels of height and
                     width in the window.
                 feature: Feature to use to cluster.
+                init: 'random' or 'k-means++'
                 n_init: int. Number of initialisations.
                     Best clustering is kept.
                 max_iter: int. Maximum number of iterations
@@ -160,6 +162,7 @@ class HyperparametersKMeans():
         self.feature = feature
 
         # K-means
+        self.init = init
         self.n_init = n_init
         self.max_iter = max_iter
         self.eps = eps
@@ -226,17 +229,18 @@ def K_means_hyperspectral_image(dataset, hyperparams, verbose=True):
         criterion_values = [[sklearn_K_means.inertia_]]
     else:
         temp, criterion_values = K_means_datacube(
-            image,
-            mask,
-            hyperparams.feature,
-            hyperparams.window_size,
-            nb_classes,
-            hyperparams.n_init,
-            hyperparams.max_iter,
-            hyperparams.eps,
-            hyperparams.n_jobs_rows,
-            hyperparams.n_jobs_columns,
-            verbose
+            image=image,
+            mask=mask,
+            feature=hyperparams.feature,
+            window_size=hyperparams.window_size,
+            n_clusters=nb_classes,
+            init=hyperparams.init,
+            n_init=hyperparams.n_init,
+            max_iter=hyperparams.max_iter,
+            tol=hyperparams.eps,
+            n_jobs_rows=hyperparams.n_jobs_rows,
+            n_jobs_columns=hyperparams.n_jobs_columns,
+            verbose=verbose
         )
         C = np.zeros((n_r, n_c)) - 1
         C[h:-h, w:-w] = temp
