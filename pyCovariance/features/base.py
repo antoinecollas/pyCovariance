@@ -294,6 +294,9 @@ class Feature():
 
             return cost, minus_grad
 
+        if len(X) == 1:
+            return X
+
         cost, minus_grad = _create_cost_minus_grad(X)
 
         # initialisation

@@ -81,6 +81,16 @@ def test_real_covariance():
     assert condition < 1e-5
 
 
+def test_mean_single_covariance():
+    p = 5
+    N = 10
+    cov = covariance()(p, N)
+    sigma = _FeatureArray((p, p))
+    sigma.append(generate_covariance(p))
+    m = cov.mean(sigma)
+    assert (sigma.export() == m.export()).all()
+
+
 def test_complex_covariance():
     p = 5
     N = int(1e6)
