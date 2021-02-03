@@ -111,7 +111,10 @@ def _K_means(
     assert init in ['random', 'k-means++']
 
     if verbose:
-        print('K-means: ' + str(n_init) + ' init ...')
+        if init == 'random':
+            print('K-means: ' + str(n_init) + ' init ...')
+        elif init == 'k-means++':
+            print('K-means++: ' + str(n_init) + ' init ...')
 
     t_beginning = time.time()
     best_criterion_value = np.inf
