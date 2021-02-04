@@ -260,7 +260,7 @@ class K_means(BaseEstimator, ClassifierMixin, ClusterMixin, TransformerMixin):
         self.verbose = verbose
 
         # init MDM
-        self._mdm = MDM(feature=feature, n_jobs=n_jobs)
+        self._mdm = MDM(feature=feature, n_jobs=n_jobs, verbose=False)
         self._mdm._classes = np.arange(n_clusters)
 
     def fit(self, X, y=None):
@@ -288,6 +288,8 @@ class K_means(BaseEstimator, ClassifierMixin, ClusterMixin, TransformerMixin):
 
         # estimate features
         X = _estimate_features(X, feature.estimation, n_jobs=n_jobs)
+        if verbose:
+            print('Feature: ' + str(feature))
 
         y_pred_train, centroids, _, _, criterion_values = _K_means(
             X,

@@ -70,12 +70,18 @@ class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
         used at all, which is useful for debugging. For n_jobs below -1,
         (n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs but one
         are used.
-
+    verbose: bool
     """
 
-    def __init__(self, feature, n_jobs=1):
+    def __init__(
+        self,
+        feature,
+        n_jobs=1,
+        verbose=False
+    ):
         self.base_feature = feature
         self.n_jobs = n_jobs
+        self.verbose = verbose
 
     def fit(self, X, y):
         """Estimate features and centroids.
@@ -90,9 +96,14 @@ class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
         self : MDM instance.
         """
         n_jobs = self.n_jobs
+        verbose = self.verbose
 
         p, N = X.shape[1:]
         feature = self.feature = self.base_feature(p, N)
+
+        if verbose:
+            print('Feature: ' + str(feature))
+            print('MDM fitting ...')
 
         self._classes = np.unique(y)
 
