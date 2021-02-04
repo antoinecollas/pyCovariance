@@ -67,12 +67,12 @@ class Dataset():
             _dir = os.path.dirname(self.path)
             os.makedirs(_dir, exist_ok=True)
             print('\n Download', self.name, 'dataset.')
-            urllib.request.urlretrieve(self.url, _dir)
+            urllib.request.urlretrieve(self.url, self.path)
         if not os.path.exists(self.path_gt):
             _dir = os.path.dirname(self.path_gt)
             os.makedirs(_dir, exist_ok=True)
             print('\n Download', self.name, 'ground truth.')
-            urllib.request.urlretrieve(self.url_gt, _dir)
+            urllib.request.urlretrieve(self.url_gt, self.path_gt)
 
     def load(self, crop_image=False, border_size=0):
         image = loadmat(self.path)[self.key_dict]
