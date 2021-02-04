@@ -30,6 +30,4 @@ jobs:
         flake8 pyCovariance tests examples --count --exit-zero --statistics
     - name: Test with nose2
       run: |
-        pwd
-        ls -l
         nose2 -v --with-coverage && coverage combine
