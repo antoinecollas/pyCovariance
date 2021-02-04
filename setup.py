@@ -8,7 +8,7 @@ setup(
     author='Antoine Collas',
     keywords='Riemann, Riemannian, geometry, clustering, estimation, signal, processing, hyperspectral, SAR',
     packages=find_packages(),
-    python_requires='>=3.7, <4',
+    python_requires='>=3.6, <4',
     install_requires=['autograd', 'matplotlib', 'numpy', 'pymanopt', 'scikit-learn', 'scipy', 'seaborn', 'tqdm' ],
 )
 
