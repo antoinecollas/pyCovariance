@@ -2,6 +2,7 @@ import autograd.numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin
 from sklearn.utils.extmath import softmax
+from time import time
 
 
 def _estimate_features(X, estimation_fct, n_jobs=1):
@@ -107,11 +108,16 @@ class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
 
         self._classes = np.unique(y)
 
+        t_beginning = time()
+
         # features estimation
         X = _estimate_features(X, feature.estimation, n_jobs)
 
         # centroids computation
         self._means = _compute_means(X, y, feature.mean, n_jobs)
+
+        if verbose:
+            print('MDM fitting done in %f s.' % (time() - t_beginning))
 
         return self
 

@@ -4,7 +4,7 @@ from sklearn.base import\
         ClassifierMixin,\
         TransformerMixin,\
         ClusterMixin
-import time
+from time import time
 from tqdm import tqdm
 import warnings
 
@@ -116,7 +116,7 @@ def _K_means(
         elif init == 'k-means++':
             print('K-means++: ' + str(n_init) + ' init ...')
 
-    t_beginning = time.time()
+    t_beginning = time()
     best_criterion_value = np.inf
     all_criterion_values = list()
     iterator = range(n_init)
@@ -201,7 +201,7 @@ def _K_means(
             delta_best = delta
 
     if verbose:
-        print('K-means done in %f s.' % (time.time()-t_beginning))
+        print('K-means done in %f s.' % (time()-t_beginning))
 
     return C_best, mu_best, i_best, delta_best, all_criterion_values
 
