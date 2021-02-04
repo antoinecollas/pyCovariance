@@ -3,6 +3,7 @@ flake8==3.8.4
 matplotlib==3.2.1
 nose2==0.9.2
 numpy==1.18.4
+git+https://github.com/antoinecollas/pymanopt
 scikit-learn==0.23.1
 scipy==1.5.2
 seaborn==0.10.1
