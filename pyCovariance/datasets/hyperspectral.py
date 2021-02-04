@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.io import loadmat
 from sklearn.cluster import KMeans
 import time
-import wget
+import urllib.request
 
 from ..clustering_datacube import K_means_datacube
 from ..pca import pca_image
@@ -67,12 +67,12 @@ class Dataset():
             _dir = os.path.dirname(self.path)
             os.makedirs(_dir, exist_ok=True)
             print('\n Download', self.name, 'dataset.')
-            wget.download(self.url, _dir)
+            urllib.request.urlretrieve(self.url, _dir)
         if not os.path.exists(self.path_gt):
             _dir = os.path.dirname(self.path_gt)
             os.makedirs(_dir, exist_ok=True)
             print('\n Download', self.name, 'ground truth.')
-            wget.download(self.url_gt, _dir)
+            urllib.request.urlretrieve(self.url_gt, _dir)
 
     def load(self, crop_image=False, border_size=0):
         image = loadmat(self.path)[self.key_dict]
