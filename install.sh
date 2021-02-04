@@ -5,6 +5,7 @@ conda activate pyCovariance
 
 # install libraries
 pip install -r requirements.txt
+pip install git+https://github.com/antoinecollas/pymanopt
 
 # install pyCovariance
 python setup.py install
