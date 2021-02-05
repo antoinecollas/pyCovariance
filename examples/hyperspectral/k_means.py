@@ -24,12 +24,12 @@ from pyCovariance.datasets.hyperspectral import\
 def main(
     dataset,
     crop_image,
-    nb_threads,
+    n_jobs,
     pairs_window_size_nb_bands,
     mask,
     features_list,
-    nb_init,
-    nb_iter_max,
+    n_init,
+    max_iter,
     verbose=True
 ):
     matplotlib.use('Agg')
@@ -46,21 +46,22 @@ def main(
 
     hp = HyperparametersKMeans(
         crop_image=crop_image,
-        nb_threads=nb_threads,
+        n_jobs=n_jobs,
         pca=None,
         nb_bands_to_select=None,
         mask=mask,
         border_size=max_w,
         window_size=None,
         feature=None,
-        nb_init=nb_init,
-        nb_iter_max=nb_iter_max,
+        init='k-means++',
+        n_init=n_init,
+        max_iter=max_iter,
         eps=1e-3
     )
 
     pairs_w_p = pairs_window_size_nb_bands
 
-    # check that there is smae number of features for all (w, p) pairs
+    # check that there is same number of features for all (w, p) pairs
     nb_features = len(features_list[0])
     for i in range(len(pairs_w_p)):
         assert nb_features == len(features_list[i])
@@ -100,13 +101,22 @@ def main(
                 print()
 
             pattern = re.compile(r'tau_?\w*_UUH_?\w*|subspace_SCM')
-            if pattern.match(str(hp.feature)):
+            if type(hp.feature) is str:
+                condition = pattern.match(hp.feature)
+            else:
+                N = w_size**2
+                condition = pattern.match(str(hp.feature(p, N)))
+            if condition:
                 hp.pca = False
             else:
                 hp.pca = True
 
             if verbose:
-                print('Feature:', str(hp.feature))
+                if type(hp.feature) is str:
+                    _str = hp.feature
+                else:
+                    _str = str(hp.feature(p, w_size**2))
+                print('Feature:', _str)
 
             C, criterion_values = K_means_hyperspectral_image(
                 dataset,
@@ -115,7 +125,8 @@ def main(
             )
 
             prefix_f_name = str(j)
-            mIoU, OA = evaluate_and_save_clustering(C, dataset,
+            mIoU, OA = evaluate_and_save_clustering(C,
+                                                    dataset,
                                                     hp,
                                                     folder,
                                                     prefix_f_name,
@@ -129,8 +140,11 @@ def main(
                 x = list(range(len(c_value)))
                 plt.plot(x, c_value, '+--')
             plt.ylabel('sum of within-classes variances')
-            plt.title('Criterion values of ' + str(hp.feature) + ' feature.')
-            temp = str(j) + '_criterion_' + str(hp.feature)
+            if type(feature) is not str:
+                N = w_size ** 2
+                feature = feature(p, N)
+            plt.title('Criterion values of ' + str(feature) + ' feature.')
+            temp = str(j) + '_criterion_' + str(feature)
             path = os.path.join(folder_criteria, temp)
             plt.savefig(path)
 
@@ -143,6 +157,8 @@ def main(
     for i, (w_size, p) in enumerate(pairs_w_p):
         features_str = list()
         for feature in features_list[i]:
+            if type(feature) is not str:
+                feature = feature(p, w_size**2)
             features_str.append(str(feature))
 
         prefix = 'w' + str(w_size) + '_p' + str(p)
@@ -185,6 +201,8 @@ def main(
         plt.ylabel('mIoU')
         plt.xticks(rotation=90)
         plt.subplots_adjust(bottom=0.4)
+        if type(feature) is not str:
+            feature = feature(p, w_size**2)
         path = os.path.join(folder, str(i) + '_mIoU_' + str(feature))
         plt.savefig(path)
 
@@ -211,16 +229,16 @@ if __name__ == '__main__':
         for w, k in pairs_w_k:
             features_list.append([
                 'sklearn',
-                center_euclidean(k),
-                mean_vector_euclidean(k),
-                covariance(k),
-                covariance_texture(k, w*w),
-                covariance_texture(k, w*w, weights=(1, 0)),
-                tau_UUH(w*w, p, k, weights=(1/(w*w), 1/k)),
-                tau_UUH(w*w, p, k, weights=(1/(10*w*w), 1/k)),
-                tau_UUH(w*w, p, k, weights=(1/(100*w*w), 1/k)),
-                tau_UUH(w*w, p, k, weights=(0, 1)),
-                subspace_SCM(p, k)
+                center_euclidean(),
+                mean_vector_euclidean(),
+                covariance(),
+                covariance_texture(),
+                covariance_texture(weights=(1, 0)),
+                tau_UUH(k, weights=(1/(w*w), 1/k)),
+                tau_UUH(k, weights=(1/(10*w*w), 1/k)),
+                tau_UUH(k, weights=(1/(100*w*w), 1/k)),
+                tau_UUH(k, weights=(0, 1)),
+                subspace_SCM(k)
             ])
         return features_list
 
@@ -235,12 +253,12 @@ if __name__ == '__main__':
     main(
         dataset=dataset,
         crop_image=False,
-        nb_threads=os.cpu_count(),
+        n_jobs=os.cpu_count(),
         pairs_window_size_nb_bands=pairs_w_k,
         mask=True,
         features_list=features_list,
-        nb_init=10,
-        nb_iter_max=100
+        n_init=10,
+        max_iter=100
     )
 
     dataset_name = 'Pavia'
@@ -250,12 +268,12 @@ if __name__ == '__main__':
     main(
         dataset=dataset,
         crop_image=False,
-        nb_threads=os.cpu_count(),
+        n_jobs=os.cpu_count(),
         pairs_window_size_nb_bands=pairs_w_k,
         mask=True,
         features_list=features_list,
-        nb_init=10,
-        nb_iter_max=100
+        n_init=10,
+        max_iter=100
     )
 
     dataset_name = 'Salinas'
@@ -265,10 +283,10 @@ if __name__ == '__main__':
     main(
         dataset=dataset,
         crop_image=False,
-        nb_threads=os.cpu_count(),
+        n_jobs=os.cpu_count(),
         pairs_window_size_nb_bands=pairs_w_k,
         mask=True,
         features_list=features_list,
-        nb_init=10,
-        nb_iter_max=100
+        n_init=10,
+        max_iter=100
     )

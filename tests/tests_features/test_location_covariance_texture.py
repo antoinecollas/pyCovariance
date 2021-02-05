@@ -23,7 +23,7 @@ from pyCovariance.generation_data import\
 def test_real_location_covariance_texture_Gaussian():
     N = int(1e6)
     p = 5
-    feature = location_covariance_texture_Gaussian(p, N)
+    feature = location_covariance_texture_Gaussian()(p, N)
 
     mu = random.randn(p, 1)
     sigma = generate_covariance(p)
@@ -42,7 +42,7 @@ def test_real_location_covariance_texture_Gaussian():
 def test_complex_location_covariance_texture_Gaussian():
     N = int(1e6)
     p = 5
-    feature = location_covariance_texture_Gaussian(p, N)
+    feature = location_covariance_texture_Gaussian()(p, N)
 
     mu = random.randn(p, 1) + 1j*random.randn(p, 1)
     sigma = generate_complex_covariance(p)
@@ -61,7 +61,7 @@ def test_complex_location_covariance_texture_Gaussian():
 def test_real_location_covariance_texture_Tyler():
     N = int(1e5)
     p = 5
-    feature = location_covariance_texture_Tyler(p, N)
+    feature = location_covariance_texture_Tyler()(p, N)
 
     mu = random.randn(p, 1)
     sigma = generate_covariance(p, unit_det=True)
@@ -81,7 +81,7 @@ def test_real_location_covariance_texture_Tyler():
 def test_complex_location_covariance_texture_Tyler():
     N = int(1e5)
     p = 5
-    feature = location_covariance_texture_Tyler(p, N)
+    feature = location_covariance_texture_Tyler()(p, N)
 
     mu = random.randn(p, 1) + 1j*random.randn(p, 1)
     sigma = generate_complex_covariance(p, unit_det=True)
@@ -161,7 +161,7 @@ def test_egrad_location_covariance_texture_RGD():
 def test_real_location_covariance_texture_RGD():
     N = int(1e2)
     p = 5
-    feature = location_covariance_texture_RGD(p, N, iter_max=200)
+    feature = location_covariance_texture_RGD(iter_max=200)(p, N)
 
     mu = random.randn(p, 1)
     sigma = generate_covariance(p, unit_det=True)
@@ -181,7 +181,7 @@ def test_real_location_covariance_texture_RGD():
 def test_complex_location_covariance_texture_RGD():
     N = int(1e2)
     p = 5
-    feature = location_covariance_texture_RGD(p, N, iter_max=200)
+    feature = location_covariance_texture_RGD(iter_max=200)(p, N)
 
     mu = random.randn(p, 1) + 1j*random.randn(p, 1)
     sigma = generate_complex_covariance(p, unit_det=True)

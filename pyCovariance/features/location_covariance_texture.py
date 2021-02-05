@@ -10,7 +10,7 @@ from pymanopt.manifolds import\
 from pymanopt.solvers import ConjugateGradient, SteepestDescent
 import warnings
 
-from .base import Feature, Product
+from .base import Feature, make_feature_prototype, Product
 
 
 # Gaussian estimation
@@ -229,7 +229,11 @@ def estimate_location_covariance_texture_RGD(
 
 # CLASSES
 
-def location_covariance_texture_Gaussian(p, N, weights=(1, 1, 1)):
+@make_feature_prototype
+def location_covariance_texture_Gaussian(weights=(1, 1, 1), **kwargs):
+    p = kwargs['p']
+    N = kwargs['N']
+
     name = 'location_covariance_texture_Gaussian'
     M = (ComplexEuclidean,
          SpecialHermitianPositiveDefinite,
@@ -242,7 +246,11 @@ def location_covariance_texture_Gaussian(p, N, weights=(1, 1, 1)):
     return Feature(name, Gaussian_estimation, M, args_M)
 
 
-def location_covariance_texture_Tyler(p, N, weights=(1, 1, 1)):
+@make_feature_prototype
+def location_covariance_texture_Tyler(weights=(1, 1, 1), **kwargs):
+    p = kwargs['p']
+    N = kwargs['N']
+
     name = 'location_covariance_texture_Tyler'
     M = (ComplexEuclidean,
          SpecialHermitianPositiveDefinite,
@@ -260,12 +268,15 @@ def location_covariance_texture_Tyler(p, N, weights=(1, 1, 1)):
     return Feature(name, _estimation, M, args_M)
 
 
+@make_feature_prototype
 def location_covariance_texture_RGD(
-    p,
-    N,
     iter_max=3*int(1e4),
-    weights=(1, 1, 1)
+    weights=(1, 1, 1),
+    **kwargs
 ):
+    p = kwargs['p']
+    N = kwargs['N']
+
     name = 'location_covariance_texture_RGD'
     M = (ComplexEuclidean,
          SpecialHermitianPositiveDefinite,

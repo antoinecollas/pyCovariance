@@ -2,7 +2,7 @@ import numpy as np
 import numpy.linalg as la
 from pymanopt.manifolds import ComplexEuclidean, Euclidean
 
-from .base import Feature
+from .base import Feature, make_feature_prototype
 
 
 # ESTIMATION
@@ -64,35 +64,49 @@ def compute_intensity_vector(X):
 # CLASSES
 
 
-def identity_euclidean(p, N):
+@make_feature_prototype
+def identity_euclidean(**kwargs):
+    p = kwargs['p']
+    N = kwargs['N']
+
     name = 'Identity_Euclidean'
     M = ComplexEuclidean
     args_M = {'sizes': (p, N)}
     return Feature(name, identity, M, args_M)
 
 
-def center_euclidean(p):
+@make_feature_prototype
+def center_euclidean(**kwargs):
+    p = kwargs['p']
+
     name = 'Center_Euclidean'
     M = ComplexEuclidean
     args_M = {'sizes': p}
     return Feature(name, get_center_vector, M, args_M)
 
 
-def center_intensity_euclidean():
+@make_feature_prototype
+def center_intensity_euclidean(**kwargs):
     name = 'Center_Intensity_Euclidean'
     M = Euclidean
     args_M = {'sizes': 1}
     return Feature(name, compute_intensity_center_vector, M, args_M)
 
 
-def mean_vector_euclidean(p):
+@make_feature_prototype
+def mean_vector_euclidean(**kwargs):
+    p = kwargs['p']
+
     name = 'Mean_Vector_Euclidean'
     M = ComplexEuclidean
     args_M = {'sizes': p}
     return Feature(name, compute_mean_vector, M, args_M)
 
 
-def intensity_vector_euclidean(N):
+@make_feature_prototype
+def intensity_vector_euclidean(**kwargs):
+    N = kwargs['N']
+
     name = 'Intensity_Euclidean'
     M = Euclidean
     args_M = {'sizes': N}

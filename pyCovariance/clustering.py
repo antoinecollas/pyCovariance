@@ -1,209 +1,22 @@
 import autograd.numpy as np
-from multiprocessing import Process, Queue
+from sklearn.base import\
+        BaseEstimator,\
+        ClassifierMixin,\
+        TransformerMixin,\
+        ClusterMixin
+from time import time
 from tqdm import tqdm
-import time
 import warnings
 
-from pyCovariance.features.base import Feature, _FeatureArray
+from .features.base import _FeatureArray
+from .classification import\
+        _estimate_features,\
+        _compute_means,\
+        _compute_pairwise_distances,\
+        MDM
 
 
-def compute_pairwise_distances(
-    X,
-    mu,
-    distance,
-    queue=None,
-    verbose=False
-):
-    N = len(X)
-    K = len(mu)
-    d = np.empty((N, K))  # To store distance from each class
-    iterator = tqdm(range(N)) if verbose else range(N)
-    for n in iterator:  # Looping on all samples
-        for k in range(K):  # Looping on all classes
-            d[n, k] = distance(X[n], mu[k])
-    if queue is None:
-        return d
-    else:
-        queue.put(d)
-
-
-def compute_pairwise_distances_parallel(
-    X,
-    mu,
-    distance,
-    nb_threads=1,
-    verbose=False
-):
-    """ A simple function to compute all distances in parallel for K-mean
-        ----------------------------------------------------------------------
-        Inputs:
-        --------
-            * X = a list of N data points
-            * mu = an list of data points corresponding to classes centers
-            * distance = function to compute distance between two samples
-                         ** x_1 = sample 1
-                         ** x_2 = sample 2
-            * nb_threads = number of parallel threads (cores of machine)
-
-        Outputs:
-        ---------
-            * d = a (N, K) numpy array containing all distances
-        """
-
-    # -----------------------------------------------------------
-    # Case: Multiprocessing is enabled
-    # -----------------------------------------------------------
-    if nb_threads > 1:
-        N = len(X)
-        d = list()
-        indexes_split = np.hstack([0, int(N / nb_threads)
-                                   * np.arange(1, nb_threads), N])
-        # Separate data in subsets to be treated in parallel
-        X_subsets = list()
-        for t in range(1, nb_threads + 1):
-            temp = list()
-            for i in range(indexes_split[t-1], indexes_split[t]):
-                temp.append(X[i])
-            X_subsets.append(temp)
-        queues = [Queue() for i in range(nb_threads)]
-        args = [(X_subsets[i], mu, distance, queues[i], verbose)
-                for i in range(nb_threads)]
-        jobs = [Process(target=compute_pairwise_distances, args=a)
-                for a in args]
-        # Starting parallel computation
-        for j in jobs:
-            j.start()
-        # Obtaining result for each thread
-        for q in queues:
-            d.append(q.get())
-        # Waiting for each thread to terminate
-        for j in jobs:
-            j.join()
-
-        # Merging results
-        d = np.vstack(d)
-
-        # -----------------------------------------------------------
-    # Case: Multiprocessing is not enabled
-    # -----------------------------------------------------------
-    else:
-        d = compute_pairwise_distances(X, mu, distance, None, verbose)
-
-    return d
-
-
-def compute_means(
-    X_class,
-    mean_function,
-    queue=None,
-    jobno=None,
-    verbose=False
-):
-    mu = mean_function(X_class)
-    if queue is None:
-        return mu
-    else:
-        queue.put([mu, jobno])
-        if verbose:
-            print('Mean of class', jobno+1, 'computed !')
-
-
-def compute_means_parallel(
-    X,
-    C,
-    mean_function,
-    nb_threads,
-    verbose=False
-):
-    """ A simple function to compute all means in parallel for K-mean
-        CAUTION: number of threads = K in this case
-        ----------------------------------------------------------------------
-        Inputs:
-        --------
-            * X = an np array of N data points
-            * C = an array of shape (N,)
-            with each sample with a label in {0,..., K-1}
-            * mean_function = function to compute mean and takes as input:
-                              ** X_class = a list of M data points
-                              corresponding to samples in class
-            * nb_threads = maximum number of threads
-            * verbose = boolean
-
-        Outputs:
-        ---------
-            * mu = a list containing all means of classes
-        """
-
-    K = len(np.unique(C))
-
-    # -----------------------------------------------------------
-    # Case: Multiprocessing is enabled
-    # -----------------------------------------------------------
-    if nb_threads > 1:
-        means_to_compute = np.arange(K)
-        mu = None
-
-        while len(means_to_compute) != 0:
-            nb_means = min(nb_threads, len(means_to_compute))
-            classes = means_to_compute[:nb_means]
-            means_to_compute = means_to_compute[nb_means:]
-
-            mu_temp = [None for _ in classes]
-            queues = [Queue() for _ in classes]
-            args = list()
-            for i, k in enumerate(classes):
-                X_class = X[C == k]
-                args.append((X_class, mean_function, queues[i], i))
-            jobs = [Process(target=compute_means, args=a) for a in args]
-            # Starting parallel computation
-            for j in jobs:
-                j.start()
-            # Obtaining result for each thread
-            for q in queues:
-                tmp = q.get()
-                mu_temp[tmp[1]] = tmp[0]
-            mu2 = mu_temp[0]
-            for i in range(1, len(classes)):
-                mu2.append(mu_temp[i])
-            mu_temp = mu2
-            # Waiting for each thread to terminate
-            for j in jobs:
-                j.join()
-
-            if mu is None:
-                mu = mu_temp
-            else:
-                mu.append(mu_temp)
-
-    # -----------------------------------------------------------
-    # Case: Multiprocessing is not enabled
-    # -----------------------------------------------------------
-    else:
-        mu = None
-        for k in range(K):  # Looping on all classes
-            if verbose:
-                print("Computing mean of class %d/%d " % (k+1, K))
-            X_class = X[C == k]
-            temp = compute_means(X_class, mean_function)
-            if mu is None:
-                mu = temp
-            else:
-                mu.append(temp)
-
-    return mu
-
-
-def random_index_for_initialisation(K, N):
-    indexes = list()
-    for k in range(K):
-        index = np.random.randint(N)
-        while index in indexes:
-            index = np.random.randint(N)
-        indexes.append(index)
-    return indexes
-
-
-def compute_objective_function(distances):
+def _compute_objective_function(distances):
     """ Compute the value of the objective function of K-means algorithm.
         See https://en.wikipedia.org/wiki/K-means_clustering
         ----------------------------------------------------------------------
@@ -222,56 +35,91 @@ def compute_objective_function(distances):
     return result
 
 
+def _random_index_for_initialisation(n_clusters, n_samples):
+    indexes = list()
+    for k in range(n_clusters):
+        index = np.random.randint(n_samples)
+        while index in indexes:
+            index = np.random.randint(n_samples)
+        indexes.append(index)
+    return indexes
+
+
+def _init_K_means_plus_plus(
+    X,
+    n_clusters,
+    distance,
+    n_jobs=1
+):
+    indexes = list()
+    indexes.append(np.random.randint(len(X)))
+    for k in range(1, n_clusters):
+        mu = X[indexes]
+        d = _compute_pairwise_distances(
+            X,
+            mu,
+            distance,
+            n_jobs
+        )
+        d = d**2
+        d = np.min(d, axis=1)
+        d = d / np.sum(d)
+        index = np.argmax(d)
+        indexes.append(index)
+    return indexes
+
+
 def _K_means(
     X,
-    K,
+    n_clusters,
     distance,
     mean_function,
-    init=None,
-    eps=1e-2,
-    nb_init=1,
-    iter_max=20,
-    nb_threads=1,
+    init='k-means++',
+    tol=1e-2,
+    n_init=1,
+    max_iter=20,
+    n_jobs=1,
     verbose=True
 ):
-    """ K-means algorithm in a general multivariate context with an arbitary
-        distance and an arbitray way to choose clusters center:
+    """ K-means algorithm in a general multivariate context.
         Objective is to obtain a partion C = {C_0,..., C_{K-1}} of the data,
-        by computing centers mu_i and assigning samples by closest distance.
+        by computing centers and assigning samples by closest distance.
         ----------------------------------------------------------------------
         Inputs:
         --------
             * X = a _FeatureArray
-            * K = number of classes
+            * n_clusters = number of classes
             * distance = a distance function from class Feature
             * mean_function = a mean computation function from class Feature
-            * init = a (N) array with one class per point
-            (for example coming from a H-alpha decomposition).
-            * nb_init = number of initialisations of K-means
-            * eps = stopping threshold
-            * iter_max = number of maximum iterations of algorithm
-            * nb_threads = number of parallel threads (cores of machine)
+            * init = 'random' or 'k-means++'
+            * tol = stopping threshold
+            * n_init = number of initialisations of K-means
+            * max_iter = number of maximum iterations of algorithm
+            * n_jobs = number of parallel threads (cores of machine)
             * verbose = bool
 
         Outputs:
         ---------
             * C = an array of shape (N,) containing labels in {0,..., K-1}
-            * mu = an array of shape (p,K) corresponding to classes centers
+            * mu = an array of shape (p, n_clusters)
+            corresponding to classes centers
             * i = number of iterations done
             * delta = convergence criterion
             * criterion_values = list of values of within-classes variances
     """
     assert type(X) == _FeatureArray
+    assert init in ['random', 'k-means++']
 
     if verbose:
-        print('K-means: ' + str(nb_init) + ' init ...')
+        if init == 'random':
+            print('K-means: ' + str(n_init) + ' init ...')
+        elif init == 'k-means++':
+            print('K-means++: ' + str(n_init) + ' init ...')
 
-    if nb_init > 1:
-        assert init is None
-    t_beginning = time.time()
+    t_beginning = time()
     best_criterion_value = np.inf
     all_criterion_values = list()
-    iterator = range(nb_init)
+    iterator = range(n_init)
     if verbose:
         iterator = tqdm(iterator)
     for _ in iterator:
@@ -280,33 +128,32 @@ def _K_means(
         # -------------------------------
         # Initialisation of center means
         # -------------------------------
-        if init is None:
-            indexes = random_index_for_initialisation(K, N)
-            mu = X[indexes]
-        else:
-            mu = compute_means_parallel(
+        if init == 'random':
+            indexes = _random_index_for_initialisation(n_clusters, N)
+        elif init == 'k-means++':
+            indexes = _init_K_means_plus_plus(
                 X,
-                init,
-                mean_function,
-                nb_threads,
-                verbose=verbose
+                n_clusters,
+                distance,
+                n_jobs
             )
+        mu = X[indexes]
 
         criterion_value = np.inf
         criterion_values = list()
         delta = np.inf  # Diff between previous and new value of criterion
-        i = 0  # Iteration
+        i = 1  # Iteration
         C = np.empty(N)  # To store clustering results
 
         while True:
             # -----------------------------------------
             # Computing distance
             # -----------------------------------------
-            d = compute_pairwise_distances_parallel(
+            d = _compute_pairwise_distances(
                 X,
                 mu,
                 distance,
-                nb_threads
+                n_jobs
             )
 
             # -----------------------------------------
@@ -317,16 +164,17 @@ def _K_means(
             # ---------------------------------------------
             # Managing algorithm convergence
             # ---------------------------------------------
-            new_criterion_value = compute_objective_function(d)
+            new_criterion_value = _compute_objective_function(d)
             criterion_values.append(new_criterion_value)
 
             if criterion_value != np.inf:
                 delta = np.abs(criterion_value - new_criterion_value)
                 delta = delta / criterion_value
-                if delta < eps:
+                if delta < tol:
                     break
-            if (i == iter_max) and (iter_max != 1):
+            if (i == max_iter) and (max_iter != 1):
                 warnings.warn('K-means algorithm did not converge')
+            if i == max_iter:
                 break
 
             criterion_value = new_criterion_value
@@ -334,12 +182,11 @@ def _K_means(
             # -----------------------------------------
             # Computing new means using assigned samples
             # -----------------------------------------
-            mu = compute_means_parallel(
+            mu = _compute_means(
                 X,
                 C,
                 mean_function,
-                nb_threads,
-                verbose=verbose
+                n_jobs,
             )
 
             i = i + 1
@@ -354,79 +201,159 @@ def _K_means(
             delta_best = delta
 
     if verbose:
-        print('K-means done in %f s.' % (time.time()-t_beginning))
+        print('K-means done in %f s.' % (time()-t_beginning))
 
     return C_best, mu_best, i_best, delta_best, all_criterion_values
 
 
-def K_means(
-    X,
-    K,
-    feature,
-    init=None,
-    eps=1e-2,
-    nb_init=1,
-    iter_max=20,
-    nb_threads=1,
-    verbose=True
-):
-    """ K-means algorithm.
-        ----------------------------------------------------------------------
-        Inputs:
-        --------
-            * X = a numpy Array of shape (batch_size, p, N)
-                * batch_size: number of batch
-                * p: dimension
-                * N: number of vectors for one batch
-            * K = number of classes
-            * a Feature: for example see pyCovariance/features/covariance.py
-            * init = a (batch_size) array with one class per point
-            If None, centers are randomly chosen among samples.
-            * nb_init = number of initialisations of K-means
-            * eps = stopping threshold
-            * iter_max = number of maximum iterations of algorithm
-            * nb_threads = number of parallel threads (cores of machine)
-            * verbose = bool
+class K_means(BaseEstimator, ClassifierMixin, ClusterMixin, TransformerMixin):
 
-        Outputs:
-        ---------
-            * C = an array of shape (N,) containing labels in {0,..., K-1}
-            * mu = an array of shape (p,K) corresponding to classes centers
-            * i = number of iterations done
-            * delta = convergence criterion
-            * criterion_values = list of values of within-classes variances
+    """K-means clustering using covariance estimation and Riemannian geometry.
+
+    Find clusters that minimize the sum of squared distance to their centroid.
+
+    Parameters
+    ----------
+    feature : a Feature from pyCovariance.features
+        e.g see pyCovariance/features/covariance.py
+    n_clusters: int (default: 2)
+        number of clusters.
+    init : 'random' or 'k-means++'
+    max_iter : int (default: 100)
+        The maximum number of iteration to reach convergence.
+    n_init : int, (default: 10)
+        Number of time the k-means algorithm will be run with different
+        initialisation of centroids. The final results will be
+        the best output of n_init consecutive runs in terms of inertia.
+    n_jobs : int, (default: 1)
+        The number of jobs to use for the computation. This works by computing
+        each of the n_init runs in parallel.
+        If -1 all CPUs are used. If 1 is given, no parallel computing code is
+        used at all, which is useful for debugging. For n_jobs below -1,
+        (n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs but one
+        are used.
+    tol: float, (default: 1e-4)
+        the stopping criterion to stop convergence, representing the minimum
+        amount of change in labels between two iterations.
+    verbose: bool
     """
-    assert type(X) == np.ndarray
-    assert X.ndim == 3
-    assert type(feature) == Feature
 
-    if verbose:
-        print('########## K-means: ' + str(feature) + ' ##########')
-        print('Estimation ...')
+    def __init__(
+        self,
+        feature,
+        n_clusters=2,
+        init='k-means++',
+        max_iter=100,
+        n_init=10,
+        n_jobs=1,
+        tol=1e-4,
+        verbose=False
+    ):
+        assert init in ['random', 'k-means++']
+        self.base_feature = feature
+        self.n_clusters = n_clusters
+        self.init = init
+        self.max_iter = max_iter
+        self.n_init = n_init
+        self.tol = tol
+        self.n_jobs = n_jobs
+        self.verbose = verbose
 
-    features_array = feature.estimation(X[0])
-    if verbose:
-        pbar = tqdm(total=X.shape[0])
-        pbar.update(1)
+        # init MDM
+        self._mdm = MDM(feature=feature, n_jobs=n_jobs, verbose=False)
+        self._mdm._classes = np.arange(n_clusters)
 
-    for i in range(1, X.shape[0]):
-        features_array.append(feature.estimation(X[i]))
+    def fit(self, X, y=None):
+        """Estimate features and cluster them.
+
+        Parameters
+        ----------
+        X : ndarray, shape (n_samples, p, N)
+        y : ndarray | None (default None)
+            Not used, here for compatibility with sklearn API.
+
+        Returns
+        -------
+        self : Kmeans instance.
+        """
+        p, N = X.shape[1:]
+        feature = self.feature = self.base_feature(p, N)
+        n_clusters = self.n_clusters
+        init = self.init
+        max_iter = self.max_iter
+        n_init = self.n_init
+        tol = self.tol
+        n_jobs = self.n_jobs
+        verbose = self.verbose
+
+        # estimate features
+        X = _estimate_features(X, feature.estimation, n_jobs=n_jobs)
         if verbose:
-            pbar.update(1)
-    if verbose:
-        pbar.close()
+            print('Feature: ' + str(feature))
 
-    C, mu, i, delta, criterion_values = _K_means(
-        features_array,
-        K,
-        feature.distance,
-        feature.mean,
-        init,
-        eps,
-        nb_init,
-        iter_max,
-        nb_threads,
-        verbose
-    )
+        y_pred_train, centroids, _, _, criterion_values = _K_means(
+            X,
+            n_clusters,
+            feature.distance,
+            feature.mean,
+            init=init,
+            tol=tol,
+            n_init=n_init,
+            max_iter=max_iter,
+            n_jobs=n_jobs,
+            verbose=verbose
+        )
 
-    return C, mu, i, delta, criterion_values
+        self._y_pred_train = y_pred_train
+        self._criterion_values = criterion_values
+        self._mdm.feature = feature
+        self._mdm._means = centroids
+
+        return self
+
+    def predict(self, X):
+        """get the predictions.
+
+        Parameters
+        ----------
+        X : ndarray, shape (n_samples, p, N)
+
+        Returns
+        -------
+        pred : ndarray of int, shape (n_trials, 1)
+            the prediction for each trials according to the closest centroid.
+        """
+        return self._mdm.predict(X)
+
+    def transform(self, X):
+        """get the distance to each centroid.
+
+        Parameters
+        ----------
+        X : ndarray, shape (n_samples, p, N)
+
+        Returns
+        -------
+        dist : ndarray, shape (n_trials, n_cluster)
+            the distance to each centroid according to the metric.
+        """
+        return self._mdm.transform(X)
+
+    def fit_predict(self, X, y=None):
+        """Fit and predict in one function."""
+        self.fit(X, y)
+        return self._y_pred_train
+
+    def predict_proba(self, X):
+        """Predict proba using softmax.
+
+        Parameters
+        ----------
+        X : ndarray, shape (n_samples, p, N)
+
+        Returns
+        -------
+        prob : ndarray, shape (n_samples, n_classes)
+            the softmax probabilities for each class.
+        """
+        return self._mdm.predict_proba(X)

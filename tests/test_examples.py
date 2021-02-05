@@ -17,7 +17,7 @@ def test_hyperspectral_demo_K_means():
         plot=False,
         crop_image=True,
         n_init=1,
-        n_iter_max=1,
+        max_iter=1,
         verbose=False
     )
 
@@ -33,72 +33,71 @@ def test_hyperspectral_indian_pines():
         features_list.append([
             center_intensity_euclidean(),
             'sklearn',
-            center_euclidean(k),
-            covariance_texture(k, w*w),
+            center_euclidean(),
+            covariance_texture(),
         ])
 
     k_means.main(
         dataset=dataset,
         crop_image=True,
-        nb_threads=1,
+        n_jobs=1,
         pairs_window_size_nb_bands=pairs_w_k,
         mask=True,
         features_list=features_list,
-        nb_init=1,
-        nb_iter_max=1,
+        n_init=1,
+        max_iter=1,
         verbose=False
     )
 
-# Pavia and Salilas are commented because data are too heavy
-# to run on github actions
-# def test_hyperspectral_pavia():
-#     dataset_name = 'Pavia'
-#     dataset = Dataset(dataset_name)
+
+#def test_hyperspectral_pavia():
+#    dataset_name = 'Pavia'
+#    dataset = Dataset(dataset_name)
 #
-#     pairs_w_k = [(3, 4)]
+#    pairs_w_k = [(3, 4)]
 #
-#     features_list = list()
-#     for w, k in pairs_w_k:
-#         features_list.append([
-#             'sklearn',
-#         ])
+#    features_list = list()
+#    for w, k in pairs_w_k:
+#        features_list.append([
+#            'sklearn',
+#        ])
 #
-#     k_means.main(
-#         dataset=dataset,
-#         crop_image=True,
-#         nb_threads=1,
-#         pairs_window_size_nb_bands=pairs_w_k,
-#         mask=True,
-#         features_list=features_list,
-#         nb_init=1,
-#         nb_iter_max=1,
-#         verbose=False
-#     )
+#    k_means.main(
+#        dataset=dataset,
+#        crop_image=True,
+#        n_jobs=1,
+#        pairs_window_size_nb_bands=pairs_w_k,
+#        mask=True,
+#        features_list=features_list,
+#        n_init=1,
+#        max_iter=1,
+#        verbose=False
+#    )
 #
 #
-# def test_hyperspectral_salinas():
-#     dataset_name = 'Salinas'
-#     dataset = Dataset(dataset_name)
+#def test_hyperspectral_salinas():
+#    dataset_name = 'Salinas'
+#    dataset = Dataset(dataset_name)
 #
-#     pairs_w_k = [(3, 4)]
+#    pairs_w_k = [(3, 4)]
 #
-#     features_list = list()
-#     for w, k in pairs_w_k:
-#         features_list.append([
-#             'sklearn',
-#         ])
+#    features_list = list()
+#    for w, k in pairs_w_k:
+#        features_list.append([
+#            'sklearn',
+#        ])
 #
-#     k_means.main(
-#         dataset=dataset,
-#         crop_image=True,
-#         nb_threads=1,
-#         pairs_window_size_nb_bands=pairs_w_k,
-#         mask=True,
-#         features_list=features_list,
-#         nb_init=1,
-#         nb_iter_max=1,
-#         verbose=False
-#     )
+#    k_means.main(
+#        dataset=dataset,
+#        crop_image=True,
+#        n_jobs=1,
+#        pairs_window_size_nb_bands=pairs_w_k,
+#        mask=True,
+#        features_list=features_list,
+#        n_init=1,
+#        max_iter=1,
+#        verbose=False
+#    )
 
 
 def test_plot_subspace():

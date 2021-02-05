@@ -26,14 +26,15 @@ def test_sliding_window_parallel():
     assert image.shape == (H, W, p)
     assert image.dtype == np.complex128
 
-    window_size = 3
-    fct = center_euclidean(p).estimation
+    window_size = 5
+    N = window_size**2
+    fct = center_euclidean()(p, N).estimation
     res = sliding_window_parallel(
         image,
         window_size,
         fct,
-        nb_threads_rows=os.cpu_count()//2,
-        nb_threads_columns=2,
+        n_jobs_rows=os.cpu_count()//2,
+        n_jobs_columns=2,
         overlapping_window=True,
         verbose=False
     )
@@ -52,7 +53,6 @@ def test_sliding_window_parallel():
 
 def test_real_K_means_datacube():
     # test K_means_datacube on synthetic data
-
     p = 3
     H = 50
     W = 100
@@ -73,10 +73,11 @@ def test_real_K_means_datacube():
     image[:, int(W/2):] = temp2.reshape((H, int(W/2), p))
 
     # clustering with one thread
-    WINDOW_SIZE = 3
+    WINDOW_SIZE = 5
     MASK = None
-    FEATURE = center_euclidean(p)
+    FEATURE = center_euclidean()
     NUMBER_CLASSES = 2
+    INIT = 'k-means++'
     NUMBER_INIT = 1
     K_MEANS_NB_ITER_MAX = 100
     EPS = 1e-3
@@ -92,6 +93,7 @@ def test_real_K_means_datacube():
         FEATURE,
         WINDOW_SIZE,
         NUMBER_CLASSES,
+        INIT,
         NUMBER_INIT,
         K_MEANS_NB_ITER_MAX,
         EPS,
@@ -128,6 +130,7 @@ def test_real_K_means_datacube():
         FEATURE,
         WINDOW_SIZE,
         NUMBER_CLASSES,
+        INIT,
         NUMBER_INIT,
         K_MEANS_NB_ITER_MAX,
         EPS,
@@ -153,10 +156,11 @@ def test_real_K_means_datacube():
     assert precision >= 0.95
 
     # clustering with multiple threads
-    WINDOW_SIZE = 3
+    WINDOW_SIZE = 5
     MASK = None
-    FEATURE = center_euclidean(p)
+    FEATURE = center_euclidean()
     NUMBER_CLASSES = 2
+    INIT = 'k-means++'
     NUMBER_INIT = 1
     K_MEANS_NB_ITER_MAX = 100
     EPS = 1e-3
@@ -169,6 +173,7 @@ def test_real_K_means_datacube():
         FEATURE,
         WINDOW_SIZE,
         NUMBER_CLASSES,
+        INIT,
         NUMBER_INIT,
         K_MEANS_NB_ITER_MAX,
         EPS,
@@ -223,8 +228,9 @@ def test_complex_K_means_datacube():
     # clustering with one thread
     WINDOW_SIZE = 3
     MASK = None
-    FEATURE = center_euclidean(p)
+    FEATURE = center_euclidean()
     NUMBER_CLASSES = 2
+    INIT = 'k-means++'
     NUMBER_INIT = 1
     K_MEANS_NB_ITER_MAX = 100
     EPS = 1e-3
@@ -240,6 +246,7 @@ def test_complex_K_means_datacube():
         FEATURE,
         WINDOW_SIZE,
         NUMBER_CLASSES,
+        INIT,
         NUMBER_INIT,
         K_MEANS_NB_ITER_MAX,
         EPS,

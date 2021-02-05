@@ -1,6 +1,5 @@
 import autograd.numpy as np
 from autograd.numpy import random as rnd
-from functools import partial
 import matplotlib.pyplot as plt
 import os
 
@@ -49,10 +48,9 @@ def main(
     sigma = generate_complex_covariance(p, unit_det=True)
 
     # features
-    features_list = [location_covariance_texture_Gaussian,
-                     location_covariance_texture_Tyler,
-                     partial(location_covariance_texture_RGD,
-                             iter_max=iter_max_RGD)]
+    features_list = [location_covariance_texture_Gaussian(),
+                     location_covariance_texture_Tyler(),
+                     location_covariance_texture_RGD(iter_max=iter_max_RGD)]
 
     # simu
     list_n_points = np.geomspace(N_min, N_max, num=nb_points).astype(int)
@@ -68,12 +66,11 @@ def main(
         # location + covariance + texture estimators
         def sample_fct():
             return sample_complex_compound_distribution(t, sigma) + mu
-        features = [f(p, N) for f in features_list]
         true_parameters = [mu, sigma, t]
         mean_errors[:, :-1, i] = monte_carlo(
             true_parameters,
             sample_fct,
-            features,
+            features_list,
             nb_MC,
             verbose
         )
@@ -81,12 +78,12 @@ def main(
         # Tyler estimator
         def sample_fct():
             return sample_complex_compound_distribution(t, sigma)
-        features = [covariance_texture(p, N)]
+        feature = [covariance_texture()]
         true_parameters = [sigma, t]
         mean_errors[[0, 2, 3], -1, i] = monte_carlo(
             true_parameters,
             sample_fct,
-            features,
+            feature,
             nb_MC,
             verbose
         ).reshape(-1)

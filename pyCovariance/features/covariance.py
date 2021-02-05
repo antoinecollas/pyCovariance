@@ -2,7 +2,7 @@ from pymanopt.manifolds import\
         ComplexEuclidean,\
         HermitianPositiveDefinite
 
-from .base import Feature
+from .base import Feature, make_feature_prototype
 
 # ESTIMATION
 
@@ -21,14 +21,20 @@ def compute_scm(X):
 # CLASSES
 
 
-def covariance(p):
+@make_feature_prototype
+def covariance(**kwargs):
+    p = kwargs['p']
+
     name = 'Covariance'
     M = HermitianPositiveDefinite
     args_M = {'sizes': p}
     return Feature(name, compute_scm, M, args_M)
 
 
-def covariance_euclidean(p):
+@make_feature_prototype
+def covariance_euclidean(**kwargs):
+    p = kwargs['p']
+
     name = 'Covariance_Euclidean'
     M = ComplexEuclidean
     args_M = {'sizes': p}

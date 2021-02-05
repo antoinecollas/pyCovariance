@@ -17,7 +17,7 @@ def test_real_identity_euclidean():
     p = 5
     N = 100
     N_mean = 10
-    dummy = identity_euclidean(p, N)
+    dummy = identity_euclidean()(p, N)
     assert type(str(dummy)) is str
 
     # test estimation
@@ -49,7 +49,7 @@ def test_real_center_euclidean():
     p = 5
     N = 100
     N_mean = 10
-    dummy = center_euclidean(p)
+    dummy = center_euclidean()(p, N)
     assert type(str(dummy)) is str
 
     # test estimation
@@ -80,7 +80,7 @@ def test_real_center_intensity_euclidean():
     p = 5
     N = 100
     N_mean = 10
-    inten = center_intensity_euclidean()
+    inten = center_intensity_euclidean()(p, N)
     assert type(str(inten)) is str
 
     # test estimation
@@ -112,7 +112,7 @@ def test_real_mean_vector_euclidean():
     p = 5
     N = 100
     N_mean = 10
-    dummy = mean_vector_euclidean(p)
+    dummy = mean_vector_euclidean()(p, N)
     assert type(str(dummy)) is str
 
     # test estimation
@@ -144,7 +144,7 @@ def test_real_intensity_vector_euclidean():
     p = 5
     N = 100
     N_mean = 10
-    inten = intensity_vector_euclidean(N)
+    inten = intensity_vector_euclidean()(p, N)
     assert type(str(inten)) is str
 
     # test estimation

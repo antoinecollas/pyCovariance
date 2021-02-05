@@ -67,7 +67,7 @@ class _FeatureArray():
         assert self.nb_manifolds == len(data)
 
         for i, (a, d) in enumerate(zip(self._array, data)):
-            assert type(d) == np.ndarray
+            assert type(d) in [np.ndarray, np.memmap]
             if a is not None:
                 assert d.dtype == a.dtype, 'Wrong dtype !'
 
@@ -114,6 +114,19 @@ def _feature_estimation(method):
 
         return f_a
     return wrapper
+
+
+def make_feature_prototype(feature):
+    class TwoStepInitFeature():
+        def __init__(self, *args, **kwargs):
+            self.args = args
+            self.kwargs = kwargs
+
+        def __call__(self, p, N):
+            args = self.args
+            kwargs = self.kwargs
+            return feature(*args, **kwargs, p=p, N=N)
+    return TwoStepInitFeature
 
 
 class Feature():
@@ -239,7 +252,7 @@ class Feature():
                 * X = _FeatureArray
             Outputs:
             ---------
-                * mean = a (feature_size) array
+                * mean = _FeatureArray
             """
         assert type(X) is _FeatureArray
         dim = self._dimensions
@@ -280,6 +293,9 @@ class Feature():
                 return _minus_grad(X, theta)
 
             return cost, minus_grad
+
+        if len(X) == 1:
+            return X
 
         cost, minus_grad = _create_cost_minus_grad(X)
 
