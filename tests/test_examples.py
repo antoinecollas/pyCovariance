@@ -50,54 +50,54 @@ def test_hyperspectral_indian_pines():
     )
 
 
-#def test_hyperspectral_pavia():
-#    dataset_name = 'Pavia'
-#    dataset = Dataset(dataset_name)
+# def test_hyperspectral_pavia():
+#     dataset_name = 'Pavia'
+#     dataset = Dataset(dataset_name)
 #
-#    pairs_w_k = [(3, 4)]
+#     pairs_w_k = [(3, 4)]
 #
-#    features_list = list()
-#    for w, k in pairs_w_k:
-#        features_list.append([
-#            'sklearn',
-#        ])
+#     features_list = list()
+#     for w, k in pairs_w_k:
+#         features_list.append([
+#             'sklearn',
+#         ])
 #
-#    k_means.main(
-#        dataset=dataset,
-#        crop_image=True,
-#        n_jobs=1,
-#        pairs_window_size_nb_bands=pairs_w_k,
-#        mask=True,
-#        features_list=features_list,
-#        n_init=1,
-#        max_iter=1,
-#        verbose=False
-#    )
+#     k_means.main(
+#         dataset=dataset,
+#         crop_image=True,
+#         n_jobs=1,
+#         pairs_window_size_nb_bands=pairs_w_k,
+#         mask=True,
+#         features_list=features_list,
+#         n_init=1,
+#         max_iter=1,
+#         verbose=False
+#     )
 #
 #
-#def test_hyperspectral_salinas():
-#    dataset_name = 'Salinas'
-#    dataset = Dataset(dataset_name)
+# def test_hyperspectral_salinas():
+#     dataset_name = 'Salinas'
+#     dataset = Dataset(dataset_name)
 #
-#    pairs_w_k = [(3, 4)]
+#     pairs_w_k = [(3, 4)]
 #
-#    features_list = list()
-#    for w, k in pairs_w_k:
-#        features_list.append([
-#            'sklearn',
-#        ])
+#     features_list = list()
+#     for w, k in pairs_w_k:
+#         features_list.append([
+#             'sklearn',
+#         ])
 #
-#    k_means.main(
-#        dataset=dataset,
-#        crop_image=True,
-#        n_jobs=1,
-#        pairs_window_size_nb_bands=pairs_w_k,
-#        mask=True,
-#        features_list=features_list,
-#        n_init=1,
-#        max_iter=1,
-#        verbose=False
-#    )
+#     k_means.main(
+#         dataset=dataset,
+#         crop_image=True,
+#         n_jobs=1,
+#         pairs_window_size_nb_bands=pairs_w_k,
+#         mask=True,
+#         features_list=features_list,
+#         n_init=1,
+#         max_iter=1,
+#         verbose=False
+#     )
 
 
 def test_plot_subspace():
