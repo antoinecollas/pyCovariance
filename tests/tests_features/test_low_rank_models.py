@@ -22,22 +22,23 @@ from pyCovariance.generation_data import\
 def test_real_subspace_SCM():
     p = 5
     k = 2
-    N = int(1e2)
+    N = int(1e6)
 
     feature = subspace_SCM(k)(p, N)
 
     # test estimation
     cov = generate_covariance(p)
     X = sample_normal_distribution(N, cov)
-    SCM = (1/N) * X@X.T
-    d, Q = la.eigh(SCM)
-    Q = Q[:, -1:-k-1:-1]
+    d, Q = la.eigh(cov)
+    Q = Q[:, ::-1]
+    Q = Q[:, :k]
 
     U = feature.estimation(X).export()
     assert U.shape == (p, k)
     assert U.dtype == np.float64
 
-    assert la.norm(Q@Q.T - U@U.T) / la.norm(Q@Q.T) < 1e-8
+    condition = la.norm(Q@Q.T - U@U.T) / la.norm(Q@Q.T)
+    assert condition < 0.05
 
 
 def test_real_subspace_tau_UUH():
