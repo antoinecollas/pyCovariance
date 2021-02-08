@@ -1,5 +1,6 @@
-import numpy as np
-import numpy.linalg as la
+import autograd.numpy as np
+import autograd.numpy.linalg as la
+import autograd.numpy.random as rnd
 import numpy.testing as np_test
 
 from pyCovariance.matrix_operators import invsqrtm, logm, sqrtm
@@ -79,6 +80,22 @@ def test_real_covariance():
         condition += sigmai_isqrtm@temp@sigmai_sqrtm
     condition = la.norm(condition)
     assert condition < 1e-5
+
+
+def test_real_centered_covariance():
+    p = 5
+    N = int(1e6)
+    cov = covariance(assume_centered=False)(p, N)
+    assert type(str(cov)) is str
+
+    # test estimation 1
+    sigma = generate_covariance(p)
+    mu = rnd.randn(p, 1)
+    X = sample_normal_distribution(N, sigma) + mu
+
+    scm = cov.estimation(X).export()
+    assert scm.dtype == np.float64
+    assert la.norm(scm-sigma)/la.norm(sigma) < 0.01
 
 
 def test_mean_single_covariance():
