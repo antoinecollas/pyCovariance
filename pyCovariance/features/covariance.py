@@ -17,7 +17,7 @@ def compute_scm(X, assume_centered=True):
                 If False, data are centered with empirical mean.
             Outputs:
                 * Sigma = the estimate"""
-    (p, N) = X.shape
+    _, N = X.shape
     if not assume_centered:
         mean = np.mean(X, axis=1, keepdims=True)
         X = X - mean
