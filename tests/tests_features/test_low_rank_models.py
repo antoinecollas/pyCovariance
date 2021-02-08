@@ -1,5 +1,6 @@
 import autograd.numpy as np
 import autograd.numpy.linalg as la
+import autograd.numpy.random as rnd
 import numpy.testing as np_test
 
 from pyCovariance.features.base import _FeatureArray
@@ -29,6 +30,29 @@ def test_real_subspace_SCM():
     # test estimation
     cov = generate_covariance(p)
     X = sample_normal_distribution(N, cov)
+    d, Q = la.eigh(cov)
+    Q = Q[:, ::-1]
+    Q = Q[:, :k]
+
+    U = feature.estimation(X).export()
+    assert U.shape == (p, k)
+    assert U.dtype == np.float64
+
+    condition = la.norm(Q@Q.T - U@U.T) / la.norm(Q@Q.T)
+    assert condition < 0.05
+
+
+def test_real_subspace_centered_SCM():
+    p = 5
+    k = 2
+    N = int(1e6)
+
+    feature = subspace_SCM(k, assume_centered=False)(p, N)
+
+    # test estimation
+    cov = generate_covariance(p)
+    mu = rnd.randn(p, 1)
+    X = sample_normal_distribution(N, cov) + mu
     d, Q = la.eigh(cov)
     Q = Q[:, ::-1]
     Q = Q[:, :k]

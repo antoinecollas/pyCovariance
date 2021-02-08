@@ -16,15 +16,20 @@ from .covariance import compute_scm
 # SUBSPACE SCM ESTIMATION
 
 
-def compute_subspace_SCM(X, k):
+def compute_subspace_SCM(X, k, assume_centered=True):
     """ A function that estimates the subspace of
     the sample covariance matrix (SCM).
         Inputs:
             * X = a matrix of size (p, N)
             with each observation along column dimension
             * k = dimension of the subspace
+            * assume_centered = bool.
+            If False, data are centered with empirical mean.
         Outputs:
             * U = orthogonal basis of subspace"""
+    if not assume_centered:
+        mean = np.mean(X, axis=1, keepdims=True)
+        X = X - mean
     U, _, _ = la.svd(X, full_matrices=False)
     U = U[:, :k]
     return U
@@ -195,15 +200,19 @@ def estimate_tau_UUH(X, k, tol=0.001, iter_max=100):
 
 
 @make_feature_prototype
-def subspace_SCM(k, **kwargs):
+def subspace_SCM(k, assume_centered=True, **kwargs):
     p = kwargs['p']
 
-    name = 'subspace_SCM'
+    if assume_centered:
+        name = 'subspace_SCM'
+    else:
+        name = 'subspace_centered_SCM'
+
     M = ComplexGrassmann
     args_M = {'sizes': (p, k)}
 
     def _subspace_SCM(X):
-        return compute_subspace_SCM(X, k)
+        return compute_subspace_SCM(X, k, assume_centered=assume_centered)
 
     return Feature(name, _subspace_SCM, M, args_M)
 
