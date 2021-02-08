@@ -8,9 +8,9 @@ from .matrix_operators import sqrtm
 
 
 def generate_covariance(p, unit_det=False):
-    # Generate eigenvalues between 1 and 2
+    # Generate eigenvalues as ch-square(1)
     # (eigenvalues of a symmetric matrix are always real).
-    D = np.diag(np.ones((p)) + random.rand(p))
+    D = np.diag(random.rand(p)**2)
 
     # Generate an orthogonal matrix.
     Q = generate_stiefel(p, p)
