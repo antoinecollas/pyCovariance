@@ -174,7 +174,7 @@ def test_real_location_covariance_texture_RGD():
     assert res[0].dtype == np.float64
     assert res[1].dtype == np.float64
     assert res[2].dtype == np.float64
-    assert la.norm(mu - res[0])/la.norm(mu) < 0.01
+    assert la.norm(mu - res[0])/la.norm(mu) < 0.05
     # assert la.norm(sigma - res[2])/la.norm(sigma) < 0.01
 
 
@@ -194,5 +194,5 @@ def test_complex_location_covariance_texture_RGD():
     assert res[0].dtype == np.complex128
     assert res[1].dtype == np.complex128
     assert res[2].dtype == np.float64
-    assert la.norm(mu - res[0])/la.norm(mu) < 0.01
+    assert la.norm(mu - res[0])/la.norm(mu) < 0.05
     # assert la.norm(sigma - res[2])/la.norm(sigma) < 0.01
