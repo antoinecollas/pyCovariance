@@ -1,6 +1,5 @@
 import autograd.numpy as np
 from autograd.numpy import random as rnd
-from copy import deepcopy
 from sklearn.metrics import f1_score
 
 from pyCovariance.evaluation import\
@@ -28,7 +27,7 @@ def test_assign_segmentation_classes_to_gt_classes_and_compute_mIoU():
     classes = np.unique(gt)
     while (C == gt).any():
         temp = rnd.permutation(classes)
-        C = deepcopy(gt)
+        C = gt.copy()
         for i, j in zip(classes, temp):
             C[gt == i] = j
 
@@ -55,7 +54,7 @@ def test_assign_segmentation_classes_to_gt_classes_and_compute_mIoU():
     _, mIoU = compute_mIoU(C, gt)
     assert mIoU < 0.1
 
-    # we change the number of classes in C
+    # we change the number classes in C
     C[C == 0] = 8
     C[C == 1] = 9
     C[C == 2] = 27
@@ -82,11 +81,11 @@ def test_assign_segmentation_classes_to_gt_classes_and_compute_mIoU():
             gt[i] = 3
 
     # permutation of classes
-    C = gt
+    C = gt.copy()
     classes = np.unique(gt[gt >= 0])
     while (C == gt)[gt >= 0].any():
         temp = rnd.permutation(classes)
-        C = deepcopy(gt)
+        C = gt.copy()
         for i, j in zip(classes, temp):
             C[gt == int(i)] = int(j)
 
@@ -121,3 +120,50 @@ def test_assign_segmentation_classes_to_gt_classes_and_compute_mIoU():
     assert mIoU > 0.85
     OA = compute_OA(C, gt)
     assert OA > 0.85
+
+
+def test_assign_segmentation_classes_to_gt_classes():
+    # goal: test function 'assign_segmentation_classes_to_gt_classes'
+    # when the number of classes in the clustering is lower than
+    # the number of classes in the ground truth
+
+    N = int(1e3)
+
+    # generation of ground truth
+    gt = np.zeros(N)
+    for i in range(len(gt)):
+        a = rnd.random_sample()
+        if a < 0.03:
+            gt[i] = 0
+        elif a < 0.4:
+            gt[i] = 1
+        elif a < 0.8:
+            gt[i] = 2
+        else:
+            gt[i] = 3
+
+    C = gt.copy()
+    classes = np.unique(C)
+    while np.sum(C == gt) / len(C) > 0.8:
+        temp = rnd.permutation(classes)
+        C = gt.copy()
+        for i, j in zip(classes, temp):
+            C[gt == i] = j
+
+    # remove smallest class
+    nb_elements = np.array([np.sum(C == i) for i in range(4)])
+    smallest_class = np.argmin(nb_elements)
+    biggest_class = np.argmax(nb_elements)
+    C[C == smallest_class] = biggest_class
+
+    nb_classes_C = len(np.unique(C))
+    nb_classes_gt = len(np.unique(gt))
+    assert nb_classes_C < nb_classes_gt
+
+    new_C = assign_segmentation_classes_to_gt_classes(C, gt, normalize=False)
+    f1 = f1_score(gt, C, average='macro')
+    f1_new_C = f1_score(gt, new_C, average='macro')
+    assert f1 < f1_new_C
+    OA = compute_OA(C, gt)
+    OA_new_C = compute_OA(new_C, gt)
+    assert OA < OA_new_C

@@ -1,5 +1,4 @@
 import autograd.numpy as np
-from copy import deepcopy
 from datetime import datetime
 import matplotlib.pyplot as plt
 import os
@@ -34,10 +33,9 @@ def assign_segmentation_classes_to_gt_classes(C, gt, normalize=False):
     # get classes
     classes_gt = _get_classes(gt, gt)
     classes_C = _get_classes(C, C)
-    assert len(classes_gt) == len(classes_C)
-    nb_classes = len(classes_gt)
+    assert len(classes_gt) >= len(classes_C)
 
-    cost_matrix = np.zeros((nb_classes, nb_classes))
+    cost_matrix = np.zeros((len(classes_gt), len(classes_C)))
 
     for i, class_gt in enumerate(classes_gt):
         mask = (gt == class_gt)
@@ -52,7 +50,7 @@ def assign_segmentation_classes_to_gt_classes(C, gt, normalize=False):
     row_ind, col_ind = linear_sum_assignment(cost_matrix)
     row_ind = classes_gt[row_ind]
     col_ind = classes_C[col_ind]
-    new_C = deepcopy(C)
+    new_C = C.copy()
     for i, j in zip(col_ind, row_ind):
         new_C[C == i] = j
 
