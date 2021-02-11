@@ -4,6 +4,8 @@ import pymanopt.manifolds as man
 from pymanopt.manifolds.product import _ProductTangentVector
 import warnings
 
+from ..checking import check_positive, check_type, check_value
+
 
 class _FeatureArray():
     def __init__(self, *shape):
@@ -42,7 +44,8 @@ class _FeatureArray():
         return len(self._shape)
 
     def __getitem__(self, key):
-        assert len(self) > 0
+        check_positive(len(self), 'self _FeatureArray', strictly=True)
+
         a = self._array
         a = [a[i][:len(self)] for i in range(len(a))]
         temp = [a[i][key] for i in range(len(a))]
@@ -53,7 +56,7 @@ class _FeatureArray():
         return f_a
 
     def append(self, data):
-        assert type(data) in [np.ndarray, list, tuple, _FeatureArray]
+        check_type(data, 'data', [np.ndarray, list, tuple, _FeatureArray])
 
         if type(data) == _FeatureArray:
             data = data.export()
@@ -64,18 +67,18 @@ class _FeatureArray():
         if self._array is None:
             self._array = [None]*len(self._shape)
 
-        assert self.nb_manifolds == len(data)
+        check_value(self.nb_manifolds, 'self.nb_manifolds', [len(data)])
 
         for i, (a, d) in enumerate(zip(self._array, data)):
-            assert type(d) in [np.ndarray, np.memmap]
+            check_type(d, 'd', [np.ndarray, np.memmap])
             if a is not None:
-                assert d.dtype == a.dtype, 'Wrong dtype !'
+                check_value(d.dtype, 'd.dtype', [a.dtype])
 
             # Add batch dim.
             if len(d.shape) == len(self._shape[i]):
                 d = d[np.newaxis, ...]
 
-            assert d.ndim == (len(self._shape[i])+1)
+            check_value(d.ndim, 'd.ndim', [len(self._shape[i])+1])
 
             if a is None:
                 self._array[i] = d
@@ -210,10 +213,10 @@ class Feature():
         distances = [self.distance(x1, x2)]
         if self._prod_M is not None:
             if type(x1) is _FeatureArray:
-                assert len(x1) == 1
+                check_value(len(x1), 'len(x1)', [1])
                 x1 = x1.export()
             if type(x2) is _FeatureArray:
-                assert len(x2) == 1
+                check_value(len(x2), 'len(x2)', [1])
                 x2 = x2.export()
             for M, p1, p2 in zip(self._prod_M, x1, x2):
                 d = M.dist(p1, p2)
@@ -227,22 +230,58 @@ class Feature():
             ----------------------------------------------------------------------
             Inputs:
             --------
-                * x1 = point n°1 on manifold self.M
+                * x1 = point n°1 on manifold self.M.
                 * x2 = point n°2 on manifold self.M
             Outputs:
             ---------
                 * distance = a real number
             """
         if type(x1) is _FeatureArray:
-            assert len(x1) == 1
+            check_value(len(x1), 'len(x1)', [1])
             x1 = x1.export()
         if type(x2) is _FeatureArray:
-            assert len(x2) == 1
+            check_value(len(x2), 'len(x2)', [1])
             x2 = x2.export()
         d = self._M.dist(x1, x2)
         if d.ndim != 0:
             d = np.squeeze(d)
         return d
+
+    def log(self, X, Y):
+        """ Compute Riemannian logarithm of Y at X.
+            NB:
+                * X must be a single point on the manifold.
+                * Y can be several points on the manifold.
+
+            Parameters
+            ----------
+            X : _FeatureArray
+            Y : _FeatureArray
+
+            Returns
+            -------
+            log : np.ndarray | list of np.ndarray
+            """
+        check_type(X, 'X', [_FeatureArray])
+        check_value(len(X), 'len(X)', [1])
+        check_type(Y, 'Y', [_FeatureArray])
+
+        dim = self._dimensions
+        if type(self._M_class) in [list, tuple]:
+            M_class = self._M_class
+            nb_M = len(M_class)
+            temp = [M_class[i](*(dim[i]), len(Y)) for i in range(nb_M)]
+            M = Product(temp, self._weights)
+        else:
+            M = self._M_class(*dim, len(Y))
+
+        X_batch = deepcopy(X)
+        for _ in range(len(Y)-1):
+            X_batch.append(X)
+
+        log = M.log(X_batch.export(), Y.export())
+
+        return log
 
     def mean(self, X):
         """ Compute mean of features (points on manifold self.M).
@@ -254,29 +293,10 @@ class Feature():
             ---------
                 * mean = _FeatureArray
             """
-        assert type(X) is _FeatureArray
-        dim = self._dimensions
-        if type(self._M_class) in [list, tuple]:
-            M_class = self._M_class
-            nb_M = len(M_class)
-            temp = [M_class[i](*(dim[i]), len(X)) for i in range(nb_M)]
-            M = Product(temp, self._weights)
-        else:
-            M = self._M_class(*dim, len(X))
-
-        def _cost(X, theta):
-            theta_batch = deepcopy(theta)
-            for _ in range(len(X)-1):
-                theta_batch.append(theta)
-            d_squared = M.dist(theta_batch.export(), X.export())**2
-            d_squared = 1 / (2 * len(X)) * d_squared
-            return d_squared
+        check_type(X, 'X', [_FeatureArray])
 
         def _minus_grad(X, theta):
-            theta_batch = deepcopy(theta)
-            for _ in range(len(X)-1):
-                theta_batch.append(theta)
-            minus_grad = M.log(theta_batch.export(), X.export())
+            minus_grad = self.log(theta, X)
             if type(minus_grad) is np.ndarray:
                 minus_grad = np.array(np.mean(minus_grad, axis=0))
             else:
@@ -285,19 +305,15 @@ class Feature():
                               for i in range(len(minus_grad))]
             return minus_grad
 
-        def _create_cost_minus_grad(X):
-            def cost(theta):
-                return _cost(X, theta)
-
+        def _create_minus_grad_fct(X):
             def minus_grad(theta):
                 return _minus_grad(X, theta)
-
-            return cost, minus_grad
+            return minus_grad
 
         if len(X) == 1:
             return X
 
-        cost, minus_grad = _create_cost_minus_grad(X)
+        minus_grad = _create_minus_grad_fct(X)
 
         # initialisation
         theta = X[int(np.random.randint(len(X), size=1)[0])]
