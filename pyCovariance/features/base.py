@@ -13,6 +13,7 @@ class _FeatureArray():
         self._shape = shape
         self._size_preallocation = int(1e3)
         self._len = 0
+        self._tol = 1e-5
 
     def __str__(self):
         return self._array.__str__()
@@ -91,6 +92,35 @@ class _FeatureArray():
                 self._array[i][len(self):len(self)+len(d)] = d
 
         self._len += len(d)
+
+    def vectorize(self):
+        check_positive(len(self), 'len(self)', strictly=True)
+
+        temp = list()
+        for a in self._array:
+            vec = None
+            bs = len(a)
+
+            # check if matrix
+            if a.ndim == 3:
+                # check if square
+                _, p, q = a.shape
+                if p == q:
+                    # check if matrices are symmetric or skew-symmetric
+                    a_H = np.transpose(a, axes=(0, 2, 1)).conj()
+                    condition_sym = (np.abs(a - a_H) < self._tol).all()
+                    condition_skew = (np.abs(a + a_H) < self._tol).all()
+                    if condition_sym or condition_skew:
+                        indices = np.triu_indices(p)
+                        a = a[:, indices[0], indices[1]]
+
+            vec = a.reshape((bs, -1))
+
+            temp.append(vec)
+
+        vec = np.concatenate(temp, axis=1)
+
+        return vec
 
     def export(self):
         a = [self._array[i][:len(self)] for i in range(self.nb_manifolds)]
@@ -247,7 +277,7 @@ class Feature():
             d = np.squeeze(d)
         return d
 
-    def log(self, X, Y):
+    def log(self, X, Y, vectorize=False):
         """ Compute Riemannian logarithm of Y at X.
             NB:
                 * X must be a single point on the manifold.
@@ -257,14 +287,20 @@ class Feature():
             ----------
             X : _FeatureArray
             Y : _FeatureArray
+            vectorize: bool
+                If True, log is returned as a vector, i.e in coordinates.
+                For example, only upper part of Hermitian matrix is returned.
 
             Returns
             -------
-            log : np.ndarray | list of np.ndarray
+            log : np.ndarray | _FeatureArray
+                log is a np.ndarray if vectorize = True.
+                It is a _FeatureArray otherwise.
             """
         check_type(X, 'X', [_FeatureArray])
         check_value(len(X), 'len(X)', [1])
         check_type(Y, 'Y', [_FeatureArray])
+        check_positive(len(Y), 'len(Y)', strictly=True)
 
         dim = self._dimensions
         if type(self._M_class) in [list, tuple]:
@@ -279,7 +315,24 @@ class Feature():
         for _ in range(len(Y)-1):
             X_batch.append(X)
 
-        log = M.log(X_batch.export(), Y.export())
+        temp = M.log(X_batch.export(), Y.export())
+        if type(temp) is _ProductTangentVector:
+            temp = list(temp)
+        if type(temp) not in [list, tuple]:
+            temp = [temp]
+        for i in range(len(temp)):
+            if X.dtype[i] == np.float64:
+                temp[i] = temp[i].real.astype(np.float64)
+
+        if len(Y) == 1:
+            shape = [temp[i].shape for i in range(len(temp))]
+        else:
+            shape = [temp[i].shape[1:] for i in range(len(temp))]
+        log = _FeatureArray(*shape)
+        log.append(temp)
+
+        if vectorize:
+            log = log.vectorize()
 
         return log
 
@@ -296,7 +349,7 @@ class Feature():
         check_type(X, 'X', [_FeatureArray])
 
         def _minus_grad(X, theta):
-            minus_grad = self.log(theta, X)
+            minus_grad = self.log(theta, X).export()
             if type(minus_grad) is np.ndarray:
                 minus_grad = np.array(np.mean(minus_grad, axis=0))
             else:

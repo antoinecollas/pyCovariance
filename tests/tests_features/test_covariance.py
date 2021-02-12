@@ -49,6 +49,66 @@ def test_real_covariance():
     d = np.sqrt(np.sum(np.log(eigvals)**2))
     np_test.assert_almost_equal(cov.distance(sigma[0], sigma[1]), d)
 
+    # test log
+    X = _FeatureArray((p, p))
+    X.append(generate_covariance(p))
+    Y = _FeatureArray((p, p))
+    Y.append(generate_covariance(p))
+
+    log_sigma = cov.log(X, Y)
+    assert type(log_sigma) is _FeatureArray
+    assert len(log_sigma) == 1
+    log_sigma = log_sigma.export()
+    assert log_sigma.dtype == np.float64
+    assert log_sigma.shape == (p, p)
+    X_sqrtm = sqrtm(X.export())
+    X_isqrtm = invsqrtm(X.export())
+    temp = X_isqrtm @ Y.export() @ X_isqrtm
+    temp = logm(temp)
+    desired_log_sigma = X_sqrtm @ temp @ X_sqrtm
+    np_test.assert_almost_equal(log_sigma, desired_log_sigma)
+
+    # test vectorized log
+    log_sigma = cov.log(X, Y, vectorize=True)
+    assert type(log_sigma) is np.ndarray
+    assert log_sigma.dtype == np.float64
+    assert log_sigma.shape == (1, p*(p+1)/2)
+    desired_log_sigma = desired_log_sigma[np.triu_indices(p)]
+    desired_log_sigma = desired_log_sigma[np.newaxis, ...]
+    np_test.assert_almost_equal(log_sigma, desired_log_sigma)
+
+    # test batch log and vectorized log
+    batch_size = 10
+    X = _FeatureArray((p, p))
+    X.append(generate_covariance(p))
+    Y = _FeatureArray((p, p))
+    for _ in range(batch_size):
+        Y.append(generate_covariance(p))
+
+    log_sigma = cov.log(X, Y)
+    assert type(log_sigma) is _FeatureArray
+    assert len(log_sigma) == batch_size
+    log_sigma = log_sigma.export()
+    assert type(log_sigma) == np.ndarray
+    assert log_sigma.dtype == np.float64
+    assert log_sigma.shape[1:] == (p, p)
+
+    log_sigma_vec = cov.log(X, Y, vectorize=True)
+    assert type(log_sigma_vec) is np.ndarray
+    assert log_sigma_vec.dtype == np.float64
+    assert log_sigma_vec.shape == (batch_size, p*(p+1)/2)
+
+    X_sqrtm = sqrtm(X.export())
+    X_isqrtm = invsqrtm(X.export())
+    for i in range(batch_size):
+        temp = X_isqrtm @ Y.export()[i] @ X_isqrtm
+        temp = logm(temp)
+        desired_log_sigma = X_sqrtm @ temp @ X_sqrtm
+        np_test.assert_almost_equal(log_sigma[i], desired_log_sigma)
+
+        desired_log_sigma = desired_log_sigma[np.triu_indices(p)]
+        np_test.assert_almost_equal(log_sigma_vec[i], desired_log_sigma)
+
     # test mean 1
     sigma = _FeatureArray((p, p))
     sigma.append(generate_covariance(p))
@@ -140,6 +200,66 @@ def test_complex_covariance():
     eigvals = la.eigvalsh(prod)
     d = np.sqrt(np.sum(np.log(eigvals)**2))
     np_test.assert_almost_equal(cov.distance(sigma[0], sigma[1]), d)
+
+    # test log
+    X = _FeatureArray((p, p))
+    X.append(generate_complex_covariance(p))
+    Y = _FeatureArray((p, p))
+    Y.append(generate_complex_covariance(p))
+
+    log_sigma = cov.log(X, Y)
+    assert type(log_sigma) is _FeatureArray
+    assert len(log_sigma) == 1
+    log_sigma = log_sigma.export()
+    assert log_sigma.dtype == np.complex128
+    assert log_sigma.shape == (p, p)
+    X_sqrtm = sqrtm(X.export())
+    X_isqrtm = invsqrtm(X.export())
+    temp = X_isqrtm @ Y.export() @ X_isqrtm
+    temp = logm(temp)
+    desired_log_sigma = X_sqrtm @ temp @ X_sqrtm
+    np_test.assert_almost_equal(log_sigma, desired_log_sigma)
+
+    # test vectorized log
+    log_sigma = cov.log(X, Y, vectorize=True)
+    assert type(log_sigma) is np.ndarray
+    assert log_sigma.dtype == np.complex128
+    assert log_sigma.shape == (1, p*(p+1)/2)
+    desired_log_sigma = desired_log_sigma[np.triu_indices(p)]
+    desired_log_sigma = desired_log_sigma[np.newaxis, ...]
+    np_test.assert_almost_equal(log_sigma, desired_log_sigma)
+
+    # test batch log and vectorized log
+    batch_size = 10
+    X = _FeatureArray((p, p))
+    X.append(generate_complex_covariance(p))
+    Y = _FeatureArray((p, p))
+    for _ in range(batch_size):
+        Y.append(generate_complex_covariance(p))
+
+    log_sigma = cov.log(X, Y)
+    assert type(log_sigma) is _FeatureArray
+    assert len(log_sigma) == batch_size
+    log_sigma = log_sigma.export()
+    assert type(log_sigma) == np.ndarray
+    assert log_sigma.dtype == np.complex128
+    assert log_sigma.shape[1:] == (p, p)
+
+    log_sigma_vec = cov.log(X, Y, vectorize=True)
+    assert type(log_sigma_vec) is np.ndarray
+    assert log_sigma_vec.dtype == np.complex128
+    assert log_sigma_vec.shape == (batch_size, p*(p+1)/2)
+
+    X_sqrtm = sqrtm(X.export())
+    X_isqrtm = invsqrtm(X.export())
+    for i in range(batch_size):
+        temp = X_isqrtm @ Y.export()[i] @ X_isqrtm
+        temp = logm(temp)
+        desired_log_sigma = X_sqrtm @ temp @ X_sqrtm
+        np_test.assert_almost_equal(log_sigma[i], desired_log_sigma)
+
+        desired_log_sigma = desired_log_sigma[np.triu_indices(p)]
+        np_test.assert_almost_equal(log_sigma_vec[i], desired_log_sigma)
 
     # test mean 1
     sigma = _FeatureArray((p, p))
