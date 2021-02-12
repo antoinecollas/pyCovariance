@@ -104,10 +104,15 @@ def test_real_covariance():
         temp = X_isqrtm @ Y.export()[i] @ X_isqrtm
         temp = logm(temp)
         desired_log_sigma = X_sqrtm @ temp @ X_sqrtm
-        np_test.assert_almost_equal(log_sigma[i], desired_log_sigma)
+
+        condition = la.norm(log_sigma[i]-desired_log_sigma)
+        condition = condition / la.norm(desired_log_sigma)
+        assert condition < 1e-3
 
         desired_log_sigma = desired_log_sigma[np.triu_indices(p)]
-        np_test.assert_almost_equal(log_sigma_vec[i], desired_log_sigma)
+        condition = la.norm(log_sigma_vec[i]-desired_log_sigma)
+        condition = condition / la.norm(desired_log_sigma)
+        assert condition < 1e-3
 
     # test mean 1
     sigma = _FeatureArray((p, p))
@@ -218,7 +223,9 @@ def test_complex_covariance():
     temp = X_isqrtm @ Y.export() @ X_isqrtm
     temp = logm(temp)
     desired_log_sigma = X_sqrtm @ temp @ X_sqrtm
-    np_test.assert_almost_equal(log_sigma, desired_log_sigma)
+    condition = la.norm(log_sigma - desired_log_sigma)
+    condition = condition / la.norm(desired_log_sigma)
+    assert condition < 1e-3
 
     # test vectorized log
     log_sigma = cov.log(X, Y, vectorize=True)
@@ -227,7 +234,9 @@ def test_complex_covariance():
     assert log_sigma.shape == (1, p*(p+1)/2)
     desired_log_sigma = desired_log_sigma[np.triu_indices(p)]
     desired_log_sigma = desired_log_sigma[np.newaxis, ...]
-    np_test.assert_almost_equal(log_sigma, desired_log_sigma)
+    condition = la.norm(log_sigma - desired_log_sigma)
+    condition = condition / la.norm(desired_log_sigma)
+    assert condition < 1e-3
 
     # test batch log and vectorized log
     batch_size = 10
@@ -256,10 +265,15 @@ def test_complex_covariance():
         temp = X_isqrtm @ Y.export()[i] @ X_isqrtm
         temp = logm(temp)
         desired_log_sigma = X_sqrtm @ temp @ X_sqrtm
-        np_test.assert_almost_equal(log_sigma[i], desired_log_sigma)
+
+        condition = la.norm(log_sigma[i]-desired_log_sigma)
+        condition = condition / la.norm(desired_log_sigma)
+        assert condition < 1e-8
 
         desired_log_sigma = desired_log_sigma[np.triu_indices(p)]
-        np_test.assert_almost_equal(log_sigma_vec[i], desired_log_sigma)
+        condition = la.norm(log_sigma_vec[i]-desired_log_sigma)
+        condition = condition / la.norm(desired_log_sigma)
+        assert condition < 1e-8
 
     # test mean 1
     sigma = _FeatureArray((p, p))
