@@ -252,4 +252,4 @@ def test_real_estimation_tau_UUH():
     _, theta, _ = la.svd(U_BCD.T@U_RGD)
     delta_tau = la.norm(tau_BCD - tau_RGD) / la.norm(tau_BCD)
     assert delta_U < 0.01
-    assert delta_tau < 0.02
+    assert delta_tau < 0.05
