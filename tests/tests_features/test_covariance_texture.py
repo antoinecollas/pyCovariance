@@ -1,5 +1,6 @@
 import autograd.numpy as np
 import autograd.numpy.linalg as la
+import autograd.numpy.random as rnd
 import numpy.testing as np_test
 
 from pyCovariance.features import covariance, covariance_texture
@@ -14,6 +15,8 @@ from pyCovariance.matrix_operators import invsqrtm, logm, sqrtm
 
 
 def test_real_covariance_texture():
+    rnd.seed(123)
+
     p = 5
     N = int(2*1e5)
     feature = covariance_texture()(p, N)
@@ -176,6 +179,8 @@ def test_real_covariance_texture():
 
 
 def test_complex_covariance_texture():
+    rnd.seed(123)
+
     p = 5
     N = int(1e5)
     feature = covariance_texture()(p, N)

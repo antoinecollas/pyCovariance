@@ -17,6 +17,8 @@ from pyCovariance.generation_data import generate_complex_covariance,\
 
 
 def test_real_covariance():
+    rnd.seed(123)
+
     p = 5
     N = int(1e6)
     N_mean = 10
@@ -148,6 +150,8 @@ def test_real_covariance():
 
 
 def test_real_centered_covariance():
+    rnd.seed(123)
+
     p = 5
     N = int(1e6)
     cov = covariance(assume_centered=False)(p, N)
@@ -164,6 +168,8 @@ def test_real_centered_covariance():
 
 
 def test_mean_single_covariance():
+    rnd.seed(123)
+
     p = 5
     N = 10
     cov = covariance()(p, N)
@@ -174,6 +180,8 @@ def test_mean_single_covariance():
 
 
 def test_complex_covariance():
+    rnd.seed(123)
+
     p = 5
     N = int(1e6)
     N_mean = 10
@@ -309,6 +317,8 @@ def test_complex_covariance():
 
 
 def test_real_covariance_euclidean():
+    rnd.seed(123)
+
     p = 5
     N = int(1e6)
     N_mean = 10

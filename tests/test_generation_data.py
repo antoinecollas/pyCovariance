@@ -1,4 +1,5 @@
 import autograd.numpy as np
+import autograd.numpy.random as rnd
 from numpy import testing as np_test
 
 from pyCovariance.generation_data import generate_complex_covariance, \
@@ -18,6 +19,8 @@ from pyCovariance.generation_data import generate_complex_covariance, \
 
 
 def test_generate_covariance():
+    rnd.seed(123)
+
     p = 5
     sigma = generate_covariance(p)
 
@@ -41,6 +44,8 @@ def test_generate_covariance():
 
 
 def test_generate_complex_covariance():
+    rnd.seed(123)
+
     p = 5
     sigma = generate_complex_covariance(p)
 
@@ -64,6 +69,8 @@ def test_generate_complex_covariance():
 
 
 def test_generate_toeplitz():
+    rnd.seed(123)
+
     rho = 0.8
     p = 5
     sigma = generate_toeplitz(p, rho)
@@ -81,6 +88,8 @@ def test_generate_toeplitz():
 
 
 def test_generate_textures():
+    rnd.seed(123)
+
     N = 20
     textures = generate_textures(N)
     assert textures.dtype == np.float64
@@ -89,6 +98,8 @@ def test_generate_textures():
 
 
 def test_generate_stiefel():
+    rnd.seed(123)
+
     p = 10
     k = 3
     U = generate_stiefel(p, k)
@@ -97,6 +108,8 @@ def test_generate_stiefel():
 
 
 def test_generate_complex_stiefel():
+    rnd.seed(123)
+
     p = 10
     k = 3
     U = generate_complex_stiefel(p, k)
@@ -105,6 +118,8 @@ def test_generate_complex_stiefel():
 
 
 def test_sample_standard_normal_distribution():
+    rnd.seed(123)
+
     p = 5
     N = 10
 
@@ -115,6 +130,8 @@ def test_sample_standard_normal_distribution():
 
 
 def test_sample_complex_standard_normal_distribution():
+    rnd.seed(123)
+
     p = 5
     N = 10
 
@@ -125,6 +142,8 @@ def test_sample_complex_standard_normal_distribution():
 
 
 def test_sample_normal_distribution():
+    rnd.seed(123)
+
     p = 5
     N = 10
 
@@ -136,6 +155,8 @@ def test_sample_normal_distribution():
 
 
 def test_sample_complex_normal_distribution():
+    rnd.seed(123)
+
     p = 5
     N = 10
 
@@ -147,6 +168,8 @@ def test_sample_complex_normal_distribution():
 
 
 def test_sample_compound_distribution():
+    rnd.seed(123)
+
     p = 5
     N = 10
 
@@ -159,6 +182,8 @@ def test_sample_compound_distribution():
 
 
 def test_sample_complex_compound_distribution():
+    rnd.seed(123)
+
     p = 5
     N = 10
 
@@ -171,6 +196,8 @@ def test_sample_complex_compound_distribution():
 
 
 def test_sample_tau_UUH_distribution():
+    rnd.seed(123)
+
     p = 10
     k = 3
     N = 20
@@ -184,6 +211,8 @@ def test_sample_tau_UUH_distribution():
 
 
 def test_sample_complex_tau_UUH_distribution():
+    rnd.seed(123)
+
     p = 10
     k = 3
     N = 20

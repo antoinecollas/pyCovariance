@@ -1,4 +1,5 @@
 import autograd.numpy as np
+import autograd.numpy.random as rnd
 import os
 
 from pyCovariance import K_means_datacube
@@ -15,6 +16,8 @@ from pyCovariance.generation_data import\
 
 
 def test_sliding_window_parallel():
+    rnd.seed(123)
+
     p = 3
     H = 50
     W = 100
@@ -52,6 +55,8 @@ def test_sliding_window_parallel():
 
 
 def test_real_K_means_datacube():
+    rnd.seed(123)
+
     # test K_means_datacube on synthetic data
     p = 3
     H = 50
@@ -202,6 +207,8 @@ def test_real_K_means_datacube():
 
 
 def test_complex_K_means_datacube():
+    rnd.seed(123)
+
     # test K_means_datacube on complex valued synthetic data
 
     p = 3

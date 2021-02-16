@@ -8,6 +8,8 @@ from pyCovariance import pca_image
 
 
 def test_real_pca():
+    rnd.seed(123)
+
     H = 50
     W = 100
     p = 10
@@ -34,6 +36,8 @@ def test_real_pca():
 
 
 def test_complex_pca():
+    rnd.seed(123)
+
     H = 50
     W = 100
     p = 10

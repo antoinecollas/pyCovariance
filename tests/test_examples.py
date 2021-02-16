@@ -1,3 +1,4 @@
+from autograd.numpy import random as rnd
 from pyCovariance.datasets.hyperspectral import Dataset
 from pyCovariance.features import covariance_texture,\
         center_intensity_euclidean,\
@@ -13,6 +14,8 @@ from examples.numerical_simulations.plot import\
 
 
 def test_hyperspectral_demo_K_means():
+    rnd.seed(123)
+
     demo.main(
         plot=False,
         crop_image=True,
@@ -23,6 +26,8 @@ def test_hyperspectral_demo_K_means():
 
 
 def test_hyperspectral_indian_pines():
+    rnd.seed(123)
+
     dataset_name = 'Indian_Pines'
     dataset = Dataset(dataset_name)
 
@@ -101,14 +106,20 @@ def test_hyperspectral_indian_pines():
 
 
 def test_plot_subspace():
+    rnd.seed(123)
+
     subspace.main(plot=False)
 
 
 def test_plot_tyler_type_estimator():
+    rnd.seed(123)
+
     tyler_type_estimator.main(plot=False)
 
 
 def test_tau_UUH_CRB():
+    rnd.seed(123)
+
     tau_UUH_CRB.main(
         nb_points=2,
         nb_MC=2,
@@ -117,6 +128,8 @@ def test_tau_UUH_CRB():
 
 
 def test_location_covariance_texture_MSE():
+    rnd.seed(123)
+
     location_covariance_texture_MSE.main(
         nb_points=2,
         nb_MC=2,

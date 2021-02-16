@@ -21,6 +21,8 @@ from pyCovariance.generation_data import\
 
 
 def test_real_subspace_SCM():
+    rnd.seed(123)
+
     p = 5
     k = 2
     N = int(1e6)
@@ -43,6 +45,8 @@ def test_real_subspace_SCM():
 
 
 def test_real_subspace_centered_SCM():
+    rnd.seed(123)
+
     p = 5
     k = 2
     N = int(1e6)
@@ -66,6 +70,8 @@ def test_real_subspace_centered_SCM():
 
 
 def test_real_subspace_tau_UUH():
+    rnd.seed(123)
+
     p = 5
     k = 2
     N = int(1e6)
@@ -88,6 +94,8 @@ def test_real_subspace_tau_UUH():
 
 
 def test_real_subspace_tau_UUH_RGD():
+    rnd.seed(123)
+
     p = 5
     k = 2
     N = int(1e4)
@@ -124,6 +132,8 @@ def test_real_subspace_tau_UUH_RGD():
 
 
 def test_real_tau_UUH():
+    rnd.seed(123)
+
     p = 5
     k = 2
     N = int(1e6)
@@ -205,6 +215,8 @@ def test_real_tau_UUH():
 
 
 def test_real_estimation_tau_UUH():
+    rnd.seed(123)
+
     p = 15
     k = 3
     N = int(1e5)

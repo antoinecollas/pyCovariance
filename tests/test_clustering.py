@@ -24,6 +24,8 @@ from pyCovariance.generation_data import \
 
 
 def test__compute_objective_function():
+    rnd.seed(123)
+
     N = int(1e3)
     K = 10
     distances = rnd.rand(N, K)
@@ -37,6 +39,8 @@ def test__compute_objective_function():
 
 
 def test__random_index_for_initialisation():
+    rnd.seed(123)
+
     K = 10
     N = 20
     idx = _random_index_for_initialisation(K, N)
@@ -44,6 +48,8 @@ def test__random_index_for_initialisation():
 
 
 def test__init_K_means_plus_plus():
+    rnd.seed(123)
+
     p = 5
     K = 10
     N = 20
@@ -75,6 +81,8 @@ def test__init_K_means_plus_plus():
 
 
 def test__K_means():
+    rnd.seed(123)
+
     N = 50
     p = 2
 
@@ -170,6 +178,8 @@ def test__K_means():
 
 
 def test_K_means():
+    rnd.seed(123)
+
     n_samples = 100
     N = 200
     p = 3

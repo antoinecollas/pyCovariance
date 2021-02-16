@@ -9,6 +9,8 @@ from pyCovariance.evaluation import\
 
 
 def test_assign_segmentation_classes_to_gt_classes_and_compute_mIoU():
+    rnd.seed(123)
+
     N = int(1e3)
 
     # generation of ground truth
@@ -123,6 +125,8 @@ def test_assign_segmentation_classes_to_gt_classes_and_compute_mIoU():
 
 
 def test_assign_segmentation_classes_to_gt_classes():
+    rnd.seed(123)
+
     # goal: test function 'assign_segmentation_classes_to_gt_classes'
     # when the number of classes in the clustering is lower than
     # the number of classes in the ground truth

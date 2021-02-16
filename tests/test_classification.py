@@ -21,6 +21,8 @@ from pyCovariance.generation_data import\
 
 
 def test__estimate_features():
+    rnd.seed(123)
+
     p = 5
     N = int(1e2)
     n_samples = int(1e1)
@@ -48,6 +50,8 @@ def test__estimate_features():
 
 
 def test__compute_means():
+    rnd.seed(123)
+
     p = 5
     N = int(1e2)
     K = int(1e1)
@@ -80,6 +84,8 @@ def test__compute_means():
 
 
 def test__compute_pairwise_distances():
+    rnd.seed(123)
+
     p = 5
     N = int(1e2)
     N_mean = int(1e1)
@@ -182,12 +188,16 @@ def helper_test_MDM(clf):
 
 
 def test_MDM_single_job():
+    rnd.seed(123)
+
     feature = mean_vector_euclidean()
     mdm = MDM(feature, n_jobs=1)
     helper_test_MDM(mdm)
 
 
 def test_MDM_multiple_jobs():
+    rnd.seed(123)
+
     feature = mean_vector_euclidean()
     mdm = MDM(feature, n_jobs=-1)
     helper_test_MDM(mdm)
@@ -255,12 +265,16 @@ def helper_test_classifier(clf):
 
 
 def test_TSclassifier_single_job():
+    rnd.seed(123)
+
     feature = mean_vector_euclidean()
     clf = TSclassifier(feature, n_jobs=1)
     helper_test_classifier(clf)
 
 
 def test_TSclassifier_multiple_job():
+    rnd.seed(123)
+
     feature = mean_vector_euclidean()
     clf = TSclassifier(feature, n_jobs=-1)
     helper_test_classifier(clf)

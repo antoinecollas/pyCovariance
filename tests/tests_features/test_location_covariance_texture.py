@@ -1,7 +1,7 @@
 from autograd import grad
 import autograd.numpy as np
 import autograd.numpy.linalg as la
-from autograd.numpy import random
+from autograd.numpy import random as rnd
 import numpy.testing as np_test
 
 from pyCovariance.features import\
@@ -21,11 +21,13 @@ from pyCovariance.generation_data import\
 
 
 def test_real_location_covariance_texture_Gaussian():
+    rnd.seed(123)
+
     N = int(1e6)
     p = 5
     feature = location_covariance_texture_Gaussian()(p, N)
 
-    mu = random.randn(p, 1)
+    mu = rnd.randn(p, 1)
     sigma = generate_covariance(p)
     X = sample_normal_distribution(N, sigma)
     X = X + mu
@@ -40,11 +42,13 @@ def test_real_location_covariance_texture_Gaussian():
 
 
 def test_complex_location_covariance_texture_Gaussian():
+    rnd.seed(123)
+
     N = int(1e6)
     p = 5
     feature = location_covariance_texture_Gaussian()(p, N)
 
-    mu = random.randn(p, 1) + 1j*random.randn(p, 1)
+    mu = rnd.randn(p, 1) + 1j*rnd.randn(p, 1)
     sigma = generate_complex_covariance(p)
     X = sample_complex_normal_distribution(N, sigma)
     X = X + mu
@@ -59,11 +63,13 @@ def test_complex_location_covariance_texture_Gaussian():
 
 
 def test_real_location_covariance_texture_Tyler():
+    rnd.seed(123)
+
     N = int(1e5)
     p = 5
     feature = location_covariance_texture_Tyler()(p, N)
 
-    mu = random.randn(p, 1)
+    mu = rnd.randn(p, 1)
     sigma = generate_covariance(p, unit_det=True)
     tau = generate_textures(N)
     X = sample_compound_distribution(tau, sigma)
@@ -79,11 +85,13 @@ def test_real_location_covariance_texture_Tyler():
 
 
 def test_complex_location_covariance_texture_Tyler():
+    rnd.seed(123)
+
     N = int(1e5)
     p = 5
     feature = location_covariance_texture_Tyler()(p, N)
 
-    mu = random.randn(p, 1) + 1j*random.randn(p, 1)
+    mu = rnd.randn(p, 1) + 1j*rnd.randn(p, 1)
     sigma = generate_complex_covariance(p, unit_det=True)
     tau = generate_textures(N)
     X = sample_complex_compound_distribution(tau, sigma)
@@ -99,6 +107,8 @@ def test_complex_location_covariance_texture_Tyler():
 
 
 def test_cost_location_covariance_texture_RGD():
+    rnd.seed(123)
+
     p = 3
     N = 20
 
@@ -115,7 +125,7 @@ def test_cost_location_covariance_texture_RGD():
     np_test.assert_almost_equal(L, L_true)
 
     # test cost function value
-    mu = random.randn(p, 1) + 1j*random.randn(p, 1)
+    mu = rnd.randn(p, 1) + 1j*rnd.randn(p, 1)
     tau = generate_textures(N)
     sigma = generate_complex_covariance(p, unit_det=True)
     X = sample_complex_compound_distribution(tau, sigma)
@@ -134,11 +144,13 @@ def test_cost_location_covariance_texture_RGD():
 
 
 def test_egrad_location_covariance_texture_RGD():
+    rnd.seed(123)
+
     p = 3
     N = 20
 
     # test egrad
-    mu = random.randn(p, 1) + 1j*random.randn(p, 1)
+    mu = rnd.randn(p, 1) + 1j*rnd.randn(p, 1)
     tau = generate_textures(N)
     sigma = generate_complex_covariance(p, unit_det=True)
     X = sample_complex_compound_distribution(tau, sigma)
@@ -159,11 +171,13 @@ def test_egrad_location_covariance_texture_RGD():
 
 
 def test_real_location_covariance_texture_RGD():
+    rnd.seed(123)
+
     N = int(1e2)
     p = 5
     feature = location_covariance_texture_RGD(iter_max=200)(p, N)
 
-    mu = random.randn(p, 1)
+    mu = rnd.randn(p, 1)
     sigma = generate_covariance(p, unit_det=True)
     tau = generate_textures(N)
     X = sample_compound_distribution(tau, sigma)
@@ -179,11 +193,13 @@ def test_real_location_covariance_texture_RGD():
 
 
 def test_complex_location_covariance_texture_RGD():
+    rnd.seed(123)
+
     N = int(1e2)
     p = 5
     feature = location_covariance_texture_RGD(iter_max=200)(p, N)
 
-    mu = random.randn(p, 1) + 1j*random.randn(p, 1)
+    mu = rnd.randn(p, 1) + 1j*rnd.randn(p, 1)
     sigma = generate_complex_covariance(p, unit_det=True)
     tau = generate_textures(N)
     X = sample_complex_compound_distribution(tau, sigma)

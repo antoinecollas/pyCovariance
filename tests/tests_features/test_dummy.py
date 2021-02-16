@@ -14,6 +14,8 @@ from pyCovariance.features.base import _FeatureArray
 
 
 def test_real_identity_euclidean():
+    rnd.seed(123)
+
     p = 5
     N = 100
     N_mean = 10
@@ -80,6 +82,8 @@ def test_real_identity_euclidean():
 
 
 def test_real_center_euclidean():
+    rnd.seed(123)
+
     p = 5
     N = 100
     N_mean = 10
@@ -145,6 +149,8 @@ def test_real_center_euclidean():
 
 
 def test_real_center_intensity_euclidean():
+    rnd.seed(123)
+
     p = 5
     N = 100
     N_mean = 10
@@ -211,6 +217,8 @@ def test_real_center_intensity_euclidean():
 
 
 def test_real_mean_vector_euclidean():
+    rnd.seed(123)
+
     p = 5
     N = 100
     N_mean = 10
@@ -243,6 +251,8 @@ def test_real_mean_vector_euclidean():
 
 
 def test_real_intensity_vector_euclidean():
+    rnd.seed(123)
+
     p = 5
     N = 100
     N_mean = 10

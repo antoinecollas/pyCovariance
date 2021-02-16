@@ -8,6 +8,8 @@ from pyCovariance.features.base import _FeatureArray, Product
 
 
 def test_FeatureArray():
+    rnd.seed(123)
+
     p = 5
     N = 100
 
@@ -164,6 +166,8 @@ def test_FeatureArray():
 
 
 def test_product():
+    rnd.seed(123)
+
     p1 = 10
     p2 = 8
     p3 = 3
