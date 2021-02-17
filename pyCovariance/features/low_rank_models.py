@@ -218,9 +218,7 @@ def subspace_SCM(k, assume_centered=True, **kwargs):
 
 
 @make_feature_prototype
-def subspace_tau_UUH(k, **kwargs):
-    p = kwargs['p']
-
+def subspace_tau_UUH(k, p, **kwargs):
     name = 'subspace_tau_UUH'
     M = ComplexGrassmann
     args_M = {'sizes': (p, k)}
@@ -233,9 +231,7 @@ def subspace_tau_UUH(k, **kwargs):
 
 
 @make_feature_prototype
-def subspace_tau_UUH_RGD(k, autodiff=False, **kwargs):
-    p = kwargs['p']
-
+def subspace_tau_UUH_RGD(k, autodiff=False, p=None, **kwargs):
     name = 'subspace_tau_UUH_RGD'
     M = ComplexGrassmann
     args_M = {'sizes': (p, k)}
@@ -248,10 +244,7 @@ def subspace_tau_UUH_RGD(k, autodiff=False, **kwargs):
 
 
 @make_feature_prototype
-def tau_UUH(k, weights=None, **kwargs):
-    p = kwargs['p']
-    N = kwargs['N']
-
+def tau_UUH(k, weights=None, p=None, N=None, **kwargs):
     M = (StrictlyPositiveVectors, ComplexGrassmann)
 
     if weights is None:

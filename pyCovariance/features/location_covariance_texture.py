@@ -230,10 +230,12 @@ def estimate_location_covariance_texture_RGD(
 # CLASSES
 
 @make_feature_prototype
-def location_covariance_texture_Gaussian(weights=(1, 1, 1), **kwargs):
-    p = kwargs['p']
-    N = kwargs['N']
-
+def location_covariance_texture_Gaussian(
+    weights=(1, 1, 1),
+    p=None,
+    N=None,
+    **kwargs
+):
     name = 'location_covariance_texture_Gaussian'
     M = (ComplexEuclidean,
          SpecialHermitianPositiveDefinite,
@@ -247,10 +249,12 @@ def location_covariance_texture_Gaussian(weights=(1, 1, 1), **kwargs):
 
 
 @make_feature_prototype
-def location_covariance_texture_Tyler(weights=(1, 1, 1), **kwargs):
-    p = kwargs['p']
-    N = kwargs['N']
-
+def location_covariance_texture_Tyler(
+    weights=(1, 1, 1),
+    p=None,
+    N=None,
+    **kwargs
+):
     name = 'location_covariance_texture_Tyler'
     M = (ComplexEuclidean,
          SpecialHermitianPositiveDefinite,
@@ -272,11 +276,10 @@ def location_covariance_texture_Tyler(weights=(1, 1, 1), **kwargs):
 def location_covariance_texture_RGD(
     iter_max=3*int(1e4),
     weights=(1, 1, 1),
+    p=None,
+    N=None,
     **kwargs
 ):
-    p = kwargs['p']
-    N = kwargs['N']
-
     name = 'location_covariance_texture_RGD'
     M = (ComplexEuclidean,
          SpecialHermitianPositiveDefinite,

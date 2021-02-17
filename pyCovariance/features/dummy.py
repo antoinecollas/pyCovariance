@@ -65,10 +65,7 @@ def compute_intensity_vector(X):
 
 
 @make_feature_prototype
-def identity_euclidean(**kwargs):
-    p = kwargs['p']
-    N = kwargs['N']
-
+def identity_euclidean(p, N, **kwargs):
     name = 'Identity_Euclidean'
     M = ComplexEuclidean
     args_M = {'sizes': (p, N)}
@@ -76,9 +73,7 @@ def identity_euclidean(**kwargs):
 
 
 @make_feature_prototype
-def center_euclidean(**kwargs):
-    p = kwargs['p']
-
+def center_euclidean(p, **kwargs):
     name = 'Center_Euclidean'
     M = ComplexEuclidean
     args_M = {'sizes': p}
@@ -94,9 +89,7 @@ def center_intensity_euclidean(**kwargs):
 
 
 @make_feature_prototype
-def mean_vector_euclidean(**kwargs):
-    p = kwargs['p']
-
+def mean_vector_euclidean(p, **kwargs):
     name = 'Mean_Vector_Euclidean'
     M = ComplexEuclidean
     args_M = {'sizes': p}
@@ -104,9 +97,7 @@ def mean_vector_euclidean(**kwargs):
 
 
 @make_feature_prototype
-def intensity_vector_euclidean(**kwargs):
-    N = kwargs['N']
-
+def intensity_vector_euclidean(N, **kwargs):
     name = 'Intensity_Euclidean'
     M = Euclidean
     args_M = {'sizes': N}

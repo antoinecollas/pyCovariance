@@ -28,9 +28,7 @@ def compute_scm(X, assume_centered=True):
 
 
 @make_feature_prototype
-def covariance(assume_centered=True, **kwargs):
-    p = kwargs['p']
-
+def covariance(assume_centered=True, p=None, **kwargs):
     if assume_centered:
         name = 'Covariance'
     else:
@@ -46,9 +44,7 @@ def covariance(assume_centered=True, **kwargs):
 
 
 @make_feature_prototype
-def covariance_euclidean(**kwargs):
-    p = kwargs['p']
-
+def covariance_euclidean(p, **kwargs):
     name = 'Covariance_Euclidean'
     M = ComplexEuclidean
     args_M = {'sizes': p}

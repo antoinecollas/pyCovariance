@@ -154,6 +154,14 @@ def make_feature_prototype(feature):
         def __init__(self, *args, **kwargs):
             self.args = args
             self.kwargs = kwargs
+            if 'p' in kwargs:
+                raise KeyError(
+                    ('p should not be specified'
+                     ' in arguments when calling feature.'))
+            if 'N' in kwargs:
+                raise KeyError(
+                    ('N should not be specified'
+                     ' in arguments when calling feature.'))
 
         def __call__(self, p, N):
             args = self.args

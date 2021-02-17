@@ -116,10 +116,7 @@ def tyler_estimator_normalized_trace(X, init=None, tol=1e-4, iter_max=100):
 
 
 @make_feature_prototype
-def covariance_texture(weights=None, **kwargs):
-    p = kwargs['p']
-    N = kwargs['N']
-
+def covariance_texture(weights=None, p=None, N=None, **kwargs):
     M = (SpecialHermitianPositiveDefinite, StrictlyPositiveVectors)
 
     if weights is None:
