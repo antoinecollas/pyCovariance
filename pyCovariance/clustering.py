@@ -8,12 +8,13 @@ from time import time
 from tqdm import tqdm
 import warnings
 
-from .features.base import _FeatureArray
 from .classification import\
+        MDM
+from .features.base import _FeatureArray
+from .utils import\
         _estimate_features,\
         _compute_means,\
-        _compute_pairwise_distances,\
-        MDM
+        _compute_pairwise_distances
 
 
 def _compute_objective_function(distances):
