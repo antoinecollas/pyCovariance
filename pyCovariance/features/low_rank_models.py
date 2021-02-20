@@ -114,8 +114,12 @@ def estimate_tau_UUH_RGD(
 
     # Initialisation
     if init is None:
-        tau = np.ones((N, 1))
         U = compute_subspace_SCM(X, k)
+        X_projected = U.conj().T@X
+        tau = np.einsum('ij,ji->i', X_projected.conj().T, X_projected)
+        tau = (1/k)*np.real(tau)-1
+        tau[tau <= 1e-10] = 1e-10
+        tau = tau.reshape((-1, 1))
         init = (U, tau)
 
     if autodiff:
@@ -161,7 +165,6 @@ def estimate_tau_UUH(X, k, tol=0.001, iter_max=1000):
 
     # Initialisation
     delta = np.inf  # Distance between two iterations
-    tau = np.ones((N, 1))
     U = compute_subspace_SCM(X, k)
     iteration = 0
 
