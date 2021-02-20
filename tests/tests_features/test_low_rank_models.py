@@ -11,7 +11,8 @@ from pyCovariance.features import\
         subspace_SCM,\
         subspace_tau_UUH,\
         subspace_tau_UUH_RGD,\
-        tau_UUH
+        tau_UUH,\
+        tau_UUH_RGD
 from pyCovariance.generation_data import\
         generate_covariance,\
         generate_stiefel,\
@@ -189,7 +190,9 @@ def test_real_tau_UUH():
         U = generate_stiefel(p, k)
         theta.append([tau, U])
     m = feature.mean(theta).export()
+    assert m[0].shape == (N, 1)
     assert m[0].dtype == np.float64
+    assert m[1].shape == (p, k)
     assert m[1].dtype == np.float64
 
     tau = theta.export()[0]
@@ -253,3 +256,88 @@ def test_real_estimation_tau_UUH():
     delta_tau = la.norm(tau_BCD - tau_RGD) / la.norm(tau_BCD)
     assert delta_U < 0.01
     assert delta_tau < 0.05
+
+
+def test_real_tau_UUH_RGD():
+    rnd.seed(123)
+
+    p = 5
+    k = 2
+    N = int(1e4)
+
+    feature = tau_UUH_RGD(k)(p, N)
+
+    # test estimation
+    tau = generate_textures(N)
+    U = generate_stiefel(p, k)
+    X = sample_tau_UUH_distribution(tau, U)
+    assert X.dtype == np.float64
+    est = feature.estimation(X)
+    tau_est = est.export()[0]
+    U_est = est.export()[1]
+    assert tau_est.shape == (N, 1)
+    assert tau_est.dtype == np.float64
+    assert U_est.shape == (p, k)
+    assert U_est.dtype == np.float64
+
+    sym_U_est = U_est@U_est.conj().T
+    sym_U = U@U.conj().T
+    error = la.norm(sym_U_est - sym_U) / la.norm(sym_U)
+    assert error < 0.05
+
+    # test distance
+    tau1 = generate_textures(N)
+    U1 = generate_stiefel(p, k)
+    theta1 = _FeatureArray((N, 1), (p, k))
+    theta1.append([tau1, U1])
+    tau2 = generate_textures(N)
+    U2 = generate_stiefel(p, k)
+    theta2 = _FeatureArray((N, 1), (p, k))
+    theta2.append([tau2, U2])
+    d1 = feature.distance(theta1, theta2)
+    assert d1.ndim == 0
+    assert d1.dtype == np.float64
+    # compute Riemannian log following Absil04
+    temp = U2@np.linalg.inv(U1.conj().T@U2)-U1
+    U, S, Vh = np.linalg.svd(temp, full_matrices=False)
+    theta = np.diag(np.arctan(S))
+    log_U1_U2 = U@theta@Vh
+    d2 = (1/k)*(la.norm(log_U1_U2)**2)
+    d2 += (1/N)*(la.norm(np.log(tau1)-np.log(tau2))**2)
+    d2 = np.sqrt(d2)
+    np_test.assert_almost_equal(d1, d2)
+
+    # test mean
+    N = int(1e2)
+    N_mean = 10
+    theta = _FeatureArray((N, 1), (p, k))
+    for i in range(N_mean):
+        tau = generate_textures(N)
+        U = generate_stiefel(p, k)
+        theta.append([tau, U])
+    m = feature.mean(theta).export()
+    assert m[0].shape == (N, 1)
+    assert m[0].dtype == np.float64
+    assert m[1].shape == (p, k)
+    assert m[1].dtype == np.float64
+
+    tau = theta.export()[0]
+    m_tau = np.prod(tau, axis=0)**(1/N_mean)
+    assert la.norm(m[0]-m_tau)/la.norm(m_tau) < 1e-8
+
+    grad_U = 0
+    U = theta.export()[1]
+    for i in range(N_mean):
+        temp = U[i]@np.linalg.inv(m[1].conj().T@U[i])-m[1]
+        Q, S, Vh = np.linalg.svd(temp, full_matrices=False)
+        temp = np.diag(np.arctan(S))
+        grad_U += Q@temp@Vh
+    grad_U *= -(1/N_mean)
+    temp_U = (1/k)*(la.norm(grad_U)**2)
+
+    grad_tau = -(1/N_mean)*np.sum(m_tau*(np.log(tau)-np.log(m_tau)), axis=0)
+    temp_tau = (1/N)*np.sum((1/m_tau)*grad_tau*(1/m_tau)*grad_tau)
+
+    grad_norm = np.sqrt(temp_tau + temp_U)
+
+    assert grad_norm < 1e-6

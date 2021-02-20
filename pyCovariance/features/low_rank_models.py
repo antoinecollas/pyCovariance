@@ -203,13 +203,12 @@ def estimate_tau_UUH(X, k, tol=0.001, iter_max=1000):
 
 
 @make_feature_prototype
-def subspace_SCM(k, assume_centered=True, **kwargs):
-    p = kwargs['p']
-
+def subspace_SCM(k, assume_centered=True, p=None, **kwargs):
     if assume_centered:
         name = 'subspace_SCM'
     else:
         name = 'subspace_centered_SCM'
+    name += '_k_' + str(k)
 
     M = ComplexGrassmann
     args_M = {'sizes': (p, k)}
@@ -223,6 +222,8 @@ def subspace_SCM(k, assume_centered=True, **kwargs):
 @make_feature_prototype
 def subspace_tau_UUH(k, p, **kwargs):
     name = 'subspace_tau_UUH'
+    name += '_k_' + str(k)
+
     M = ComplexGrassmann
     args_M = {'sizes': (p, k)}
 
@@ -236,6 +237,8 @@ def subspace_tau_UUH(k, p, **kwargs):
 @make_feature_prototype
 def subspace_tau_UUH_RGD(k, autodiff=False, p=None, **kwargs):
     name = 'subspace_tau_UUH_RGD'
+    name += '_k_' + str(k)
+
     M = ComplexGrassmann
     args_M = {'sizes': (p, k)}
 
@@ -248,17 +251,16 @@ def subspace_tau_UUH_RGD(k, autodiff=False, p=None, **kwargs):
 
 @make_feature_prototype
 def tau_UUH(k, weights=None, p=None, N=None, **kwargs):
-    M = (StrictlyPositiveVectors, ComplexGrassmann)
-
     if weights is None:
         name = 'tau_UUH'
     else:
         name = 'tau_' + str(round(weights[0], 4)) +\
                '_UUH_' + str(round(weights[1], 4))
+    name += '_k_' + str(k)
 
+    M = (StrictlyPositiveVectors, ComplexGrassmann)
     if weights is None:
         weights = (1/N, 1/k)
-
     args_M = {
         'sizes': (N, (p, k)),
         'weights': weights
@@ -266,5 +268,29 @@ def tau_UUH(k, weights=None, p=None, N=None, **kwargs):
 
     def _estimate_tau_UUH(X):
         return estimate_tau_UUH(X, k)
+
+    return Feature(name, _estimate_tau_UUH, M, args_M)
+
+
+@make_feature_prototype
+def tau_UUH_RGD(k, weights=None, p=None, N=None, **kwargs):
+    if weights is None:
+        name = 'tau_UUH_RGD'
+    else:
+        name = 'tau_' + str(round(weights[0], 4)) +\
+               '_UUH_' + str(round(weights[1], 4)) +\
+                '_RGD'
+    name += '_k_' + str(k)
+
+    M = (StrictlyPositiveVectors, ComplexGrassmann)
+    if weights is None:
+        weights = (1/N, 1/k)
+    args_M = {
+        'sizes': (N, (p, k)),
+        'weights': weights
+    }
+
+    def _estimate_tau_UUH(X):
+        return estimate_tau_UUH_RGD(X, k)
 
     return Feature(name, _estimate_tau_UUH, M, args_M)

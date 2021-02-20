@@ -14,7 +14,8 @@ __all__ = [
     'subspace_SCM',
     'subspace_tau_UUH',
     'subspace_tau_UUH_RGD',
-    'tau_UUH'
+    'tau_UUH',
+    'tau_UUH_RGD'
 ]
 
 from .base import Feature
@@ -34,4 +35,5 @@ from .low_rank_models import\
         subspace_SCM,\
         subspace_tau_UUH,\
         subspace_tau_UUH_RGD,\
-        tau_UUH
+        tau_UUH,\
+        tau_UUH_RGD
