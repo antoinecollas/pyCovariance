@@ -436,12 +436,12 @@ class Product(man.Product):
 
     def inner(self, X, G, H):
         weights = self._weights
-        return np.sum([weights[k]*man.inner(X[k], G[k], H[k])
+        return np.sum([weights[k]*np.squeeze(man.inner(X[k], G[k], H[k]))
                        for k, man in enumerate(self._manifolds)])
 
     def dist(self, X, Y):
         weights = self._weights
-        return np.sqrt(np.sum([weights[k]*(man.dist(X[k], Y[k])**2)
+        return np.sqrt(np.sum([weights[k]*np.squeeze(man.dist(X[k], Y[k])**2)
                                for k, man in enumerate(self._manifolds)]))
 
     def egrad2rgrad(self, X, U):
