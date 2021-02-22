@@ -38,6 +38,34 @@ def compute_subspace_SCM(X, k, assume_centered=True):
 # tau UUH ESTIMATION
 
 
+def wrapper_normalization_sigma(estimation_fct):
+    """ A wrapper to normalize X by sigma
+    (sqrt of p-k last eigenvalues of SCM).
+        Inputs:
+            * X = a matrix of size (p, N)
+            with each observation along column dimension
+            * k = dimension of the subspace
+        Outputs:
+            * tau
+            * U = orthogonal basis of subspace"""
+    def estimation(X, k, *args, **kwargs):
+        p, N = X.shape
+        # normalize vectors by sigma
+        eigv = la.eigvalsh(compute_scm(X))[::-1]
+        eigv = eigv[k:min(p, N)]
+        sigma_2 = np.mean(eigv)
+        X = X / np.sqrt(sigma_2)
+
+        res = estimation_fct(X, k, *args, **kwargs)
+        tau = res[0]
+        U = res[1]
+
+        tau = sigma_2 * tau
+
+        return tau, U
+    return estimation
+
+
 def _cost(U, tau, X):
     n = X.shape[1]
     k = U.shape[1]
@@ -106,12 +134,6 @@ def estimate_tau_UUH_RGD(
 
     p, N = X.shape
 
-    # normalize vectors by sigma
-    eigv = la.eigvalsh(compute_scm(X))[::-1]
-    eigv = eigv[k:min(p, N)]
-    sigma_2 = np.mean(eigv)
-    X = X / np.sqrt(sigma_2)
-
     # Initialisation
     if init is None:
         U = compute_subspace_SCM(X, k)
@@ -139,8 +161,6 @@ def estimate_tau_UUH_RGD(
     parameters = solver.solve(problem, x=init)
     tau, U = parameters[1], parameters[0]
 
-    tau = sigma_2 * tau
-
     return tau, U
 
 
@@ -156,12 +176,6 @@ def estimate_tau_UUH(X, k, tol=0.001, iter_max=1000):
             * U = orthogonal basis of subspace
             * tau """
     p, N = X.shape
-
-    # normalize vectors by sigma
-    eigv = la.eigvalsh(compute_scm(X))[::-1]
-    eigv = eigv[k:min(p, N)]
-    sigma_2 = np.mean(eigv)
-    X = X / np.sqrt(sigma_2)
 
     # Initialisation
     delta = np.inf  # Distance between two iterations
@@ -191,7 +205,6 @@ def estimate_tau_UUH(X, k, tol=0.001, iter_max=1000):
         U = U_new
 
     tau = tau.reshape((-1, 1))
-    tau = sigma_2 * tau
 
     if iteration == iter_max:
         warnings.warn('Estimation algorithm did not converge')
@@ -220,7 +233,7 @@ def subspace_SCM(k, assume_centered=True, p=None, **kwargs):
 
 
 @make_feature_prototype
-def subspace_tau_UUH(k, p, **kwargs):
+def subspace_tau_UUH(k, estimate_sigma=True, p=None, **kwargs):
     name = 'subspace_tau_UUH'
     name += '_k_' + str(k)
 
@@ -228,14 +241,18 @@ def subspace_tau_UUH(k, p, **kwargs):
     args_M = {'sizes': (p, k)}
 
     def _subspace_tau_UUH(X):
-        _, U = estimate_tau_UUH(X, k)
+        if estimate_sigma:
+            _, U = wrapper_normalization_sigma(estimate_tau_UUH)(X, k)
+        else:
+            _, U = estimate_tau_UUH(X, k)
         return U
 
     return Feature(name, _subspace_tau_UUH, M, args_M)
 
 
 @make_feature_prototype
-def subspace_tau_UUH_RGD(k, autodiff=False, p=None, **kwargs):
+def subspace_tau_UUH_RGD(k, estimate_sigma=True,
+                         autodiff=False, p=None, **kwargs):
     name = 'subspace_tau_UUH_RGD'
     name += '_k_' + str(k)
 
@@ -243,14 +260,18 @@ def subspace_tau_UUH_RGD(k, autodiff=False, p=None, **kwargs):
     args_M = {'sizes': (p, k)}
 
     def _subspace_tau_UUH_RGD(X):
-        _, U = estimate_tau_UUH_RGD(X, k, autodiff=autodiff)
+        if estimate_sigma:
+            _, U = wrapper_normalization_sigma(estimate_tau_UUH_RGD)(
+                X, k, autodiff=autodiff)
+        else:
+            _, U = estimate_tau_UUH_RGD(X, k, autodiff=autodiff)
         return U
 
     return Feature(name, _subspace_tau_UUH_RGD, M, args_M)
 
 
 @make_feature_prototype
-def tau_UUH(k, weights=None, p=None, N=None, **kwargs):
+def tau_UUH(k, estimate_sigma=True, weights=None, p=None, N=None, **kwargs):
     if weights is None:
         name = 'tau_UUH'
     else:
@@ -267,19 +288,23 @@ def tau_UUH(k, weights=None, p=None, N=None, **kwargs):
     }
 
     def _estimate_tau_UUH(X):
-        return estimate_tau_UUH(X, k)
+        if estimate_sigma:
+            return wrapper_normalization_sigma(estimate_tau_UUH)(X, k)
+        else:
+            return estimate_tau_UUH(X, k)
 
     return Feature(name, _estimate_tau_UUH, M, args_M)
 
 
 @make_feature_prototype
-def tau_UUH_RGD(k, weights=None, p=None, N=None, **kwargs):
+def tau_UUH_RGD(k, estimate_sigma=True,
+                weights=None, p=None, N=None, **kwargs):
     if weights is None:
-        name = 'tau_UUH_RGD'
+        name = 'tau_UUH'
     else:
         name = 'tau_' + str(round(weights[0], 5)) +\
-               '_UUH_' + str(round(weights[1], 5)) +\
-                '_RGD'
+               '_UUH_' + str(round(weights[1], 5))
+    name += '_RGD'
     name += '_k_' + str(k)
 
     M = (StrictlyPositiveVectors, ComplexGrassmann)
@@ -291,6 +316,9 @@ def tau_UUH_RGD(k, weights=None, p=None, N=None, **kwargs):
     }
 
     def _estimate_tau_UUH(X):
-        return estimate_tau_UUH_RGD(X, k)
+        if estimate_sigma:
+            return wrapper_normalization_sigma(estimate_tau_UUH_RGD)(X, k)
+        else:
+            return estimate_tau_UUH_RGD(X, k)
 
     return Feature(name, _estimate_tau_UUH, M, args_M)
