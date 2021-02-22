@@ -254,8 +254,8 @@ def tau_UUH(k, weights=None, p=None, N=None, **kwargs):
     if weights is None:
         name = 'tau_UUH'
     else:
-        name = 'tau_' + str(round(weights[0], 4)) +\
-               '_UUH_' + str(round(weights[1], 4))
+        name = 'tau_' + str(round(weights[0], 5)) +\
+               '_UUH_' + str(round(weights[1], 5))
     name += '_k_' + str(k)
 
     M = (StrictlyPositiveVectors, ComplexGrassmann)
@@ -277,8 +277,8 @@ def tau_UUH_RGD(k, weights=None, p=None, N=None, **kwargs):
     if weights is None:
         name = 'tau_UUH_RGD'
     else:
-        name = 'tau_' + str(round(weights[0], 4)) +\
-               '_UUH_' + str(round(weights[1], 4)) +\
+        name = 'tau_' + str(round(weights[0], 5)) +\
+               '_UUH_' + str(round(weights[1], 5)) +\
                 '_RGD'
     name += '_k_' + str(k)
 
