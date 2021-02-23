@@ -39,7 +39,7 @@ def tyler_estimator_location_covariance_normalized_det(
     X,
     init=None,
     tol=0.001,
-    iter_max=20
+    iter_max=100
 ):
     """ A function that computes the Tyler Fixed Point Estimator for
         location and covariance estimation.
