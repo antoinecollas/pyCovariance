@@ -123,4 +123,4 @@ def main(
 
 
 if __name__ == '__main__':
-    main(nb_points=5, nb_MC=200, iter_max_RGD=3*int(1e4))
+    main(nb_points=5, n_MC=200, iter_max_RGD=3*int(1e4))
