@@ -16,7 +16,7 @@ from pyCovariance.features import\
 from pyCovariance.generation_data import\
         generate_covariance,\
         generate_stiefel,\
-        generate_textures,\
+        generate_textures_gamma_dist,\
         sample_normal_distribution,\
         sample_tau_UUH_distribution
 
@@ -80,7 +80,7 @@ def test_real_subspace_tau_UUH():
     feature = subspace_tau_UUH(k)(p, N)
 
     # test estimation
-    tau = generate_textures(N)
+    tau = generate_textures_gamma_dist(N)
     U = generate_stiefel(p, k)
     X = sample_tau_UUH_distribution(tau, U)
     assert X.dtype == np.float64
@@ -104,7 +104,7 @@ def test_real_subspace_tau_UUH_RGD():
     feature = subspace_tau_UUH_RGD(k)(p, N)
 
     # test estimation
-    tau = generate_textures(N)
+    tau = generate_textures_gamma_dist(N)
     U = generate_stiefel(p, k)
     X = sample_tau_UUH_distribution(tau, U)
     assert X.dtype == np.float64
@@ -142,7 +142,7 @@ def test_real_tau_UUH():
     feature = tau_UUH(k)(p, N)
 
     # test estimation
-    tau = generate_textures(N)
+    tau = generate_textures_gamma_dist(N)
     U = generate_stiefel(p, k)
     X = sample_tau_UUH_distribution(tau, U)
     assert X.dtype == np.float64
@@ -160,11 +160,11 @@ def test_real_tau_UUH():
     assert error < 0.01
 
     # test distance
-    tau1 = generate_textures(N)
+    tau1 = generate_textures_gamma_dist(N)
     U1 = generate_stiefel(p, k)
     theta1 = _FeatureArray((N, 1), (p, k))
     theta1.append([tau1, U1])
-    tau2 = generate_textures(N)
+    tau2 = generate_textures_gamma_dist(N)
     U2 = generate_stiefel(p, k)
     theta2 = _FeatureArray((N, 1), (p, k))
     theta2.append([tau2, U2])
@@ -186,7 +186,7 @@ def test_real_tau_UUH():
     N_mean = 10
     theta = _FeatureArray((N, 1), (p, k))
     for i in range(N_mean):
-        tau = generate_textures(N)
+        tau = generate_textures_gamma_dist(N)
         U = generate_stiefel(p, k)
         theta.append([tau, U])
     m = feature.mean(theta).export()
@@ -225,7 +225,7 @@ def test_real_estimation_tau_UUH():
     N = int(1e5)
 
     # data generation
-    tau = generate_textures(N)
+    tau = generate_textures_gamma_dist(N)
     U = generate_stiefel(p, k)
     X = sample_tau_UUH_distribution(tau, U)
     assert X.dtype == np.float64
@@ -239,7 +239,7 @@ def test_real_estimation_tau_UUH():
     assert error < 0.05
 
     N = int(1e3)
-    tau = generate_textures(N)
+    tau = generate_textures_gamma_dist(N)
     U = generate_stiefel(p, k)
     X = sample_tau_UUH_distribution(tau, U)
     assert X.dtype == np.float64
@@ -254,7 +254,7 @@ def test_real_estimation_tau_UUH():
     delta_U = la.norm(U_BCD@U_BCD.T - U_RGD@U_RGD.T) / la.norm(U_BCD@U_BCD.T)
     _, theta, _ = la.svd(U_BCD.T@U_RGD)
     delta_tau = la.norm(tau_BCD - tau_RGD) / la.norm(tau_BCD)
-    assert delta_U < 0.01
+    assert delta_U < 0.02
     assert delta_tau < 0.05
 
 
@@ -268,7 +268,7 @@ def test_real_tau_UUH_RGD():
     feature = tau_UUH_RGD(k)(p, N)
 
     # test estimation
-    tau = generate_textures(N)
+    tau = generate_textures_gamma_dist(N)
     U = generate_stiefel(p, k)
     X = sample_tau_UUH_distribution(tau, U)
     assert X.dtype == np.float64
@@ -286,11 +286,11 @@ def test_real_tau_UUH_RGD():
     assert error < 0.05
 
     # test distance
-    tau1 = generate_textures(N)
+    tau1 = generate_textures_gamma_dist(N)
     U1 = generate_stiefel(p, k)
     theta1 = _FeatureArray((N, 1), (p, k))
     theta1.append([tau1, U1])
-    tau2 = generate_textures(N)
+    tau2 = generate_textures_gamma_dist(N)
     U2 = generate_stiefel(p, k)
     theta2 = _FeatureArray((N, 1), (p, k))
     theta2.append([tau2, U2])
@@ -312,7 +312,7 @@ def test_real_tau_UUH_RGD():
     N_mean = 10
     theta = _FeatureArray((N, 1), (p, k))
     for i in range(N_mean):
-        tau = generate_textures(N)
+        tau = generate_textures_gamma_dist(N)
         U = generate_stiefel(p, k)
         theta.append([tau, U])
     m = feature.mean(theta).export()

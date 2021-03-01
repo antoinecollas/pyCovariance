@@ -4,7 +4,7 @@ from scipy.stats import multivariate_normal
 
 from pyCovariance.generation_data import\
         generate_covariance,\
-        generate_textures,\
+        generate_textures_gamma_dist,\
         sample_compound_distribution
 from pyCovariance.features.covariance import\
         compute_scm
@@ -20,7 +20,7 @@ def main(plot=True):
 
     mu = 10*np.random.randn(2, 1)
     cov = generate_covariance(p=2, unit_det=True)
-    tau = generate_textures(N, mu=0.1)
+    tau = generate_textures_gamma_dist(N, nu=0.1)
     X = mu + sample_compound_distribution(tau, cov)
 
     # meshgrid

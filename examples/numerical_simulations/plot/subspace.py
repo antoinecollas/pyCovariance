@@ -3,7 +3,7 @@ import autograd.numpy as np
 
 from pyCovariance.generation_data import\
         generate_stiefel,\
-        generate_textures,\
+        generate_textures_lognormal_dist,\
         sample_tau_UUH_distribution
 from pyCovariance.features.low_rank_models import\
         estimate_tau_UUH_RGD
@@ -18,7 +18,7 @@ def main(plot=True):
     U = generate_stiefel(p=3, k=3)
     U_perp = U[:, 2]
     U = U[:, :2]
-    tau = generate_textures(N)
+    tau = generate_textures_lognormal_dist(N)
     tau = tau * alpha
 
     fig = plt.figure()

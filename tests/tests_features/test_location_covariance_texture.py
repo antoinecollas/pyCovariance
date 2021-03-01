@@ -13,7 +13,7 @@ from pyCovariance.features.location_covariance_texture import\
 from pyCovariance.generation_data import\
         generate_complex_covariance,\
         generate_covariance,\
-        generate_textures,\
+        generate_textures_gamma_dist,\
         sample_complex_compound_distribution,\
         sample_complex_normal_distribution,\
         sample_compound_distribution,\
@@ -71,7 +71,7 @@ def test_real_location_covariance_texture_Tyler():
 
     mu = rnd.randn(p, 1)
     sigma = generate_covariance(p, unit_det=True)
-    tau = generate_textures(N)
+    tau = generate_textures_gamma_dist(N)
     X = sample_compound_distribution(tau, sigma)
     X = X + mu
     assert X.dtype == np.float64
@@ -93,7 +93,7 @@ def test_complex_location_covariance_texture_Tyler():
 
     mu = rnd.randn(p, 1) + 1j*rnd.randn(p, 1)
     sigma = generate_complex_covariance(p, unit_det=True)
-    tau = generate_textures(N)
+    tau = generate_textures_gamma_dist(N)
     X = sample_complex_compound_distribution(tau, sigma)
     X = X + mu
     assert X.dtype == np.complex128
@@ -126,7 +126,7 @@ def test_cost_location_covariance_texture_RGD():
 
     # test cost function value
     mu = rnd.randn(p, 1) + 1j*rnd.randn(p, 1)
-    tau = generate_textures(N)
+    tau = generate_textures_gamma_dist(N)
     sigma = generate_complex_covariance(p, unit_det=True)
     X = sample_complex_compound_distribution(tau, sigma)
     X = X + mu
@@ -151,7 +151,7 @@ def test_egrad_location_covariance_texture_RGD():
 
     # test egrad
     mu = rnd.randn(p, 1) + 1j*rnd.randn(p, 1)
-    tau = generate_textures(N)
+    tau = generate_textures_gamma_dist(N)
     sigma = generate_complex_covariance(p, unit_det=True)
     X = sample_complex_compound_distribution(tau, sigma)
     X = X + mu
@@ -179,7 +179,7 @@ def test_real_location_covariance_texture_RGD():
 
     mu = rnd.randn(p, 1)
     sigma = generate_covariance(p, unit_det=True)
-    tau = generate_textures(N)
+    tau = generate_textures_gamma_dist(N)
     X = sample_compound_distribution(tau, sigma)
     X = X + mu
     assert X.dtype == np.float64
@@ -201,7 +201,7 @@ def test_complex_location_covariance_texture_RGD():
 
     mu = rnd.randn(p, 1) + 1j*rnd.randn(p, 1)
     sigma = generate_complex_covariance(p, unit_det=True)
-    tau = generate_textures(N)
+    tau = generate_textures_gamma_dist(N)
     X = sample_complex_compound_distribution(tau, sigma)
     X = X + mu
     assert X.dtype == np.complex128

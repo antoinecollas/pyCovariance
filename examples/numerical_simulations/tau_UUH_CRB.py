@@ -3,6 +3,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import os
 from tqdm import tqdm
+import tikzplotlib
 
 from pyCovariance import monte_carlo
 
@@ -17,12 +18,42 @@ from pyCovariance.features import\
 
 from pyCovariance.generation_data import\
         generate_complex_stiefel,\
-        generate_textures,\
+        generate_textures_lognormal_dist,\
         sample_complex_tau_UUH_distribution
 
 
-def main(nb_points, n_MC, verbose=True):
+def main(nb_points, n_MC, p, k, N_max_simu_U, N_simu_tau, verbose=True):
     matplotlib.use('Agg')
+
+    # uncomment to plot cdf
+    # from scipy import stats
+    # x = np.linspace(0, 10, num=int(1e5))
+
+    # nu = 0.1
+    # y = stats.gamma.cdf(x, a=nu, scale=1/nu)
+    # plt.plot(x, y, label='gamma(0.1, 10)')
+
+    # nu = 0.01
+    # y = stats.gamma.cdf(x, a=nu, scale=1/nu)
+    # plt.plot(x, y, label='gamma(0.01, 100)')
+
+    # variance = 10
+    # s = np.sqrt(np.log(variance + 1))
+    # mu = -(s**2)/2
+    # y = stats.lognorm.cdf(x, scale=np.exp(mu), s=s)
+    # plt.plot(x, y, label='lognorm(var=10)')
+
+    # variance = 100
+    # s = np.sqrt(np.log(variance + 1))
+    # mu = -(s**2)/2
+    # y = stats.lognorm.cdf(x, scale=np.exp(mu), s=s)
+    # plt.plot(x, y, label='lognorm(var=100)')
+
+    # plt.legend()
+    # plt.show()
+
+    # import sys
+    # sys.exit(0)
 
     if verbose:
         print('################ tau_UUH model CRB ################')
@@ -40,76 +71,67 @@ def main(nb_points, n_MC, verbose=True):
     path = os.path.join(folder, 'tau_UUH_CRB_U')
 
     # parameters simu U
-    p = 15
-    k = 3
-    N_max = int(1e4)
-    alpha = 1
-    mu = 0.01
+    N_max = N_max_simu_U
+    SNR_list = [1, 10]
+    var_list = [10, 100]
 
-    # uncomment to plot texture cdf
-    # import scipy.stats as stats
-    # x = np.linspace(0, 100, int(1e4))
-    # mu = 0.01
-    # y = stats.gamma.cdf(x, a=mu, scale=1/mu)
-    # plt.plot(x, y, label=str(mu))
-    # mu = 0.1
-    # y = stats.gamma.cdf(x, a=mu, scale=1/mu)
-    # plt.plot(x, y, label=str(mu))
-    # mu = 1
-    # y = stats.gamma.cdf(x, a=mu, scale=1/mu)
-    # plt.plot(x, y, label=str(mu))
-    # mu = 10
-    # y = stats.gamma.cdf(x, a=mu, scale=1/mu)
-    # plt.plot(x, y, label=str(mu))
-    # plt.legend()
-    # plt.show()
+    for SNR in SNR_list:
+        for var in var_list:
+            if verbose:
+                print('SNR:', SNR, 'var:', var)
 
-    # generate tau and U
-    tau_full = alpha*generate_textures(N_max, mu)
-    U = generate_complex_stiefel(p, k)
+            suffix = '_SNR_' + str(SNR) + '_var_' + str(var)
+            suffix = suffix.replace('.', '_')
+            full_path = path + suffix
 
-    # 3 methods of estimation of U
-    features_list = [
-        subspace_SCM(k),
-        subspace_tau_UUH(k, estimate_sigma=False),
-        subspace_tau_UUH_RGD(k, estimate_sigma=False)
-    ]
+            # generate tau and U
+            tau_full = SNR*generate_textures_lognormal_dist(N_max, var)
+            U = generate_complex_stiefel(p, k)
 
-    # simu
-    list_n_points = np.geomspace(p, N_max, num=nb_points).astype(int)
-    mean_errors = np.zeros((len(features_list), nb_points))
+            # 3 methods of estimation of U
+            features_list = [
+                subspace_SCM(k),
+                subspace_tau_UUH(k, estimate_sigma=False),
+                subspace_tau_UUH_RGD(k, estimate_sigma=False)
+            ]
 
-    iterator = list_n_points
-    if verbose:
-        iterator = tqdm(iterator)
-    for i, n in enumerate(iterator):
-        def sample_fct():
-            return sample_complex_tau_UUH_distribution(tau_full[:n], U)
+            # simu
+            list_n_points = np.geomspace(2*p, N_max, num=nb_points).astype(int)
+            mean_errors = np.zeros((len(features_list), nb_points))
 
-        mean_errors[:, i] = monte_carlo(
-            U,
-            sample_fct,
-            features_list,
-            n_MC,
-            n_jobs=-1,
-            verbose=False
-        )
+            iterator = list_n_points
+            if verbose:
+                iterator = tqdm(iterator)
+            for i, n in enumerate(iterator):
+                def sample_fct():
+                    return sample_complex_tau_UUH_distribution(tau_full[:n], U)
 
-    c_tau = np.mean((tau_full*tau_full)/(1+tau_full))
-    bound = ((p-k)*k) / (list_n_points*c_tau)
+                mean_errors[:, i] = monte_carlo(
+                    U,
+                    sample_fct,
+                    features_list,
+                    n_MC,
+                    n_jobs=-1,
+                    verbose=False
+                )
 
-    # plot
-    plt.loglog(list_n_points, mean_errors[0], label='SCM', marker='+')
-    plt.loglog(list_n_points, mean_errors[1], label='BCD', marker='x')
-    plt.loglog(list_n_points, mean_errors[2], label='RO', marker='2')
-    plt.loglog(list_n_points, bound, label='CRB', linestyle='dashed')
-    plt.legend()
-    plt.xlabel('Number of points')
-    plt.ylabel('MSE on U')
-    plt.grid(b=True, which='both')
+            c_tau = np.mean((tau_full*tau_full)/(1+tau_full))
+            bound = ((p-k)*k) / (list_n_points*c_tau)
 
-    plt.savefig(path)
-    plt.close('all')
+            # plot
+            plt.loglog(list_n_points, mean_errors[0], label='SCM', marker='+')
+            plt.loglog(list_n_points, mean_errors[1], label='BCD', marker='x')
+            plt.loglog(list_n_points, mean_errors[2], label='RO', marker='2')
+            plt.loglog(list_n_points, bound, label='CRB', linestyle='dashed')
+            plt.legend()
+            plt.xlabel('Number of points')
+            plt.ylabel('MSE on U')
+            plt.grid(b=True, which='both')
+
+            plt.savefig(full_path)
+            tikzplotlib.save(full_path)
+
+            plt.close('all')
 
     if verbose:
         print()
@@ -117,17 +139,13 @@ def main(nb_points, n_MC, verbose=True):
     path = os.path.join(folder, 'tau_UUH_CRB_tau')
 
     # parameters simu tau
-    p = 15
-    k = 3
-    N = int(1e4)
-    alpha_max = int(1e9)
-    mu = 1
+    N = N_simu_tau
+    SNR_min = 100
+    SNR_max = int(1e6)
+    var_list = [10, 100]
 
-    # generate tau and U
-    tau = generate_textures(N, mu)
-    assert tau.shape == (N, 1)
+    # generate U
     U = generate_complex_stiefel(p, k)
-    assert U.shape == (p, k)
 
     # features
     features_list = [
@@ -136,45 +154,68 @@ def main(nb_points, n_MC, verbose=True):
     ]
 
     # simu
-    list_alpha = np.geomspace(1, alpha_max, num=nb_points)
-    mean_errors = np.zeros((len(features_list), len(list_alpha)))
+    list_SNR = np.geomspace(SNR_min, SNR_max, num=nb_points)
+    mean_errors = np.zeros((len(features_list), len(list_SNR)))
 
-    iterator = list_alpha
-    if verbose:
-        iterator = tqdm(iterator)
+    for var in var_list:
+        if verbose:
+            print('var:', var)
 
-    for i, alpha in enumerate(iterator):
-        def sample_fct():
-            return sample_complex_tau_UUH_distribution(alpha*tau, U)
+        suffix = '_var_' + str(var)
+        suffix = suffix.replace('.', '_')
+        full_path = path + suffix
 
-        mean_errors[:, i] = monte_carlo(
-            [alpha*tau, U],
-            sample_fct,
-            features_list,
-            n_MC,
-            n_jobs=-1,
-            verbose=False
-        )[:, 1]
+        tau = generate_textures_lognormal_dist(N, var)
 
-    tau = list_alpha*tau
-    tmp = ((1+tau) / tau)**2
-    c = np.sum(tmp, axis=0)
-    bound = 1/k * c
-    bound_2 = N / k * np.ones(len(list_alpha))
+        iterator = list_SNR
+        if verbose:
+            iterator = tqdm(iterator)
 
-    # plot
-    plt.loglog(list_alpha, mean_errors[0], label='BCD', marker='x')
-    plt.loglog(list_alpha, mean_errors[1], label='RO', marker='2')
-    plt.loglog(list_alpha, bound, label='CRB', linestyle='dashed')
-    plt.loglog(list_alpha, bound_2, label='N/k', linestyle='dashed')
-    plt.legend()
-    plt.xlabel('alpha')
-    plt.ylabel('MSE on tau')
-    plt.grid(b=True, which='both')
+        for i, SNR in enumerate(iterator):
+            def sample_fct():
+                return sample_complex_tau_UUH_distribution(SNR*tau, U)
 
-    plt.savefig(path)
-    plt.close('all')
+            mean_errors[:, i] = monte_carlo(
+                [SNR*tau, U],
+                sample_fct,
+                features_list,
+                n_MC,
+                n_jobs=-1,
+                verbose=False
+            )[:, 1]
+
+        tau = list_SNR*tau
+        tmp = ((1+tau) / tau)**2
+        c = np.sum(tmp, axis=0)
+        bound = 1/k * c
+        bound_2 = N / k * np.ones(len(list_SNR))
+
+        mean_errors = mean_errors / N
+        bound = bound / N
+        bound_2 = bound_2 / N
+
+        # plot
+        plt.loglog(list_SNR, mean_errors[0], label='BCD', marker='x')
+        plt.loglog(list_SNR, mean_errors[1], label='RO', marker='2')
+        plt.loglog(list_SNR, bound, label='CRB', linestyle='dashed')
+        plt.loglog(list_SNR, bound_2, label='1/k', linestyle='dashed')
+        plt.ylim(ymin=3*1e-2, ymax=10)
+        plt.legend()
+        plt.xlabel('SNR')
+        plt.ylabel('MSE on tau')
+        plt.grid(b=True, which='both')
+
+        plt.savefig(full_path)
+        tikzplotlib.save(full_path)
+        plt.close('all')
 
 
 if __name__ == '__main__':
-    main(nb_points=10, n_MC=1000)
+    main(
+        nb_points=10,
+        n_MC=10,
+        p=100,
+        k=20,
+        N_max_simu_U=int(1e6),
+        N_simu_tau=int(1e4)
+    )

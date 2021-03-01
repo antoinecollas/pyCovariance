@@ -2,7 +2,7 @@ import autograd.numpy as np
 import autograd.numpy.linalg as la
 from autograd.numpy import random
 from scipy.linalg import toeplitz
-from scipy.stats import ortho_group, unitary_group
+from scipy.stats import lognorm, ortho_group, unitary_group
 
 from .matrix_operators import sqrtm
 
@@ -49,9 +49,16 @@ def generate_toeplitz(p, rho):
     return toeplitz(np.power(rho, np.arange(0, p)))
 
 
-def generate_textures(N, mu=0.1):
-    texture = random.gamma(mu, 1/mu, size=(N, 1))
-    return texture
+def generate_textures_gamma_dist(N, nu=0.1):
+    textures = random.gamma(nu, 1/nu, size=(N, 1))
+    return textures
+
+
+def generate_textures_lognormal_dist(N, variance=10):
+    s = np.sqrt(np.log(variance + 1))
+    mu = -(s**2)/2
+    textures = lognorm.rvs(scale=np.exp(mu), s=s, size=(N, 1))
+    return textures
 
 
 def generate_stiefel(p, k):

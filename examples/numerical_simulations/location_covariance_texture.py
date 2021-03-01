@@ -16,7 +16,7 @@ from pyCovariance.features import\
 
 from pyCovariance.generation_data import\
         generate_complex_covariance,\
-        generate_textures,\
+        generate_textures_gamma_dist,\
         sample_complex_compound_distribution
 
 
@@ -45,7 +45,7 @@ def main(
 
     # generate mu, tau, sigma
     mu = rnd.randn(p, 1)
-    tau_full = generate_textures(N_max)
+    tau_full = generate_textures_gamma_dist(N_max)
     sigma = generate_complex_covariance(p, unit_det=True)
 
     # features

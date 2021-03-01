@@ -6,7 +6,8 @@ from pyCovariance.generation_data import generate_complex_covariance, \
         generate_complex_stiefel, \
         generate_covariance, \
         generate_stiefel, \
-        generate_textures, \
+        generate_textures_gamma_dist, \
+        generate_textures_lognormal_dist, \
         generate_toeplitz, \
         sample_complex_compound_distribution, \
         sample_complex_normal_distribution, \
@@ -87,14 +88,44 @@ def test_generate_toeplitz():
             np_test.assert_almost_equal(sigma[0, j], sigma[i, i+j])
 
 
-def test_generate_textures():
+def test_generate_textures_gamma_dist():
     rnd.seed(123)
 
-    N = 20
-    textures = generate_textures(N)
-    assert textures.dtype == np.float64
-    for t in textures:
-        assert t > 0
+    N = int(1e6)
+
+    tau = generate_textures_gamma_dist(N, nu=1)
+    assert tau.shape == (N, 1)
+    assert tau.dtype == np.float64
+    assert (tau > 0).all()
+    assert np.abs(np.mean(tau) - 1) < 1e-2
+    assert np.abs(np.var(tau) - 1) < 1e-2
+
+    tau = generate_textures_gamma_dist(N, nu=0.1)
+    assert tau.shape == (N, 1)
+    assert tau.dtype == np.float64
+    assert (tau > 0).all()
+    assert np.abs(np.mean(tau) - 1) < 1e-2
+    assert np.abs(np.var(tau) - 10) < 1e-1
+
+
+def test_generate_textures_lognormal_dist():
+    rnd.seed(123)
+
+    N = int(1e6)
+
+    tau = generate_textures_lognormal_dist(N, variance=1)
+    assert tau.shape == (N, 1)
+    assert tau.dtype == np.float64
+    assert (tau > 0).all()
+    assert np.abs(np.mean(tau) - 1) < 1e-2
+    assert np.abs(np.var(tau) - 1) < 1e-2
+
+    tau = generate_textures_lognormal_dist(N, variance=10)
+    assert tau.shape == (N, 1)
+    assert tau.dtype == np.float64
+    assert (tau > 0).all()
+    assert np.abs(np.mean(tau) - 1) < 1e-2
+    assert np.abs(np.var(tau) - 10) < 5*1e-1
 
 
 def test_generate_stiefel():
@@ -174,7 +205,7 @@ def test_sample_compound_distribution():
     N = 10
 
     sigma = generate_covariance(p, unit_det=True)
-    tau = generate_textures(N)
+    tau = generate_textures_gamma_dist(N)
     X = sample_compound_distribution(tau, sigma)
     assert X.dtype == np.float64
     assert X.shape == (p, N)
@@ -188,7 +219,7 @@ def test_sample_complex_compound_distribution():
     N = 10
 
     sigma = generate_complex_covariance(p, unit_det=True)
-    tau = generate_textures(N)
+    tau = generate_textures_gamma_dist(N)
     X = sample_complex_compound_distribution(tau, sigma)
     assert X.dtype == np.complex128
     assert X.shape == (p, N)
@@ -203,7 +234,7 @@ def test_sample_tau_UUH_distribution():
     N = 20
 
     U = generate_stiefel(p, k)
-    tau = generate_textures(N)
+    tau = generate_textures_gamma_dist(N)
     X = sample_tau_UUH_distribution(tau, U)
     assert X.dtype == np.float64
     assert X.shape == (p, N)
@@ -218,7 +249,7 @@ def test_sample_complex_tau_UUH_distribution():
     N = 20
 
     U = generate_complex_stiefel(p, k)
-    tau = generate_textures(N)
+    tau = generate_textures_gamma_dist(N)
     X = sample_complex_tau_UUH_distribution(tau, U)
     assert X.dtype == np.complex128
     assert X.shape == (p, N)

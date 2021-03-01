@@ -8,7 +8,7 @@ from pyCovariance.features.base import _FeatureArray
 from pyCovariance.generation_data import\
         generate_complex_covariance,\
         generate_covariance,\
-        generate_textures,\
+        generate_textures_gamma_dist,\
         sample_complex_compound_distribution,\
         sample_compound_distribution
 from pyCovariance.matrix_operators import invsqrtm, logm, sqrtm
@@ -23,7 +23,7 @@ def test_real_covariance_texture():
     assert type(str(feature)) is str
 
     # test estimation
-    tau = generate_textures(N)
+    tau = generate_textures_gamma_dist(N)
     sigma = generate_covariance(p, unit_det=True)
     sigma = sigma/(la.det(sigma)**(1/p))
     X = sample_compound_distribution(tau, sigma)
@@ -39,9 +39,9 @@ def test_real_covariance_texture():
     # test distance
     data = _FeatureArray((p, p), (N, 1))
     data.append([generate_covariance(p, unit_det=True),
-                 generate_textures(N)])
+                 generate_textures_gamma_dist(N)])
     data.append([generate_covariance(p, unit_det=True),
-                 generate_textures(N)])
+                 generate_textures_gamma_dist(N)])
 
     sigma0_isqrtm = invsqrtm(data[0].export()[0])
     prod = sigma0_isqrtm@data[1].export()[0]@sigma0_isqrtm
@@ -55,9 +55,9 @@ def test_real_covariance_texture():
     # test distances
     data = _FeatureArray((p, p), (N, 1))
     data.append([generate_covariance(p, unit_det=True),
-                 generate_textures(N)])
+                 generate_textures_gamma_dist(N)])
     data.append([generate_covariance(p, unit_det=True),
-                 generate_textures(N)])
+                 generate_textures_gamma_dist(N)])
 
     sigma0_isqrtm = invsqrtm(data[0].export()[0])
     prod = sigma0_isqrtm@data[1].export()[0]@sigma0_isqrtm
@@ -75,10 +75,10 @@ def test_real_covariance_texture():
     # test log
     X = _FeatureArray((p, p), (N, 1))
     X.append([generate_covariance(p, unit_det=True),
-              generate_textures(N)])
+              generate_textures_gamma_dist(N)])
     Y = _FeatureArray((p, p), (N, 1))
     Y.append([generate_covariance(p, unit_det=True),
-              generate_textures(N)])
+              generate_textures_gamma_dist(N)])
 
     log = feature.log(X, Y)
     assert type(log) is _FeatureArray
@@ -118,11 +118,11 @@ def test_real_covariance_texture():
     batch_size = 10
     X = _FeatureArray((p, p), (N, 1))
     X.append([generate_covariance(p, unit_det=True),
-              generate_textures(N)])
+              generate_textures_gamma_dist(N)])
     Y = _FeatureArray((p, p), (N, 1))
     for _ in range(batch_size):
         Y.append([generate_covariance(p, unit_det=True),
-                  generate_textures(N)])
+                  generate_textures_gamma_dist(N)])
 
     log = feature.log(X, Y)
     assert type(log) is _FeatureArray
@@ -164,7 +164,7 @@ def test_real_covariance_texture():
     data = _FeatureArray((p, p), (N, 1))
     for _ in range(N_mean):
         data.append([generate_covariance(p, unit_det=True),
-                     generate_textures(N)])
+                     generate_textures_gamma_dist(N)])
 
     cov = covariance()(p, N)
     sigma = _FeatureArray((p, p))
@@ -187,7 +187,7 @@ def test_complex_covariance_texture():
     assert type(str(feature)) is str
 
     # test estimation
-    tau = generate_textures(N)
+    tau = generate_textures_gamma_dist(N)
     sigma = generate_complex_covariance(p, unit_det=True)
     sigma = sigma/(la.det(sigma)**(1/p))
     X = sample_complex_compound_distribution(tau, sigma)
@@ -203,9 +203,9 @@ def test_complex_covariance_texture():
     # test distance
     data = _FeatureArray((p, p), (N, 1))
     data.append([generate_complex_covariance(p, unit_det=True),
-                 generate_textures(N)])
+                 generate_textures_gamma_dist(N)])
     data.append([generate_complex_covariance(p, unit_det=True),
-                 generate_textures(N)])
+                 generate_textures_gamma_dist(N)])
 
     sigma0_isqrtm = invsqrtm(data[0].export()[0])
     prod = sigma0_isqrtm@data[1].export()[0]@sigma0_isqrtm
@@ -219,9 +219,9 @@ def test_complex_covariance_texture():
     # test distances
     data = _FeatureArray((p, p), (N, 1))
     data.append([generate_complex_covariance(p, unit_det=True),
-                 generate_textures(N)])
+                 generate_textures_gamma_dist(N)])
     data.append([generate_complex_covariance(p, unit_det=True),
-                 generate_textures(N)])
+                 generate_textures_gamma_dist(N)])
 
     sigma0_isqrtm = invsqrtm(data[0].export()[0])
     prod = sigma0_isqrtm@data[1].export()[0]@sigma0_isqrtm
@@ -239,10 +239,10 @@ def test_complex_covariance_texture():
     # test log
     X = _FeatureArray((p, p), (N, 1))
     X.append([generate_complex_covariance(p, unit_det=True),
-              generate_textures(N)])
+              generate_textures_gamma_dist(N)])
     Y = _FeatureArray((p, p), (N, 1))
     Y.append([generate_complex_covariance(p, unit_det=True),
-              generate_textures(N)])
+              generate_textures_gamma_dist(N)])
 
     log = feature.log(X, Y)
     assert type(log) is _FeatureArray
@@ -282,11 +282,11 @@ def test_complex_covariance_texture():
     batch_size = 10
     X = _FeatureArray((p, p), (N, 1))
     X.append([generate_complex_covariance(p, unit_det=True),
-              generate_textures(N)])
+              generate_textures_gamma_dist(N)])
     Y = _FeatureArray((p, p), (N, 1))
     for _ in range(batch_size):
         Y.append([generate_complex_covariance(p, unit_det=True),
-                  generate_textures(N)])
+                  generate_textures_gamma_dist(N)])
 
     log = feature.log(X, Y)
     assert type(log) is _FeatureArray
@@ -328,7 +328,7 @@ def test_complex_covariance_texture():
     data = _FeatureArray((p, p), (N, 1))
     for _ in range(N_mean):
         data.append([generate_complex_covariance(p, unit_det=True),
-                     generate_textures(N)])
+                     generate_textures_gamma_dist(N)])
 
     cov = covariance()(p, N)
     sigma = _FeatureArray((p, p))

@@ -123,6 +123,10 @@ def test_tau_UUH_CRB():
     tau_UUH_CRB.main(
         nb_points=2,
         n_MC=2,
+        p=3,
+        k=2,
+        N_max_simu_U=100,
+        N_simu_tau=100,
         verbose=False
     )
 
