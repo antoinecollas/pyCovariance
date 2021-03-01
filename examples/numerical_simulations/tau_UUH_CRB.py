@@ -22,7 +22,7 @@ from pyCovariance.generation_data import\
         sample_complex_tau_UUH_distribution
 
 
-def main(nb_points, n_MC, p, k, N_max_simu_U, N_simu_tau, verbose=True):
+def main(n_points, n_MC, p, k, N_max_simu_U, N_simu_tau, verbose=True):
     matplotlib.use('Agg')
 
     # uncomment to plot cdf
@@ -73,7 +73,7 @@ def main(nb_points, n_MC, p, k, N_max_simu_U, N_simu_tau, verbose=True):
     # parameters simu U
     N_max = N_max_simu_U
     SNR_list = [1, 10]
-    var_list = [10, 100]
+    var_list = [100, 10]
 
     for SNR in SNR_list:
         for var in var_list:
@@ -96,8 +96,8 @@ def main(nb_points, n_MC, p, k, N_max_simu_U, N_simu_tau, verbose=True):
             ]
 
             # simu
-            list_n_points = np.geomspace(2*p, N_max, num=nb_points).astype(int)
-            mean_errors = np.zeros((len(features_list), nb_points))
+            list_n_points = np.geomspace(2*p, N_max, num=n_points).astype(int)
+            mean_errors = np.zeros((len(features_list), n_points))
 
             iterator = list_n_points
             if verbose:
@@ -154,7 +154,7 @@ def main(nb_points, n_MC, p, k, N_max_simu_U, N_simu_tau, verbose=True):
     ]
 
     # simu
-    list_SNR = np.geomspace(SNR_min, SNR_max, num=nb_points)
+    list_SNR = np.geomspace(SNR_min, SNR_max, num=n_points)
     mean_errors = np.zeros((len(features_list), len(list_SNR)))
 
     for var in var_list:
@@ -212,10 +212,10 @@ def main(nb_points, n_MC, p, k, N_max_simu_U, N_simu_tau, verbose=True):
 
 if __name__ == '__main__':
     main(
-        nb_points=10,
+        n_points=10,
         n_MC=10,
         p=100,
         k=20,
-        N_max_simu_U=int(1e6),
+        N_max_simu_U=int(5*1e4),
         N_simu_tau=int(1e4)
     )

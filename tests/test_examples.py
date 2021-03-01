@@ -121,7 +121,7 @@ def test_tau_UUH_CRB():
     rnd.seed(123)
 
     tau_UUH_CRB.main(
-        nb_points=2,
+        n_points=2,
         n_MC=2,
         p=3,
         k=2,
