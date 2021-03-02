@@ -258,6 +258,7 @@ def evaluate_and_save_clustering(
     hyperparams,
     folder,
     prefix_filename,
+    export_pgf=False,
     verbose=True
 ):
     if verbose:
@@ -323,12 +324,18 @@ def evaluate_and_save_clustering(
         print('ARI=', ARI)
 
     plot_segmentation(gt + 1, title='Ground truth')
-    plt.savefig(os.path.join(folder_segmentation, 'gt'))
+    path = os.path.join(folder_segmentation, 'gt')
+    if export_pgf:
+        path += '.pgf'
+    plt.savefig(path)
 
     title = 'mIoU='+str(mIoU)+' OA='+str(OA)
     plot_segmentation(segmentation + 1, title=title)
     f_name = prefix_filename + '_K_means_' + str(feature)
-    plt.savefig(os.path.join(folder_segmentation, f_name))
+    path = os.path.join(folder_segmentation, f_name)
+    if export_pgf:
+        path += '.pgf'
+    plt.savefig(path)
 
     classes_labels = np.unique(gt[gt >= 0]) + 1
     plot_TP_FP_FN_segmentation(segmentation, gt, classes_labels=classes_labels,

@@ -30,9 +30,13 @@ def main(
     features_list,
     n_init,
     max_iter,
+    export_pgf=False,
     verbose=True
 ):
-    matplotlib.use('Agg')
+    if export_pgf:
+        matplotlib.use('pgf')
+    else:
+        matplotlib.use('Agg')
 
     # folder path to save files
     folder_main = create_directory(dataset.name)
@@ -125,12 +129,15 @@ def main(
             )
 
             prefix_f_name = str(j)
-            mIoU, OA = evaluate_and_save_clustering(C,
-                                                    dataset,
-                                                    hp,
-                                                    folder,
-                                                    prefix_f_name,
-                                                    verbose)
+            mIoU, OA = evaluate_and_save_clustering(
+                segmentation=C,
+                dataset=dataset,
+                hyperparams=hp,
+                folder=folder,
+                prefix_filename=prefix_f_name,
+                export_pgf=export_pgf,
+                verbose=verbose
+            )
             mIoUs.append(mIoU)
             OAs.append(OA)
 
@@ -146,6 +153,8 @@ def main(
             plt.title('Criterion values of ' + str(feature) + ' feature.')
             temp = str(j) + '_criterion_' + str(feature)
             path = os.path.join(folder_criteria, temp)
+            if export_pgf:
+                path += '.pgf'
             plt.savefig(path)
 
             plt.close('all')
@@ -172,6 +181,8 @@ def main(
         plt.xticks(rotation=90)
         plt.subplots_adjust(bottom=0.4)
         path = os.path.join(folder, 'mIoU_' + prefix)
+        if export_pgf:
+            path += '.pgf'
         plt.savefig(path)
 
         # Bar plot of OAs
@@ -182,6 +193,8 @@ def main(
         plt.xticks(rotation=90)
         plt.subplots_adjust(bottom=0.4)
         path = os.path.join(folder, 'OA_' + prefix)
+        if export_pgf:
+            path += '.pgf'
         plt.savefig(path)
 
         plt.close('all')
@@ -204,6 +217,8 @@ def main(
         if type(feature) is not str:
             feature = feature(p, w_size**2)
         path = os.path.join(folder, str(i) + '_mIoU_' + str(feature))
+        if export_pgf:
+            path += '.pgf'
         plt.savefig(path)
 
         # Bar plot of OAs
@@ -214,6 +229,8 @@ def main(
         plt.xticks(rotation=90)
         plt.subplots_adjust(bottom=0.4)
         path = os.path.join(folder, str(i) + '_OA_' + str(feature))
+        if export_pgf:
+            path += '.pgf'
         plt.savefig(path)
 
         plt.close('all')
@@ -223,6 +240,8 @@ if __name__ == '__main__':
     seed = 0
     np.random.seed(seed)
     print('seed:', seed)
+
+    EXPORT_PGF = False
 
     def get_features(pairs_w_k, p):
         features_list = list()
@@ -258,7 +277,8 @@ if __name__ == '__main__':
         mask=True,
         features_list=features_list,
         n_init=10,
-        max_iter=100
+        max_iter=100,
+        export_pgf=EXPORT_PGF
     )
 
     dataset_name = 'Pavia'
@@ -273,7 +293,8 @@ if __name__ == '__main__':
         mask=True,
         features_list=features_list,
         n_init=10,
-        max_iter=100
+        max_iter=100,
+        export_pgf=EXPORT_PGF
     )
 
     dataset_name = 'Salinas'
@@ -288,5 +309,6 @@ if __name__ == '__main__':
         mask=True,
         features_list=features_list,
         n_init=10,
-        max_iter=100
+        max_iter=100,
+        export_pgf=EXPORT_PGF
     )
