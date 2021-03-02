@@ -118,14 +118,16 @@ def test_generate_textures_lognormal_dist():
     assert tau.dtype == np.float64
     assert (tau > 0).all()
     assert np.abs(np.mean(tau) - 1) < 1e-2
-    assert np.abs(np.var(tau) - 1) < 1e-2
+    var = np.exp(1) - 1
+    assert (np.abs(np.var(tau) - var) / var) < 1e-2
 
-    tau = generate_textures_lognormal_dist(N, variance=10)
+    tau = generate_textures_lognormal_dist(N, variance=5)
     assert tau.shape == (N, 1)
     assert tau.dtype == np.float64
     assert (tau > 0).all()
-    assert np.abs(np.mean(tau) - 1) < 1e-2
-    assert np.abs(np.var(tau) - 10) < 5*1e-1
+    assert np.abs(np.mean(tau) - 1) < 2*1e-2
+    var = np.exp(5) - 1
+    assert (np.abs(np.var(tau) - var) / var) < 1e-1
 
 
 def test_generate_stiefel():

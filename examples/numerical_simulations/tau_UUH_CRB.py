@@ -37,17 +37,17 @@ def main(n_points, n_MC, p, k, N_max_simu_U, N_simu_tau, verbose=True):
     # y = stats.gamma.cdf(x, a=nu, scale=1/nu)
     # plt.plot(x, y, label='gamma(0.01, 100)')
 
-    # variance = 10
-    # s = np.sqrt(np.log(variance + 1))
+    # variance = 2
+    # s = np.sqrt(variance)
     # mu = -(s**2)/2
     # y = stats.lognorm.cdf(x, scale=np.exp(mu), s=s)
-    # plt.plot(x, y, label='lognorm(var=10)')
+    # plt.plot(x, y, label='lognorm(var=2)')
 
-    # variance = 100
-    # s = np.sqrt(np.log(variance + 1))
+    # variance = 5
+    # s = np.sqrt(variance)
     # mu = -(s**2)/2
     # y = stats.lognorm.cdf(x, scale=np.exp(mu), s=s)
-    # plt.plot(x, y, label='lognorm(var=100)')
+    # plt.plot(x, y, label='lognorm(var=5)')
 
     # plt.legend()
     # plt.show()
@@ -73,7 +73,7 @@ def main(n_points, n_MC, p, k, N_max_simu_U, N_simu_tau, verbose=True):
     # parameters simu U
     N_max = N_max_simu_U
     SNR_list = [1, 10]
-    var_list = [100, 10]
+    var_list = [4, 2]
 
     for SNR in SNR_list:
         for var in var_list:
@@ -142,7 +142,7 @@ def main(n_points, n_MC, p, k, N_max_simu_U, N_simu_tau, verbose=True):
     N = N_simu_tau
     SNR_min = 100
     SNR_max = int(1e6)
-    var_list = [10, 100]
+    var_list = [2, 4]
 
     # generate U
     U = generate_complex_stiefel(p, k)

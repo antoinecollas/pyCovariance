@@ -54,8 +54,9 @@ def generate_textures_gamma_dist(N, nu=0.1):
     return textures
 
 
-def generate_textures_lognormal_dist(N, variance=10):
-    s = np.sqrt(np.log(variance + 1))
+def generate_textures_lognormal_dist(N, variance=2.4):
+    # s = np.sqrt(np.log(variance + 1))
+    s = np.sqrt(variance)
     mu = -(s**2)/2
     textures = lognorm.rvs(scale=np.exp(mu), s=s, size=(N, 1))
     return textures
