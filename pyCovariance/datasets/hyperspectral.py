@@ -295,7 +295,7 @@ def evaluate_and_save_clustering(
 
     # mIoU
     IoU, mIoU = compute_mIoU(segmentation, gt)
-    mIoU = round(mIoU, 2)
+    mIoU = round(mIoU, 3)
     temp = 'IoU:'
     for i in range(len(IoU)):
         temp += ' class ' + str(i + 1) +\
@@ -306,26 +306,26 @@ def evaluate_and_save_clustering(
 
     # OA
     OA = compute_OA(segmentation, gt)
-    OA = round(OA, 2)
+    OA = round(OA, 3)
     if verbose:
         print('OA=', OA)
 
     # AMI
     AMI = compute_AMI(segmentation, gt)
-    AMI = round(AMI, 2)
+    AMI = round(AMI, 3)
     if verbose:
         print('AMI=', AMI)
 
     # ARI
     ARI = compute_ARI(segmentation, gt)
-    ARI = round(ARI, 2)
+    ARI = round(ARI, 3)
     if verbose:
         print('ARI=', ARI)
 
     plot_segmentation(gt + 1, title='Ground truth')
     plt.savefig(os.path.join(folder_segmentation, 'gt'))
 
-    title = 'mIoU='+str(round(mIoU, 2))+' OA='+str(round(OA, 2))
+    title = 'mIoU='+str(mIoU)+' OA='+str(OA)
     plot_segmentation(segmentation + 1, title=title)
     f_name = prefix_filename + '_K_means_' + str(feature)
     plt.savefig(os.path.join(folder_segmentation, f_name))
