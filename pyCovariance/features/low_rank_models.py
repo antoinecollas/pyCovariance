@@ -233,7 +233,7 @@ def subspace_SCM(k, assume_centered=True, p=None, **kwargs):
 
 
 @make_feature_prototype
-def subspace_tau_UUH(k, estimate_sigma=True, p=None, **kwargs):
+def subspace_tau_UUH(k, estimate_sigma=False, p=None, **kwargs):
     name = 'subspace_tau_UUH'
     name += '_k_' + str(k)
 
@@ -251,7 +251,7 @@ def subspace_tau_UUH(k, estimate_sigma=True, p=None, **kwargs):
 
 
 @make_feature_prototype
-def subspace_tau_UUH_RGD(k, estimate_sigma=True,
+def subspace_tau_UUH_RGD(k, estimate_sigma=False,
                          autodiff=False, p=None, **kwargs):
     name = 'subspace_tau_UUH_RGD'
     name += '_k_' + str(k)
@@ -271,7 +271,7 @@ def subspace_tau_UUH_RGD(k, estimate_sigma=True,
 
 
 @make_feature_prototype
-def tau_UUH(k, estimate_sigma=True, weights=None, p=None, N=None, **kwargs):
+def tau_UUH(k, estimate_sigma=False, weights=None, p=None, N=None, **kwargs):
     if weights is None:
         name = 'tau_UUH'
     else:
@@ -297,7 +297,7 @@ def tau_UUH(k, estimate_sigma=True, weights=None, p=None, N=None, **kwargs):
 
 
 @make_feature_prototype
-def tau_UUH_RGD(k, estimate_sigma=True,
+def tau_UUH_RGD(k, estimate_sigma=False, autodiff=False,
                 weights=None, p=None, N=None, **kwargs):
     if weights is None:
         name = 'tau_UUH'
@@ -317,8 +317,9 @@ def tau_UUH_RGD(k, estimate_sigma=True,
 
     def _estimate_tau_UUH(X):
         if estimate_sigma:
-            return wrapper_normalization_sigma(estimate_tau_UUH_RGD)(X, k)
+            return wrapper_normalization_sigma(estimate_tau_UUH_RGD)(
+                X, k, autodiff=autodiff)
         else:
-            return estimate_tau_UUH_RGD(X, k)
+            return estimate_tau_UUH_RGD(X, k, autodiff=autodiff)
 
     return Feature(name, _estimate_tau_UUH, M, args_M)
