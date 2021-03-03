@@ -45,26 +45,28 @@ def test_hyperspectral_indian_pines():
     k_means.main(
         dataset=dataset,
         crop_image=True,
-        n_jobs=1,
+        border_size=4,
         pairs_window_size_nb_bands=pairs_w_k,
         mask=True,
         features_list=features_list,
         n_init=1,
         max_iter=1,
-        export_pgf=False,
+        n_jobs=1,
+        export_tex=False,
         verbose=False
     )
 
     k_means.main(
         dataset=dataset,
         crop_image=True,
-        n_jobs=1,
+        border_size=4,
         pairs_window_size_nb_bands=pairs_w_k,
         mask=True,
         features_list=features_list,
         n_init=1,
         max_iter=1,
-        export_pgf=True,
+        n_jobs=1,
+        export_tex=True,
         verbose=False
     )
 

@@ -1,6 +1,7 @@
 import autograd.numpy as np
-import os
+import matplotlib
 import matplotlib.pyplot as plt
+import os
 from scipy.io import loadmat
 from sklearn.cluster import KMeans
 import time
@@ -74,7 +75,9 @@ class Dataset():
             print('\n Download', self.name, 'ground truth.')
             urllib.request.urlretrieve(self.url_gt, self.path_gt)
 
-    def load(self, crop_image=False, border_size=0):
+    def load(self, crop_image=False, border_size=0,
+             pca=False, nb_bands_to_select=None):
+
         image = loadmat(self.path)[self.key_dict]
         gt = loadmat(self.path_gt)[self.key_dict_gt]
         gt = gt.astype(np.int64)
@@ -97,6 +100,16 @@ class Dataset():
             gt[-bs:, :] = -1
             gt[:, :bs] = -1
             gt[:, -bs:] = -1
+
+        # center image globally
+        mean = np.mean(image, axis=0)
+        image = image - mean
+        # check pixels are centered
+        assert (np.abs(np.mean(image, axis=0)) < 1e-9).all()
+
+        # pca
+        if pca:
+            image = pca_image(image, nb_bands_to_select)
 
         return image, gt
 
@@ -173,25 +186,19 @@ def K_means_hyperspectral_image(dataset, hyperparams, verbose=True):
 
     if verbose:
         print("###################### PREPROCESSING ######################")
+
     # load image and gt
-    image, gt = dataset.load(hyperparams.crop_image)
+    image, gt = dataset.load(
+        crop_image=hyperparams.crop_image,
+        pca=hyperparams.pca,
+        nb_bands_to_select=hyperparams.nb_bands_to_select
+    )
+
     if verbose:
         print('Crop image:', hyperparams.crop_image)
-
-    nb_classes = np.sum(np.unique(gt) >= 0)
-
-    # center image globally
-    mean = np.mean(image, axis=0)
-    image = image - mean
-    # check pixels are centered
-    assert (np.abs(np.mean(image, axis=0)) < 1e-9).all()
-
-    # pca
-    if hyperparams.pca:
-        image = pca_image(image, hyperparams.nb_bands_to_select)
-    if verbose:
         print('PCA:', hyperparams.pca)
 
+    nb_classes = np.sum(np.unique(gt) >= 0)
     n_r, n_c, p = image.shape
 
     # mask
@@ -261,8 +268,14 @@ def evaluate_and_save_clustering(
     export_pgf=False,
     verbose=True
 ):
+
     if verbose:
         print('###################### EVALUATION ######################')
+
+    if export_pgf:
+        matplotlib.use('pgf')
+    else:
+        matplotlib.use('Agg')
 
     p = hyperparams.nb_bands_to_select
     N = hyperparams.window_size ** 2

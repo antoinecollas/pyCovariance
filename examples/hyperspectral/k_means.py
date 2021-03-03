@@ -3,6 +3,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import os
 import re
+import tikzplotlib
 
 from pyCovariance.evaluation import create_directory
 
@@ -24,19 +25,16 @@ from pyCovariance.datasets.hyperspectral import\
 def main(
     dataset,
     crop_image,
-    n_jobs,
+    border_size,
     pairs_window_size_nb_bands,
     mask,
     features_list,
     n_init,
     max_iter,
-    export_pgf=False,
+    n_jobs,
+    export_tex=False,
     verbose=True
 ):
-    if export_pgf:
-        matplotlib.use('pgf')
-    else:
-        matplotlib.use('Agg')
 
     # folder path to save files
     folder_main = create_directory(dataset.name)
@@ -47,6 +45,7 @@ def main(
         ws.append(w)
     ws.sort()
     max_w = ws[-1]//2
+    border_size = max(border_size, max_w)
 
     hp = HyperparametersKMeans(
         crop_image=crop_image,
@@ -54,7 +53,7 @@ def main(
         pca=None,
         nb_bands_to_select=None,
         mask=mask,
-        border_size=max_w,
+        border_size=border_size,
         window_size=None,
         feature=None,
         init='k-means++',
@@ -135,11 +134,13 @@ def main(
                 hyperparams=hp,
                 folder=folder,
                 prefix_filename=prefix_f_name,
-                export_pgf=export_pgf,
+                export_pgf=export_tex,
                 verbose=verbose
             )
             mIoUs.append(mIoU)
             OAs.append(OA)
+
+            matplotlib.use('Agg')
 
             # save plot of within classes variances
             fig, ax = plt.subplots(1)
@@ -153,8 +154,8 @@ def main(
             plt.title('Criterion values of ' + str(feature) + ' feature.')
             temp = str(j) + '_criterion_' + str(feature)
             path = os.path.join(folder_criteria, temp)
-            if export_pgf:
-                path += '.pgf'
+            if export_tex:
+                tikzplotlib.save(path)
             plt.savefig(path)
 
             plt.close('all')
@@ -181,8 +182,8 @@ def main(
         plt.xticks(rotation=90)
         plt.subplots_adjust(bottom=0.4)
         path = os.path.join(folder, 'mIoU_' + prefix)
-        if export_pgf:
-            path += '.pgf'
+        if export_tex:
+            tikzplotlib.save(path)
         plt.savefig(path)
 
         # Bar plot of OAs
@@ -193,8 +194,8 @@ def main(
         plt.xticks(rotation=90)
         plt.subplots_adjust(bottom=0.4)
         path = os.path.join(folder, 'OA_' + prefix)
-        if export_pgf:
-            path += '.pgf'
+        if export_tex:
+            tikzplotlib.save(path)
         plt.savefig(path)
 
         plt.close('all')
@@ -217,8 +218,8 @@ def main(
         if type(feature) is not str:
             feature = feature(p, w_size**2)
         path = os.path.join(folder, str(i) + '_mIoU_' + str(feature))
-        if export_pgf:
-            path += '.pgf'
+        if export_tex:
+            tikzplotlib.save(path)
         plt.savefig(path)
 
         # Bar plot of OAs
@@ -229,8 +230,8 @@ def main(
         plt.xticks(rotation=90)
         plt.subplots_adjust(bottom=0.4)
         path = os.path.join(folder, str(i) + '_OA_' + str(feature))
-        if export_pgf:
-            path += '.pgf'
+        if export_tex:
+            tikzplotlib.save(path)
         plt.savefig(path)
 
         plt.close('all')
@@ -241,9 +242,11 @@ if __name__ == '__main__':
     np.random.seed(seed)
     print('seed:', seed)
 
-    EXPORT_PGF = False
+    EXPORT_TEX = True
 
     def get_features(pairs_w_k):
+        C_tau = 92.8
+        C_U = 4.8
         features_list = list()
         for w, k in pairs_w_k:
             features_list.append([
@@ -252,60 +255,35 @@ if __name__ == '__main__':
                 mean_vector_euclidean(),
                 covariance(),
                 covariance_texture(),
-                covariance_texture(weights=(1, 0)),
-                tau_UUH(k, weights=(1/(w*w), 1/k)),
-                tau_UUH(k, weights=(1/(10*w*w), 1/k)),
-                tau_UUH(k, weights=(1/(100*w*w), 1/k)),
+                subspace_SCM(k),
                 tau_UUH(k, weights=(0, 1)),
-                subspace_SCM(k)
+                tau_UUH(k, weights=(0.1/C_tau, 0.9/C_U)),
+                tau_UUH(k, weights=(0.2/C_tau, 0.8/C_U)),
+                tau_UUH(k, weights=(0.3/C_tau, 0.7/C_U)),
+                tau_UUH(k, weights=(0.4/C_tau, 0.6/C_U)),
+                tau_UUH(k, weights=(0.5/C_tau, 0.5/C_U)),
             ])
         return features_list
 
-    pairs_w_k = [(5, 3), (5, 5), (5, 7),
-                 (7, 3), (7, 5), (7, 7),
-                 (9, 3), (9, 5), (9, 7)]
+    pairs_w_k = [(7, 5)]
 
-    dataset_name = 'Indian_Pines'
+    dataset_name = 'Indian_Pines' # or 'Pavia' or 'Salinas'
+    # border_size: discard 4 pixels around the image
+    # used to compare with
+    # different windows 5x5 vs 7x7 vs 9x9
+    # 9//2 == 4
+    border_size = 4
     dataset = Dataset(dataset_name)
     features_list = get_features(pairs_w_k)
     main(
         dataset=dataset,
-        crop_image=False,
-        n_jobs=os.cpu_count(),
+        crop_image=True,
+        border_size=border_size,
         pairs_window_size_nb_bands=pairs_w_k,
         mask=True,
         features_list=features_list,
         n_init=10,
         max_iter=100,
-        export_pgf=EXPORT_PGF
-    )
-
-    dataset_name = 'Pavia'
-    dataset = Dataset(dataset_name)
-    features_list = get_features(pairs_w_k)
-    main(
-        dataset=dataset,
-        crop_image=False,
         n_jobs=os.cpu_count(),
-        pairs_window_size_nb_bands=pairs_w_k,
-        mask=True,
-        features_list=features_list,
-        n_init=10,
-        max_iter=100,
-        export_pgf=EXPORT_PGF
-    )
-
-    dataset_name = 'Salinas'
-    dataset = Dataset(dataset_name)
-    features_list = get_features(pairs_w_k)
-    main(
-        dataset=dataset,
-        crop_image=False,
-        n_jobs=os.cpu_count(),
-        pairs_window_size_nb_bands=pairs_w_k,
-        mask=True,
-        features_list=features_list,
-        n_init=10,
-        max_iter=100,
-        export_pgf=EXPORT_PGF
+        export_tex=EXPORT_TEX
     )
