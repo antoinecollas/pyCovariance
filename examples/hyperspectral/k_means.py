@@ -277,7 +277,7 @@ if __name__ == '__main__':
     features_list = get_features(pairs_w_k)
     main(
         dataset=dataset,
-        crop_image=True,
+        crop_image=False,
         border_size=border_size,
         pairs_window_size_nb_bands=pairs_w_k,
         mask=True,
