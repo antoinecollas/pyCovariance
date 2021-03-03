@@ -91,6 +91,9 @@ def K_means_datacube(
         mask = mask.reshape((-1)).astype(bool)
         X = X[mask]
 
+    if verbose:
+        print('features.shape:', X.shape)
+
     C, _, _, _, all_criterion_values = _K_means(
         X,
         n_clusters,

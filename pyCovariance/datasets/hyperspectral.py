@@ -221,6 +221,9 @@ def K_means_hyperspectral_image(dataset, hyperparams, verbose=True):
             image = image[mask]
         else:
             image = image.reshape((-1, hyperparams.nb_bands_to_select))
+        if verbose:
+            print('features.shape:', image.shape)
+
         sklearn_K_means = KMeans(
             n_clusters=nb_classes,
             n_init=hyperparams.n_init,
