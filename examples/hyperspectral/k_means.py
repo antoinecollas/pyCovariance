@@ -267,7 +267,7 @@ if __name__ == '__main__':
 
     pairs_w_k = [(7, 5)]
 
-    dataset_name = 'Indian_Pines' # or 'Pavia' or 'Salinas'
+    dataset_name = 'Indian_Pines'  # or 'Pavia' or 'Salinas'
     # border_size: discard 4 pixels around the image
     # used to compare with
     # different windows 5x5 vs 7x7 vs 9x9
