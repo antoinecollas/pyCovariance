@@ -243,7 +243,7 @@ if __name__ == '__main__':
 
     EXPORT_PGF = False
 
-    def get_features(pairs_w_k, p):
+    def get_features(pairs_w_k):
         features_list = list()
         for w, k in pairs_w_k:
             features_list.append([
@@ -267,8 +267,7 @@ if __name__ == '__main__':
 
     dataset_name = 'Indian_Pines'
     dataset = Dataset(dataset_name)
-    p = dataset.dimension
-    features_list = get_features(pairs_w_k, p)
+    features_list = get_features(pairs_w_k)
     main(
         dataset=dataset,
         crop_image=False,
@@ -283,8 +282,7 @@ if __name__ == '__main__':
 
     dataset_name = 'Pavia'
     dataset = Dataset(dataset_name)
-    p = dataset.dimension
-    features_list = get_features(pairs_w_k, p)
+    features_list = get_features(pairs_w_k)
     main(
         dataset=dataset,
         crop_image=False,
@@ -299,8 +297,7 @@ if __name__ == '__main__':
 
     dataset_name = 'Salinas'
     dataset = Dataset(dataset_name)
-    p = dataset.dimension
-    features_list = get_features(pairs_w_k, p)
+    features_list = get_features(pairs_w_k)
     main(
         dataset=dataset,
         crop_image=False,
