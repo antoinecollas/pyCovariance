@@ -97,20 +97,36 @@ if __name__ == '__main__':
     np.random.seed(seed)
     print('seed:', seed)
 
-    dataset_name = 'Indian_Pines'
     # border_size: discard 4 pixels around the image
     # used to compare with
     # different windows 5x5 vs 7x7 vs 9x9
     # 9//2 == 4
+    dataset_name = 'Indian_Pines'
     border_size = 4
     window_size = 7
     k = 5
     estimate_sigma = True
     dataset = Dataset(dataset_name)
-
     main(
         dataset=dataset,
-        crop_image=True,
+        crop_image=False,
+        border_size=border_size,
+        window_size=window_size,
+        k=k,
+        estimate_sigma=estimate_sigma,
+        mask=True,
+        n_jobs=os.cpu_count()
+    )
+
+    dataset_name = 'Indian_Pines'
+    border_size = 4
+    window_size = 7
+    k = 5
+    estimate_sigma = False
+    dataset = Dataset(dataset_name)
+    main(
+        dataset=dataset,
+        crop_image=False,
         border_size=border_size,
         window_size=window_size,
         k=k,

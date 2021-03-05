@@ -242,30 +242,33 @@ if __name__ == '__main__':
     np.random.seed(seed)
     print('seed:', seed)
 
-    EXPORT_TEX = True
-
-    def get_features(pairs_w_k):
-        C_tau = 92.8
-        C_U = 4.8
-        features_list = list()
-        for w, k in pairs_w_k:
-            features_list.append([
-                'sklearn',
-                center_euclidean(),
-                mean_vector_euclidean(),
-                covariance(),
-                covariance_texture(),
-                subspace_SCM(k),
-                tau_UUH(k, weights=(0, 1)),
-                tau_UUH(k, weights=(0.1/C_tau, 0.9/C_U)),
-                tau_UUH(k, weights=(0.2/C_tau, 0.8/C_U)),
-                tau_UUH(k, weights=(0.3/C_tau, 0.7/C_U)),
-                tau_UUH(k, weights=(0.4/C_tau, 0.6/C_U)),
-                tau_UUH(k, weights=(0.5/C_tau, 0.5/C_U)),
-            ])
-        return features_list
-
     pairs_w_k = [(7, 5)]
+    C_tau_1 = 92.77
+    C_U_1 = 4.81
+    C_tau_2 = 90.85
+    C_U_2 = 4.80
+    features_list = list()
+    for _, k in pairs_w_k:
+        features_list.append([
+            'sklearn',
+            center_euclidean(),
+            mean_vector_euclidean(),
+            covariance(),
+            covariance_texture(),
+            subspace_SCM(k),
+            tau_UUH(k, weights=(0, 1), estimate_sigma=True),
+            tau_UUH(k, weights=(0.1/C_tau_1, 0.9/C_U_1), estimate_sigma=True),
+            tau_UUH(k, weights=(0.2/C_tau_1, 0.8/C_U_1), estimate_sigma=True),
+            tau_UUH(k, weights=(0.3/C_tau_1, 0.7/C_U_1), estimate_sigma=True),
+            tau_UUH(k, weights=(0.4/C_tau_1, 0.6/C_U_1), estimate_sigma=True),
+            tau_UUH(k, weights=(0.5/C_tau_1, 0.5/C_U_1), estimate_sigma=True),
+            tau_UUH(k, weights=(0, 1), estimate_sigma=False),
+            tau_UUH(k, weights=(0.1/C_tau_2, 0.9/C_U_2), estimate_sigma=False),
+            tau_UUH(k, weights=(0.2/C_tau_2, 0.8/C_U_2), estimate_sigma=False),
+            tau_UUH(k, weights=(0.3/C_tau_2, 0.7/C_U_2), estimate_sigma=False),
+            tau_UUH(k, weights=(0.4/C_tau_2, 0.6/C_U_2), estimate_sigma=False),
+            tau_UUH(k, weights=(0.5/C_tau_2, 0.5/C_U_2), estimate_sigma=False)
+        ])
 
     dataset_name = 'Indian_Pines'  # or 'Pavia' or 'Salinas'
     # border_size: discard 4 pixels around the image
@@ -274,7 +277,6 @@ if __name__ == '__main__':
     # 9//2 == 4
     border_size = 4
     dataset = Dataset(dataset_name)
-    features_list = get_features(pairs_w_k)
     main(
         dataset=dataset,
         crop_image=False,
@@ -285,5 +287,5 @@ if __name__ == '__main__':
         n_init=10,
         max_iter=100,
         n_jobs=os.cpu_count(),
-        export_tex=EXPORT_TEX
+        export_tex=True
     )
