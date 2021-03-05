@@ -166,10 +166,10 @@ def main(
     # comparison between models for a (w, p) fixed
     for i, (w_size, p) in enumerate(pairs_w_p):
         features_str = list()
-        for feature in features_list[i]:
+        for j, feature in enumerate(features_list[i]):
             if type(feature) is not str:
                 feature = feature(p, w_size**2)
-            features_str.append(str(feature))
+            features_str.append(str(j) + '_' + str(feature))
 
         prefix = 'w' + str(w_size) + '_p' + str(p)
         folder = os.path.join(folder_main, prefix)
