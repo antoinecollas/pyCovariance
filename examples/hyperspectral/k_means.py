@@ -29,6 +29,7 @@ def main(
     pairs_window_size_nb_bands,
     mask,
     features_list,
+    n_experiments,
     n_init,
     max_iter,
     n_jobs,
@@ -65,12 +66,14 @@ def main(
     pairs_w_p = pairs_window_size_nb_bands
 
     # check that there is same number of features for all (w, p) pairs
-    nb_features = len(features_list[0])
+    n_features = len(features_list[0])
     for i in range(len(pairs_w_p)):
-        assert nb_features == len(features_list[i])
+        assert n_features == len(features_list[i])
 
-    matrix_mIoUs = np.zeros((len(pairs_w_p), nb_features))
-    matrix_OAs = np.zeros((len(pairs_w_p), nb_features))
+    matrix_mIoUs = np.zeros((len(pairs_w_p), n_features))
+    matrix_OAs = np.zeros((len(pairs_w_p), n_features))
+    matrix_mIoUs_std = np.zeros((len(pairs_w_p), n_features))
+    matrix_OAs_std = np.zeros((len(pairs_w_p), n_features))
 
     for i, (w_size, p) in enumerate(pairs_w_p):
         if verbose:
@@ -94,8 +97,8 @@ def main(
             os.makedirs(folder_criteria, exist_ok=True)
 
         # K means and evaluations
-        mIoUs = list()
-        OAs = list()
+        mIoUs, OAs = list(), list()
+        mIoUs_std, OAs_std = list(), list()
 
         for j, feature in enumerate(features):
             hp.feature = feature
@@ -121,47 +124,89 @@ def main(
                     _str = str(hp.feature(p, w_size**2))
                 print('Feature:', _str)
 
-            C, criterion_values = K_means_hyperspectral_image(
-                dataset,
-                hp,
-                verbose
+            mIoU, OA = list(), list()
+
+            if verbose:
+                print('Crop image:', hp.crop_image)
+                print('PCA:', hp.pca)
+
+            # load image and gt
+            image, gt = dataset.load(
+                crop_image=hp.crop_image,
+                pca=hp.pca,
+                nb_bands_to_select=hp.nb_bands_to_select
             )
 
-            prefix_f_name = str(j)
-            mIoU, OA = evaluate_and_save_clustering(
-                segmentation=C,
-                dataset=dataset,
-                hyperparams=hp,
-                folder=folder,
-                prefix_filename=prefix_f_name,
-                export_pgf=export_tex,
-                verbose=verbose
-            )
-            mIoUs.append(mIoU)
-            OAs.append(OA)
+            if verbose:
+                print('image.shape:', image.shape)
+                print()
 
-            matplotlib.use('Agg')
+            for k in range(n_experiments):
+                if verbose:
+                    print('Experiment:', str(k+1) + '/' + str(n_experiments))
 
-            # save plot of within classes variances
-            fig, ax = plt.subplots(1)
-            for c_value in criterion_values:
-                x = list(range(len(c_value)))
-                plt.plot(x, c_value, '+--')
-            plt.ylabel('sum of within-classes variances')
-            if type(feature) is not str:
-                N = w_size ** 2
-                feature = feature(p, N)
-            plt.title('Criterion values of ' + str(feature) + ' feature.')
-            temp = str(j) + '_criterion_' + str(feature)
-            path = os.path.join(folder_criteria, temp)
-            if export_tex:
-                tikzplotlib.save(path)
-            plt.savefig(path)
+                C, criterion_values = K_means_hyperspectral_image(
+                    image=image,
+                    gt=gt,
+                    hyperparams=hp,
+                    verbose=verbose
+                )
 
-            plt.close('all')
+                prefix_f_name = str(j) + '_exp_' + str(k)
+                tmp_mIoU, tmp_OA = evaluate_and_save_clustering(
+                    segmentation=C,
+                    dataset=dataset,
+                    hyperparams=hp,
+                    folder=folder,
+                    prefix_filename=prefix_f_name,
+                    export_pgf=export_tex,
+                    verbose=False
+                )
+                if verbose:
+                    print('mIoU=', round(tmp_mIoU, 3))
+                    print('OA=', round(tmp_OA, 3))
+                mIoU.append(tmp_mIoU)
+                OA.append(tmp_OA)
+
+                matplotlib.use('Agg')
+
+                # save plot of within classes variances
+                fig, ax = plt.subplots(1)
+                for c_value in criterion_values:
+                    x = list(range(len(c_value)))
+                    plt.plot(x, c_value, '+--')
+                plt.ylabel('sum of within-classes variances')
+                if callable(feature):
+                    N = w_size ** 2
+                    feature = feature(p, N)
+                plt.title('Criterion values of ' + str(feature) + ' feature.')
+                temp = str(j) + '_criterion_' + str(feature) + '_exp_' + str(k)
+                path = os.path.join(folder_criteria, temp)
+                if export_tex:
+                    tikzplotlib.save(path)
+                plt.savefig(path)
+
+                plt.close('all')
+
+                if verbose:
+                    print()
+
+            mIoU_mean = round(np.mean(mIoU), 4)
+            mIoU_std = round(np.std(mIoU), 4)
+            mIoUs.append(mIoU_mean)
+            mIoUs_std.append(mIoU_std)
+            OA_mean = round(np.mean(OA), 4)
+            OA_std = round(np.std(OA), 4)
+            OAs.append(OA_mean)
+            OAs_std.append(OA_std)
+            if verbose:
+                print('Final mIoU=', mIoU_mean, '+-', mIoU_std)
+                print('Final OA=', OA_mean, '+-', OA_std)
 
         matrix_mIoUs[i, :] = mIoUs
         matrix_OAs[i, :] = OAs
+        matrix_mIoUs_std[i, :] = mIoUs_std
+        matrix_OAs_std[i, :] = OAs_std
 
     # comparison between models for a (w, p) fixed
     for i, (w_size, p) in enumerate(pairs_w_p):
@@ -176,7 +221,8 @@ def main(
 
         # Bar plot of mIoUs
         fig, ax = plt.subplots(1)
-        ax.bar(features_str, matrix_mIoUs[i, :], align='center')
+        ax.bar(features_str, matrix_mIoUs[i, :],
+               yerr=matrix_mIoUs_std[i, :], align='center')
         ax.set_ylim(0, 1)
         plt.ylabel('mIoU')
         plt.xticks(rotation=90)
@@ -188,7 +234,8 @@ def main(
 
         # Bar plot of OAs
         fig, ax = plt.subplots(1)
-        ax.bar(features_str, matrix_OAs[i, :], align='center')
+        ax.bar(features_str, matrix_OAs[i, :],
+               yerr=matrix_OAs_std[i, :], align='center')
         ax.set_ylim(0, 1)
         plt.ylabel('OA')
         plt.xticks(rotation=90)
@@ -210,7 +257,8 @@ def main(
 
         # Bar plot of mIoUs
         fig, ax = plt.subplots(1)
-        ax.bar(pairs_str, matrix_mIoUs[:, i].reshape(-1), align='center')
+        ax.bar(pairs_str, matrix_mIoUs[:, i].reshape(-1),
+               yerr=matrix_mIoUs_std[:, i].reshape(-1), align='center')
         ax.set_ylim(0, 1)
         plt.ylabel('mIoU')
         plt.xticks(rotation=90)
@@ -224,7 +272,8 @@ def main(
 
         # Bar plot of OAs
         fig, ax = plt.subplots(1)
-        ax.bar(pairs_str, matrix_OAs[:, i].reshape(-1), align='center')
+        ax.bar(pairs_str, matrix_OAs[:, i].reshape(-1),
+               yerr=matrix_mIoUs_std[:, i].reshape(-1), align='center')
         ax.set_ylim(0, 1)
         plt.ylabel('OA')
         plt.xticks(rotation=90)
@@ -284,6 +333,7 @@ if __name__ == '__main__':
         pairs_window_size_nb_bands=pairs_w_k,
         mask=True,
         features_list=features_list,
+        n_experiments=10,
         n_init=10,
         max_iter=100,
         n_jobs=os.cpu_count(),

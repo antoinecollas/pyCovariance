@@ -181,22 +181,8 @@ class HyperparametersKMeans():
         self.eps = eps
 
 
-def K_means_hyperspectral_image(dataset, hyperparams, verbose=True):
+def K_means_hyperspectral_image(image, gt, hyperparams, verbose=True):
     t_beginning = time.time()
-
-    if verbose:
-        print("###################### PREPROCESSING ######################")
-
-    # load image and gt
-    image, gt = dataset.load(
-        crop_image=hyperparams.crop_image,
-        pca=hyperparams.pca,
-        nb_bands_to_select=hyperparams.nb_bands_to_select
-    )
-
-    if verbose:
-        print('Crop image:', hyperparams.crop_image)
-        print('PCA:', hyperparams.pca)
 
     nb_classes = np.sum(np.unique(gt) >= 0)
     n_r, n_c, p = image.shape
@@ -211,9 +197,6 @@ def K_means_hyperspectral_image(dataset, hyperparams, verbose=True):
         mask[:, -bs:] = False
     if hyperparams.mask:
         mask[gt < 0] = False
-
-    if verbose:
-        print('image.shape:', image.shape)
 
     h = w = hyperparams.window_size//2
     if hyperparams.feature == 'sklearn':
@@ -312,32 +295,28 @@ def evaluate_and_save_clustering(
 
     # mIoU
     IoU, mIoU = compute_mIoU(segmentation, gt)
-    mIoU = round(mIoU, 3)
     temp = 'IoU:'
     for i in range(len(IoU)):
         temp += ' class ' + str(i + 1) +\
                 ': ' + str(round(IoU[i], 2))
     if verbose:
         print(temp)
-        print('mIoU=', mIoU)
+        print('mIoU=', round(mIoU, 3))
 
     # OA
     OA = compute_OA(segmentation, gt)
-    OA = round(OA, 3)
     if verbose:
-        print('OA=', OA)
+        print('OA=', round(OA, 3))
 
     # AMI
     AMI = compute_AMI(segmentation, gt)
-    AMI = round(AMI, 3)
     if verbose:
-        print('AMI=', AMI)
+        print('AMI=', round(AMI, 3))
 
     # ARI
     ARI = compute_ARI(segmentation, gt)
-    ARI = round(ARI, 3)
     if verbose:
-        print('ARI=', ARI)
+        print('ARI=', round(ARI, 3))
 
     plot_segmentation(gt + 1, title='Ground truth')
     path = os.path.join(folder_segmentation, 'gt')
@@ -345,7 +324,7 @@ def evaluate_and_save_clustering(
         path += '.pgf'
     plt.savefig(path)
 
-    title = 'mIoU='+str(mIoU)+' OA='+str(OA)
+    title = 'mIoU=' + str(round(mIoU, 3)) + ' OA=' + str(round(OA, 3))
     plot_segmentation(segmentation + 1, title=title)
     f_name = prefix_filename + '_K_means_' + str(feature)
     path = os.path.join(folder_segmentation, f_name)
