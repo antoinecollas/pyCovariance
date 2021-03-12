@@ -213,7 +213,7 @@ def main(n_points, n_MC, p, k, N_max_simu_U, N_simu_tau, verbose=True):
 if __name__ == '__main__':
     main(
         n_points=10,
-        n_MC=10,
+        n_MC=100,
         p=100,
         k=20,
         N_max_simu_U=int(5*1e4),

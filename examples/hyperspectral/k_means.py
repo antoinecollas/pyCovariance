@@ -26,7 +26,7 @@ def main(
     dataset,
     crop_image,
     border_size,
-    pairs_window_size_nb_bands,
+    pairs_window_size_n_bands,
     mask,
     features_list,
     n_experiments,
@@ -42,7 +42,7 @@ def main(
 
     # get biggest window size to eliminate borders of the image in the mask
     ws = list()
-    for w, _ in pairs_window_size_nb_bands:
+    for w, _ in pairs_window_size_n_bands:
         ws.append(w)
     ws.sort()
     max_w = ws[-1]//2
@@ -63,7 +63,7 @@ def main(
         eps=1e-3
     )
 
-    pairs_w_p = pairs_window_size_nb_bands
+    pairs_w_p = pairs_window_size_n_bands
 
     # check that there is same number of features for all (w, p) pairs
     n_features = len(features_list[0])
@@ -291,33 +291,47 @@ if __name__ == '__main__':
     np.random.seed(seed)
     print('seed:', seed)
 
-    pairs_w_k = [(7, 5)]
-    C_tau_1 = 92.77
-    C_U_1 = 4.81
-    C_tau_2 = 90.85
-    C_U_2 = 4.80
-    features_list = list()
-    for _, k in pairs_w_k:
-        features_list.append([
-            'sklearn',
-            center_euclidean(),
-            mean_vector_euclidean(),
-            covariance(),
-            covariance_texture(),
-            subspace_SCM(k),
-            tau_UUH(k, weights=(0, 1), estimate_sigma=True),
-            tau_UUH(k, weights=(0.1/C_tau_1, 0.9/C_U_1), estimate_sigma=True),
-            tau_UUH(k, weights=(0.2/C_tau_1, 0.8/C_U_1), estimate_sigma=True),
-            tau_UUH(k, weights=(0.3/C_tau_1, 0.7/C_U_1), estimate_sigma=True),
-            tau_UUH(k, weights=(0.4/C_tau_1, 0.6/C_U_1), estimate_sigma=True),
-            tau_UUH(k, weights=(0.5/C_tau_1, 0.5/C_U_1), estimate_sigma=True),
-            tau_UUH(k, weights=(0, 1), estimate_sigma=False),
-            tau_UUH(k, weights=(0.1/C_tau_2, 0.9/C_U_2), estimate_sigma=False),
-            tau_UUH(k, weights=(0.2/C_tau_2, 0.8/C_U_2), estimate_sigma=False),
-            tau_UUH(k, weights=(0.3/C_tau_2, 0.7/C_U_2), estimate_sigma=False),
-            tau_UUH(k, weights=(0.4/C_tau_2, 0.6/C_U_2), estimate_sigma=False),
-            tau_UUH(k, weights=(0.5/C_tau_2, 0.5/C_U_2), estimate_sigma=False)
-        ])
+    pairs_w_k, features_list = list(), list()
+
+    # w=7, k=5
+    w, k = 7, 5
+    pairs_w_k.append((w, k))
+
+    # w=7, k=5, estimate_sigma=True
+    C_tau = 92.77
+    C_U = 4.81
+
+    features_list.append([
+        'sklearn',
+        center_euclidean(),
+        mean_vector_euclidean(),
+        covariance(),
+        covariance_texture(),
+        subspace_SCM(k),
+        tau_UUH(k, weights=(0, 1), estimate_sigma=True),
+        tau_UUH(k, weights=(0.1/C_tau, 0.9/C_U), estimate_sigma=True),
+        tau_UUH(k, weights=(0.2/C_tau, 0.8/C_U), estimate_sigma=True),
+        tau_UUH(k, weights=(0.3/C_tau, 0.7/C_U), estimate_sigma=True),
+        tau_UUH(k, weights=(0.4/C_tau, 0.6/C_U), estimate_sigma=True),
+        tau_UUH(k, weights=(0.5/C_tau, 0.5/C_U), estimate_sigma=True),
+    ])
+
+    # constants in the case estimate_sigma=False
+    # w=7, k=5, estimate_sigma=False
+    # C_tau = 90.85
+    # C_U = 4.80
+
+    # w=7, k=7, estimate_sigma=True
+    # C_tau = 88.40
+    # C_U = 6.92
+
+    # w=9, k=5, estimate_sigma=True
+    # C_tau = 158.88
+    # C_U = 4.58
+
+    # w=9, k=7, estimate_sigma=True
+    # C_tau = 149.66
+    # C_U = 6.52
 
     dataset_name = 'Indian_Pines'  # or 'Pavia' or 'Salinas'
     # border_size: discard 4 pixels around the image
@@ -330,7 +344,7 @@ if __name__ == '__main__':
         dataset=dataset,
         crop_image=False,
         border_size=border_size,
-        pairs_window_size_nb_bands=pairs_w_k,
+        pairs_window_size_n_bands=pairs_w_k,
         mask=True,
         features_list=features_list,
         n_experiments=10,
