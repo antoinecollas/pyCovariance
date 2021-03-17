@@ -8,12 +8,12 @@ import tikzplotlib
 from pyCovariance.evaluation import create_directory
 
 from pyCovariance.features import\
-        center_euclidean,\
         covariance,\
-        covariance_texture,\
-        mean_vector_euclidean,\
-        subspace_SCM,\
         tau_UUH
+# center_euclidean,\
+# covariance_texture,\
+# mean_vector_euclidean,\
+# subspace_SCM,\
 
 from pyCovariance.datasets.hyperspectral import\
         Dataset,\
@@ -293,52 +293,64 @@ if __name__ == '__main__':
 
     pairs_w_k, features_list = list(), list()
 
-    # w=7, k=5
+    #####
+    w, k = 5, 5
+    pairs_w_k.append((w, k))
+
+    # w=5, k=5, estimate_sigma=True
+    C_tau = 47.27
+    C_U = 5.14
+
+    features_list.append([
+        covariance(),
+        tau_UUH(k, weights=(0.1/C_tau, 0.9/C_U), estimate_sigma=True),
+    ])
+
+    #####
     w, k = 7, 5
     pairs_w_k.append((w, k))
 
     # w=7, k=5, estimate_sigma=True
-    C_tau = 92.77
-    C_U = 4.81
+    C_tau = 92.10
+    C_U = 4.80
 
     features_list.append([
-        'sklearn',
-        center_euclidean(),
-        mean_vector_euclidean(),
         covariance(),
-        covariance_texture(),
-        subspace_SCM(k),
-        tau_UUH(k, weights=(0, 1), estimate_sigma=True),
         tau_UUH(k, weights=(0.1/C_tau, 0.9/C_U), estimate_sigma=True),
-        tau_UUH(k, weights=(0.2/C_tau, 0.8/C_U), estimate_sigma=True),
-        tau_UUH(k, weights=(0.3/C_tau, 0.7/C_U), estimate_sigma=True),
-        tau_UUH(k, weights=(0.4/C_tau, 0.6/C_U), estimate_sigma=True),
-        tau_UUH(k, weights=(0.5/C_tau, 0.5/C_U), estimate_sigma=True),
     ])
 
-    # constants in the case estimate_sigma=False
-    # w=7, k=5, estimate_sigma=False
-    # C_tau = 90.85
-    # C_U = 4.80
-
-    # w=7, k=7, estimate_sigma=True
-    # C_tau = 88.40
-    # C_U = 6.92
+    #####
+    w, k = 9, 5
+    pairs_w_k.append((w, k))
 
     # w=9, k=5, estimate_sigma=True
-    # C_tau = 158.88
-    # C_U = 4.58
+    C_tau = 157.90
+    C_U = 4.58
 
-    # w=9, k=7, estimate_sigma=True
-    # C_tau = 149.66
-    # C_U = 6.52
+    features_list.append([
+        covariance(),
+        tau_UUH(k, weights=(0.1/C_tau, 0.9/C_U), estimate_sigma=True),
+    ])
+
+    #####
+    w, k = 11, 5
+    pairs_w_k.append((w, k))
+
+    # w=11, k=5, estimate_sigma=True
+    C_tau = 239.33
+    C_U = 4.37
+
+    features_list.append([
+        covariance(),
+        tau_UUH(k, weights=(0.1/C_tau, 0.9/C_U), estimate_sigma=True),
+    ])
 
     dataset_name = 'Indian_Pines'  # or 'Pavia' or 'Salinas'
-    # border_size: discard 4 pixels around the image
+    # border_size: discard 5 pixels around the image
     # used to compare with
-    # different windows 5x5 vs 7x7 vs 9x9
-    # 9//2 == 4
-    border_size = 4
+    # different windows 5x5 vs 7x7 vs 9x9 vs 11x11
+    # 11//2 == 5
+    border_size = 5
     dataset = Dataset(dataset_name)
     main(
         dataset=dataset,
