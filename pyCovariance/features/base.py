@@ -344,17 +344,20 @@ class Feature():
 
         return log
 
-    def mean(self, X):
+    def mean(self, X, init=None):
         """ Compute mean of features (points on manifold self.M).
             ----------------------------------------------------------------------
             Inputs:
             --------
                 * X = _FeatureArray
+                * init = _FeatureArray or None
             Outputs:
             ---------
                 * mean = _FeatureArray
             """
         check_type(X, 'X', [_FeatureArray])
+        if init is not None:
+            check_type(init, 'init', [_FeatureArray])
 
         def _minus_grad(X, theta):
             minus_grad = self.log(theta, X).export()
@@ -377,7 +380,10 @@ class Feature():
         minus_grad = _create_minus_grad_fct(X)
 
         # initialisation
-        theta = X[int(np.random.randint(len(X), size=1)[0])]
+        if init is None:
+            theta = X[int(np.random.randint(len(X), size=1)[0])]
+        else:
+            theta = init
         g = minus_grad(theta)
         _iter = 0
         lr = 1

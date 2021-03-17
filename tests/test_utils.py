@@ -65,6 +65,20 @@ def test__compute_means():
     for k in range(K):
         np_test.assert_almost_equal(m[k], np.mean(X[C == k].export(), axis=0))
 
+    # single thread with init
+    init = _FeatureArray((p, ))
+    for _ in range(K):
+        init.append(rnd.randn(p))
+    m = _compute_means(X,
+                       C,
+                       feature.mean,
+                       init=init,
+                       n_jobs=1).export()
+    assert m.dtype == np.float64
+    assert m.shape == (K, p)
+    for k in range(K):
+        np_test.assert_almost_equal(m[k], np.mean(X[C == k].export(), axis=0))
+
     # multiple threads
     m = _compute_means(X,
                        C,

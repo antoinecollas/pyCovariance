@@ -16,13 +16,15 @@ def _estimate_features(X, estimation_fct, n_jobs=1):
     return X
 
 
-def _compute_means(X, y, mean_fct, n_jobs=1):
+def _compute_means(X, y, mean_fct, init=None, n_jobs=1):
     classes = np.unique(y)
+    if init is None:
+        init = [None] * len(classes)
     if n_jobs == 1:
-        temp = [mean_fct(X[y == i]) for i in classes]
+        temp = [mean_fct(X[y == i], j) for i, j in zip(classes, init)]
     else:
         temp = Parallel(n_jobs=n_jobs)(
-            delayed(mean_fct)(X[y == i]) for i in classes)
+            delayed(mean_fct)(X[y == i], j) for i, j in zip(classes, init))
 
     means = temp[0]
     for m in temp[1:]:

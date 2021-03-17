@@ -68,7 +68,7 @@ class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
         X = _estimate_features(X, feature.estimation, n_jobs)
 
         # centroids computation
-        self._means = _compute_means(X, y, feature.mean, n_jobs)
+        self._means = _compute_means(X, y, feature.mean, n_jobs=n_jobs)
 
         if verbose:
             print('MDM fitting done in %f s.' % (time() - t_beginning))
@@ -111,7 +111,7 @@ class MDM(BaseEstimator, ClassifierMixin, TransformerMixin):
 
         # centroids computation
         distances = _compute_pairwise_distances(
-            X, means, feature.distance, n_jobs)
+            X, means, feature.distance, n_jobs=n_jobs)
 
         return distances
 

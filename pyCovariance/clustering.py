@@ -154,7 +154,7 @@ def _K_means(
                 X,
                 mu,
                 distance,
-                n_jobs
+                n_jobs=n_jobs
             )
 
             # -----------------------------------------
@@ -187,7 +187,8 @@ def _K_means(
                 X,
                 C,
                 mean_function,
-                n_jobs,
+                init=mu,
+                n_jobs=n_jobs
             )
 
             i = i + 1
