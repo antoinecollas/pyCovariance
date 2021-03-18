@@ -8,12 +8,11 @@ import tikzplotlib
 from pyCovariance.evaluation import create_directory
 
 from pyCovariance.features import\
-        covariance,\
+        center_euclidean,\
+        mean_vector_euclidean,\
+        subspace_SCM,\
         tau_UUH
-# center_euclidean,\
-# covariance_texture,\
-# mean_vector_euclidean,\
-# subspace_SCM,\
+# covariance,\
 
 from pyCovariance.datasets.hyperspectral import\
         Dataset,\
@@ -293,33 +292,6 @@ if __name__ == '__main__':
 
     pairs_w_k, features_list = list(), list()
 
-    #####
-    w, k = 5, 5
-    pairs_w_k.append((w, k))
-
-    # w=5, k=5, estimate_sigma=True
-    C_tau = 47.27
-    C_U = 5.14
-
-    features_list.append([
-        covariance(),
-        tau_UUH(k, weights=(0.1/C_tau, 0.9/C_U), estimate_sigma=True),
-    ])
-
-    #####
-    w, k = 7, 5
-    pairs_w_k.append((w, k))
-
-    # w=7, k=5, estimate_sigma=True
-    C_tau = 92.10
-    C_U = 4.80
-
-    features_list.append([
-        covariance(),
-        tau_UUH(k, weights=(0.1/C_tau, 0.9/C_U), estimate_sigma=True),
-    ])
-
-    #####
     w, k = 9, 5
     pairs_w_k.append((w, k))
 
@@ -328,21 +300,20 @@ if __name__ == '__main__':
     C_U = 4.58
 
     features_list.append([
-        covariance(),
-        tau_UUH(k, weights=(0.1/C_tau, 0.9/C_U), estimate_sigma=True),
-    ])
-
-    #####
-    w, k = 11, 5
-    pairs_w_k.append((w, k))
-
-    # w=11, k=5, estimate_sigma=True
-    C_tau = 239.33
-    C_U = 4.37
-
-    features_list.append([
-        covariance(),
-        tau_UUH(k, weights=(0.1/C_tau, 0.9/C_U), estimate_sigma=True),
+        'sklearn',
+        center_euclidean(),
+        mean_vector_euclidean(),
+        subspace_SCM(k),
+        tau_UUH(k, weights=(0, 1), estimate_sigma=True),
+        tau_UUH(k, weights=(0.05/C_tau, 0.95/C_U), estimate_sigma=True),
+        tau_UUH(k, weights=(0.15/C_tau, 0.85/C_U), estimate_sigma=True),
+        tau_UUH(k, weights=(0.2/C_tau, 0.8/C_U), estimate_sigma=True),
+        tau_UUH(k, weights=(0.25/C_tau, 0.75/C_U), estimate_sigma=True),
+        tau_UUH(k, weights=(0.3/C_tau, 0.7/C_U), estimate_sigma=True),
+        tau_UUH(k, weights=(0.35/C_tau, 0.65/C_U), estimate_sigma=True),
+        tau_UUH(k, weights=(0.4/C_tau, 0.6/C_U), estimate_sigma=True),
+        tau_UUH(k, weights=(0.45/C_tau, 0.55/C_U), estimate_sigma=True),
+        tau_UUH(k, weights=(0.5/C_tau, 0.5/C_U), estimate_sigma=True)
     ])
 
     dataset_name = 'Indian_Pines'  # or 'Pavia' or 'Salinas'
