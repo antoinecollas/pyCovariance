@@ -9,10 +9,10 @@ from pyCovariance.evaluation import create_directory
 
 from pyCovariance.features import\
         center_euclidean,\
+        covariance,\
         mean_vector_euclidean,\
         subspace_SCM,\
         tau_UUH
-# covariance,\
 
 from pyCovariance.datasets.hyperspectral import\
         Dataset,\
@@ -292,20 +292,22 @@ if __name__ == '__main__':
 
     pairs_w_k, features_list = list(), list()
 
-    w, k = 9, 5
+    w, k = 7, 5
     pairs_w_k.append((w, k))
 
-    # w=9, k=5, estimate_sigma=True
-    C_tau = 157.90
-    C_U = 4.58
+    # w=7, k=5, estimate_sigma=True
+    C_tau = 92.77
+    C_U = 4.81
 
     features_list.append([
         'sklearn',
         center_euclidean(),
         mean_vector_euclidean(),
+        covariance(),
         subspace_SCM(k),
         tau_UUH(k, weights=(0, 1), estimate_sigma=True),
         tau_UUH(k, weights=(0.05/C_tau, 0.95/C_U), estimate_sigma=True),
+        tau_UUH(k, weights=(0.1/C_tau, 0.9/C_U), estimate_sigma=True),
         tau_UUH(k, weights=(0.15/C_tau, 0.85/C_U), estimate_sigma=True),
         tau_UUH(k, weights=(0.2/C_tau, 0.8/C_U), estimate_sigma=True),
         tau_UUH(k, weights=(0.25/C_tau, 0.75/C_U), estimate_sigma=True),
@@ -317,10 +319,10 @@ if __name__ == '__main__':
     ])
 
     dataset_name = 'Indian_Pines'  # or 'Pavia' or 'Salinas'
-    # border_size: discard 5 pixels around the image
+    # border_size: discard 4 pixels around the image
     # used to compare with
-    # different windows 5x5 vs 7x7 vs 9x9 vs 11x11
-    # 11//2 == 5
+    # different windows 5x5 vs 7x7 vs 9x9
+    # 9//2 == 4
     border_size = 5
     dataset = Dataset(dataset_name)
     main(
