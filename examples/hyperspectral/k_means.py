@@ -323,7 +323,7 @@ if __name__ == '__main__':
     # used to compare with
     # different windows 5x5 vs 7x7 vs 9x9
     # 9//2 == 4
-    border_size = 5
+    border_size = 4
     dataset = Dataset(dataset_name)
     main(
         dataset=dataset,
