@@ -4,7 +4,7 @@ from pyCovariance.features import covariance_texture,\
         center_intensity_euclidean,\
         center_euclidean
 
-from examples.hyperspectral import demo, k_means, metric_weights
+from examples.hyperspectral import demo, k_means, metric_weights, stats
 from examples.numerical_simulations import\
         tau_UUH_CRB,\
         location_covariance_texture as location_covariance_texture_MSE
@@ -121,6 +121,21 @@ def test_hyperspectral_indian_pines():
 #         max_iter=1,
 #         verbose=False
 #     )
+
+
+def test_hyperspectral_stats_indian_pines():
+    rnd.seed(123)
+
+    dataset_name = 'Indian_Pines'
+    dataset = Dataset(dataset_name)
+
+    stats.main(
+        dataset=dataset,
+        border_size=4,
+        mask=True,
+        export_tex=True,
+        verbose=False
+    )
 
 
 def test_hyperspectral_metric_weights():
