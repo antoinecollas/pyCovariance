@@ -48,7 +48,7 @@ def main(
     cumsum = np.concatenate([[0], cumsum])
     x = list(range(cumsum.shape[0]))
 
-    plt.plot(x[:30], cumsum[:30], marker='+')
+    plt.plot(x[:31], cumsum[:31], marker='+')
     path = os.path.join(folder, 'plot_cumulative_eigenvalues')
     if export_tex:
         tikzplotlib.save(path)
