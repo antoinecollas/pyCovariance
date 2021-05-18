@@ -1,5 +1,6 @@
 import autograd.numpy as np
 from autograd.numpy import random as rnd
+import matplotlib
 import matplotlib.pyplot as plt
 import os
 from tqdm import tqdm
@@ -26,6 +27,8 @@ def main(
     iter_max_RGD,
     verbose=True
 ):
+    matplotlib.use('Agg')
+
     if verbose:
         print('################ Compound Gaussian estimation ################')
 

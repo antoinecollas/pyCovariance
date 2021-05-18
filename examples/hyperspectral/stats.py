@@ -1,4 +1,5 @@
 import autograd.numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 import os
 import tikzplotlib
@@ -17,6 +18,7 @@ def main(
     export_tex=False,
     verbose=True
 ):
+    matplotlib.use('Agg')
 
     # folder path to save files
     folder = create_directory(dataset.name)

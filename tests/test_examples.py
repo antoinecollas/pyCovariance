@@ -57,21 +57,6 @@ def test_hyperspectral_indian_pines():
         verbose=False
     )
 
-    k_means.main(
-        dataset=dataset,
-        crop_image=True,
-        border_size=4,
-        pairs_window_size_n_bands=pairs_w_k,
-        mask=True,
-        features_list=features_list,
-        n_experiments=1,
-        n_init=1,
-        max_iter=1,
-        n_jobs=1,
-        export_tex=True,
-        verbose=False
-    )
-
 
 # def test_hyperspectral_pavia():
 #     dataset_name = 'Pavia'
@@ -133,7 +118,7 @@ def test_hyperspectral_stats_indian_pines():
         dataset=dataset,
         border_size=4,
         mask=True,
-        export_tex=True,
+        export_tex=False,
         verbose=False
     )
 
