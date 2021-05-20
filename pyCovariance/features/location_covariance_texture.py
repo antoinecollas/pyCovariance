@@ -172,6 +172,7 @@ def estimate_location_covariance_texture_RGD(
     init=None,
     tol=1e-3,
     iter_max=3*int(1e4),
+    time_max=np.inf,
     autodiff=False,
     solver='conjugate'
 ):
@@ -181,6 +182,7 @@ def estimate_location_covariance_texture_RGD(
             * init = point on manifold to initliase estimation
             * tol = minimum norm of gradient
             * iter_max = maximum number of iterations
+            * time_max = maximum time in seconds
             * autodiff = use or not autodiff
             * solver = steepest or conjugate
         Outputs:
@@ -214,7 +216,7 @@ def estimate_location_covariance_texture_RGD(
     elif solver == 'conjugate':
         solver = ConjugateGradient
     solver = solver(
-        maxtime=np.inf,
+        maxtime=time_max,
         maxiter=iter_max,
         mingradnorm=tol,
         minstepsize=0,
