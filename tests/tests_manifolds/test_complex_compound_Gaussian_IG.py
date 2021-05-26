@@ -13,6 +13,37 @@ class TestSingleComplexCompoundGaussianIGManifold():
         self._n = n = 100
         self.man = ComplexCompoundGaussianIG(p=p, n=n)
 
+    def check_type_dim(self, x):
+        p, n = self._p, self._n
+        assert len(x) == 3
+        assert x[0].dtype == np.complex128
+        assert x[0].shape == (p, 1)
+        assert x[1].dtype == np.complex128
+        assert x[1].shape == (p, p)
+        assert x[2].dtype == np.float64
+        assert x[2].shape == (n, 1)
+
+    def check_man(self, x):
+        assert type(x) == list
+        self.check_type_dim(x)
+
+        # check symmetry
+        np_testing.assert_allclose(x[1], multiherm(x[1]))
+
+        # check positivity
+        assert (la.eigvalsh(x[1]) > 0).all()
+        assert (x[2] > 0).all()
+
+    def check_tangent(self, x, u):
+        self.check_man(x)
+        assert type(u) == _ProductTangentVector
+        self.check_type_dim(u)
+
+        # check symmetry
+        np_testing.assert_allclose(x[1], multiherm(x[1]))
+        # check null trace
+        np_testing.assert_almost_equal(np.trace(la.inv(x[1])@u[1]), 0)
+
     def test_dim(self):
         man = self.man
         p, n = self._p, self._n
@@ -25,21 +56,7 @@ class TestSingleComplexCompoundGaussianIGManifold():
         p, n = self._p, self._n
         x = self.man.rand()
 
-        assert type(x) == list
-        assert len(x) == 3
-        assert x[0].dtype == np.complex128
-        assert x[0].shape == (p, 1)
-        assert x[1].dtype == np.complex128
-        assert x[1].shape == (p, p)
-        assert x[2].dtype == np.float64
-        assert x[2].shape == (n, 1)
-
-        # Check symmetry
-        np_testing.assert_allclose(x[1], multiherm(x[1]))
-
-        # Check positivity
-        assert (la.eigvalsh(x[1]) > 0).all()
-        assert (x[2] > 0).all()
+        self.check_man(x)
 
     def test_randvec(self):
         rnd.seed(123)
@@ -51,17 +68,7 @@ class TestSingleComplexCompoundGaussianIGManifold():
         x = man.rand()
         u = man.randvec(x)
 
-        assert type(u) == _ProductTangentVector
-        assert len(x) == 3
-        assert u[0].dtype == np.complex128
-        assert u[0].shape == (p, 1)
-        assert u[1].dtype == np.complex128
-        assert u[1].shape == (p, p)
-        np_testing.assert_allclose(x[1], multiherm(x[1]))
-        np_testing.assert_almost_equal(np.trace(la.inv(x[1])@u[1]), 0)
-        assert u[2].dtype == np.float64
-        assert u[2].shape == (n, 1)
-
+        self.check_tangent(x, u)
         np_testing.assert_almost_equal(self.man.norm(x, u), 1)
 
     def test_zerovec(self):
@@ -71,8 +78,8 @@ class TestSingleComplexCompoundGaussianIGManifold():
         man = self.man
         x = man.rand()
         u = man.zerovec(x)
-        assert type(u) == _ProductTangentVector
-        assert len(x) == 3
+
+        self.check_tangent(x, u)
         assert (u[0] == np.zeros((p, 1))).all()
         assert (u[1] == np.zeros((p, p))).all()
         assert (u[2] == np.zeros((n, 1))).all()
@@ -117,12 +124,11 @@ class TestSingleComplexCompoundGaussianIGManifold():
         u.append(rnd.normal(size=(p, p)) + 1j*rnd.normal(size=(p, p)))
         u.append(rnd.normal(size=(n, 1)))
         u = man.proj(x, u)
+
+        self.check_tangent(x, u)
         np_testing.assert_allclose(u[0], man.proj(x, u)[0])
         np_testing.assert_allclose(u[1], man.proj(x, u)[1])
         np_testing.assert_allclose(u[2], man.proj(x, u)[2])
-
-        np_testing.assert_allclose(u[1], multiherm(u[1]))
-        np_testing.assert_almost_equal(np.real(np.trace(la.inv(x[1])@u[1])), 0)
 
     def test_egrad2rgrad(self):
         rnd.seed(123)
@@ -135,12 +141,7 @@ class TestSingleComplexCompoundGaussianIGManifold():
         egrad.append(rnd.normal(size=(p, p)) + 1j*rnd.normal(size=(p, p)))
         egrad.append(rnd.normal(size=(n, 1)))
         grad = man.egrad2rgrad(x, egrad)
-        assert type(grad) == _ProductTangentVector
-        assert grad[0].dtype == np.complex128
-        assert grad[0].dtype == np.complex128
-        np_testing.assert_allclose(grad[0], man.proj(x, grad)[0])
-        np_testing.assert_allclose(grad[1], man.proj(x, grad)[1])
-        np_testing.assert_allclose(grad[2], man.proj(x, grad)[2])
+        self.check_tangent(x, grad)
 
     # def test_ehess2rhess(self):
     #     n = self.n
@@ -175,28 +176,13 @@ class TestSingleComplexCompoundGaussianIGManifold():
         np_testing.assert_allclose(r[1], x[1] + u[1])
         np_testing.assert_allclose(r[2], x[2] + u[2])
 
-        # Check types/dimensions
-        assert r[0].dtype == np.complex128
-        assert r[0].shape == (p, 1)
-        assert r[1].dtype == np.complex128
-        assert r[1].shape == (p, p)
-        assert r[2].dtype == np.float64
-        assert r[2].shape == (n, 1)
+        self.check_man(r)
 
-        # Check symmetry
+    def test_transp(self):
+        man = self.man
+        x = man.rand()
+        y = man.rand()
         u = man.randvec(x)
-        r = man.retr(x, u)
-        np_testing.assert_allclose(r[1], multiherm(r[1]))
-        np_testing.assert_allclose(la.det(r[1]), 1)
+        t_u = man.transp(x, y, u)
 
-        # Check positivity of eigenvalues
-        w = la.eigvalsh(r[1])
-        assert (w > [0]).all()
-
-    # def test_transp(self):
-    #     man = self.man
-    #     x = man.rand()
-    #     y = man.rand()
-    #     u = man.randvec(x)
-    #     t_u = man.transp(x, y, u)
-    #     np_testing.assert_allclose(t_u, man.proj(y, t_u))
+        self.check_tangent(y, t_u)

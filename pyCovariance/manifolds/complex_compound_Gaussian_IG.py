@@ -161,12 +161,5 @@ class ComplexCompoundGaussianIG(Manifold):
 
         return r
 
-    # def transp(self, x1, x2, d):
-    #     E = multihconj(la.solve(multihconj(x1), multihconj(x2)))
-    #     if self._k == 1:
-    #         E = sqrtm(E)
-    #     else:
-    #         for i in range(len(E)):
-    #             E[i, :, :] = sqrtm(E[i, :, :])
-    #     transp_d = multiprod(multiprod(E, d), multihconj(E))
-    #     return transp_d
+    def transp(self, x1, x2, d):
+        return self.proj(x2, d)
