@@ -210,11 +210,12 @@ def test_ehess_location_covariance_texture():
 def test_real_location_covariance_texture():
     rnd.seed(123)
 
-    N = int(1e4)
-    p = 3
+    N = int(1e3)
+    p = 10
     feature = location_covariance_texture(
         iter_max=1000,
-        solver='conjugate'
+        solver='conjugate',
+        information_geometry=False
     )(p, N)
 
     mu = rnd.randn(p, 1)
@@ -229,17 +230,18 @@ def test_real_location_covariance_texture():
     assert res[1].dtype == np.float64
     assert res[2].dtype == np.float64
     assert la.norm(mu - res[0])/la.norm(mu) < 0.01
-    assert la.norm(sigma - res[1])/la.norm(sigma) < 0.1
+    assert la.norm(sigma - res[1])/la.norm(sigma) < 0.15
 
 
 def test_complex_location_covariance_texture():
     rnd.seed(123)
 
-    N = int(1e4)
-    p = 3
+    N = int(1e3)
+    p = 10
     feature = location_covariance_texture(
         iter_max=200,
-        solver='trust-regions'
+        solver='trust-regions',
+        information_geometry=False
     )(p, N)
 
     mu = rnd.randn(p, 1) + 1j*rnd.randn(p, 1)
@@ -254,4 +256,30 @@ def test_complex_location_covariance_texture():
     assert res[1].dtype == np.complex128
     assert res[2].dtype == np.float64
     assert la.norm(mu - res[0])/la.norm(mu) < 0.01
-    assert la.norm(sigma - res[1])/la.norm(sigma) < 0.05
+    assert la.norm(sigma - res[1])/la.norm(sigma) < 0.15
+
+
+def test_complex_location_covariance_texture_IG():
+    rnd.seed(123)
+
+    N = int(1e3)
+    p = 10
+    feature = location_covariance_texture(
+        iter_max=100,
+        solver='steepest',
+        information_geometry=True
+    )(p, N)
+
+    mu = rnd.randn(p, 1) + 1j*rnd.randn(p, 1)
+    sigma = generate_complex_covariance(p, unit_det=True)
+    tau = generate_textures_gamma_dist(N, nu=0.1)
+    X = sample_complex_compound_distribution(tau, sigma)
+    X = X + mu
+    assert X.dtype == np.complex128
+
+    res = feature.estimation(X).export()
+    assert res[0].dtype == np.complex128
+    assert res[1].dtype == np.complex128
+    assert res[2].dtype == np.float64
+    assert la.norm(mu - res[0])/la.norm(mu) < 0.01
+    assert la.norm(sigma - res[1])/la.norm(sigma) < 0.1
