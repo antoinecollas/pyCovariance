@@ -53,7 +53,6 @@ class TestSingleComplexCompoundGaussianIGManifold():
     def test_rand(self):
         rnd.seed(123)
 
-        p, n = self._p, self._n
         x = self.man.rand()
 
         self.check_man(x)
@@ -63,7 +62,6 @@ class TestSingleComplexCompoundGaussianIGManifold():
 
         # Just test that randvec returns an element of the tangent space
         # with norm 1
-        p, n = self._p, self._n
         man = self.man
         x = man.rand()
         u = man.randvec(x)
@@ -157,7 +155,6 @@ class TestSingleComplexCompoundGaussianIGManifold():
     def test_retr(self):
         rnd.seed(123)
 
-        p, n = self._p, self._n
         man = self.man
         x = man.rand()
 
