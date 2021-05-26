@@ -266,7 +266,7 @@ def test_complex_location_covariance_texture_IG():
     p = 10
     feature = location_covariance_texture(
         iter_max=100,
-        solver='steepest',
+        solver='conjugate',
         information_geometry=True
     )(p, N)
 
