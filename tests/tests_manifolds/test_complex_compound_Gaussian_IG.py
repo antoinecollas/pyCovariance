@@ -179,6 +179,8 @@ class TestSingleComplexCompoundGaussianIGManifold():
         self.check_man(r)
 
     def test_transp(self):
+        rnd.seed(123)
+
         man = self.man
         x = man.rand()
         y = man.rand()
