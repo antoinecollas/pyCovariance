@@ -1,4 +1,3 @@
-from autograd import grad
 import autograd.numpy as np
 import autograd.numpy.linalg as la
 from autograd.numpy import random as rnd
@@ -7,7 +6,7 @@ import numpy.testing as np_test
 from pyCovariance.features import\
         location_covariance_texture_Gaussian,\
         location_covariance_texture_Tyler,\
-        location_covariance_texture_RGD
+        location_covariance_texture
 from pyCovariance.features.location_covariance_texture import\
         create_cost_egrad_ehess_location_covariance_texture
 from pyCovariance.generation_data import\
@@ -106,7 +105,7 @@ def test_complex_location_covariance_texture_Tyler():
     assert la.norm(sigma - res[1])/la.norm(sigma) < 0.05
 
 
-def test_cost_location_covariance_texture_RGD():
+def test_cost_location_covariance_texture():
     rnd.seed(123)
 
     p = 3
@@ -143,7 +142,7 @@ def test_cost_location_covariance_texture_RGD():
     np_test.assert_almost_equal(L, L_true)
 
 
-def test_egrad_location_covariance_texture_RGD():
+def test_egrad_location_covariance_texture():
     rnd.seed(123)
 
     p = 3
@@ -164,25 +163,25 @@ def test_egrad_location_covariance_texture_RGD():
     gn = egrad_num(mu, sigma, tau)
 
     # test grad mu
-    np_test.assert_allclose(gc[0], gn[0].reshape(-1))
+    np_test.assert_allclose(gc[0], gn[0])
     # test grad sigma
     np_test.assert_allclose(gc[1], gn[1])
     # test grad tau
     np_test.assert_allclose(gc[2], gn[2])
 
 
-def test_ehess_location_covariance_texture_RGD():
+def test_ehess_location_covariance_texture():
     rnd.seed(123)
 
     p = 3
     N = 20
 
     # test ehess
-    mu = rnd.normal(size=p) + 1j*rnd.normal(size=p)
+    mu = rnd.normal(size=(p, 1)) + 1j*rnd.normal(size=(p, 1))
     tau = generate_textures_gamma_dist(N)
     sigma = generate_complex_covariance(p, unit_det=True)
     X = sample_complex_compound_distribution(tau, sigma)
-    X = X + mu.reshape((-1, 1))
+    X = X + mu
     _, _, ehess = create_cost_egrad_ehess_location_covariance_texture(
         X,
         autodiff=False
@@ -192,7 +191,7 @@ def test_ehess_location_covariance_texture_RGD():
         autodiff=True
     )
 
-    xi_mu = rnd.normal(size=p) + 1j*rnd.normal(size=p)
+    xi_mu = rnd.normal(size=(p, 1)) + 1j*rnd.normal(size=(p, 1))
     xi_tau = rnd.normal(size=(N, 1))
     xi_sigma = rnd.normal(size=(p, p)) + 1j*rnd.normal(size=(p, p))
     xi_sigma = (xi_sigma + xi_sigma.conj().T) / 2
@@ -208,12 +207,12 @@ def test_ehess_location_covariance_texture_RGD():
     np_test.assert_allclose(hc[2], hn[2])
 
 
-def test_real_location_covariance_texture_RGD():
+def test_real_location_covariance_texture():
     rnd.seed(123)
 
     N = int(1e4)
     p = 3
-    feature = location_covariance_texture_RGD(
+    feature = location_covariance_texture(
         iter_max=1000,
         solver='conjugate'
     )(p, N)
@@ -233,12 +232,12 @@ def test_real_location_covariance_texture_RGD():
     assert la.norm(sigma - res[1])/la.norm(sigma) < 0.1
 
 
-def test_complex_location_covariance_texture_RGD():
+def test_complex_location_covariance_texture():
     rnd.seed(123)
 
     N = int(1e4)
     p = 3
-    feature = location_covariance_texture_RGD(
+    feature = location_covariance_texture(
         iter_max=200,
         solver='trust-regions'
     )(p, N)

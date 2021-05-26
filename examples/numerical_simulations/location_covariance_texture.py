@@ -13,7 +13,7 @@ from pyCovariance.features import\
         covariance_texture,\
         location_covariance_texture_Gaussian,\
         location_covariance_texture_Tyler,\
-        location_covariance_texture_RGD
+        location_covariance_texture
 
 from pyCovariance.generation_data import\
         generate_complex_covariance,\
@@ -54,7 +54,7 @@ def main(
     # features
     features_list = [location_covariance_texture_Gaussian(),
                      location_covariance_texture_Tyler(),
-                     location_covariance_texture_RGD(iter_max=iter_max_RGD)]
+                     location_covariance_texture(iter_max=iter_max_RGD)]
 
     # simu
     list_n_points = np.geomspace(N_min, N_max, num=nb_points).astype(int)

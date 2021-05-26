@@ -9,7 +9,7 @@ from pyCovariance.generation_data import\
 from pyCovariance.features.covariance import\
         compute_scm
 from pyCovariance.features.location_covariance_texture import\
-        estimate_location_covariance_texture_RGD
+        estimate_location_covariance_texture
 
 
 def main(plot=True):
@@ -61,7 +61,7 @@ def main(plot=True):
                 colors=['orange'], alpha=transparency)
 
     # plot contour of dist estimated with Riemannian gradient descent
-    mu_est, cov_est, _, _ = estimate_location_covariance_texture_RGD(
+    mu_est, cov_est, _, _ = estimate_location_covariance_texture(
         X,
         iter_max=int(1e3)
     )

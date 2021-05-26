@@ -11,6 +11,7 @@ from pymanopt.solvers import ConjugateGradient, SteepestDescent, TrustRegions
 import warnings
 
 from .base import Feature, make_feature_prototype, Product
+from ..manifolds import ComplexCompoundGaussianIG
 
 
 # Gaussian estimation
@@ -114,7 +115,6 @@ def create_cost_egrad_ehess_location_covariance_texture(X, autodiff=False):
         p, N = X.shape
 
         # compute quadratic form
-        mu = mu.reshape((-1, 1))
         X_bis = X-mu
         Q = np.real(np.einsum('ij,ji->i',
                               np.conjugate(X_bis).T@la.inv(sigma),
@@ -132,7 +132,6 @@ def create_cost_egrad_ehess_location_covariance_texture(X, autodiff=False):
         sigma_inv = la.inv(sigma)
 
         # grad mu
-        mu = mu.reshape((-1, 1))
         grad_mu = (X-mu)/tau.T
         grad_mu = np.sum(grad_mu, axis=1, keepdims=True)
         grad_mu = -2*sigma_inv@grad_mu
@@ -151,7 +150,7 @@ def create_cost_egrad_ehess_location_covariance_texture(X, autodiff=False):
         grad_tau = np.real((p*tau-a) * (tau**(-2)))
 
         # grad
-        grad = (np.squeeze(grad_mu), grad_sigma, grad_tau)
+        grad = (grad_mu, grad_sigma, grad_tau)
 
         return grad
 
@@ -159,9 +158,7 @@ def create_cost_egrad_ehess_location_covariance_texture(X, autodiff=False):
     def ehess(mu, sigma, tau, xi_mu, xi_sigma, xi_tau):
         p, N = X.shape
         sigma_inv = la.inv(sigma)
-        mu = mu.reshape((-1, 1))
         X_bis = X-mu
-        xi_mu = xi_mu.reshape((-1, 1))
 
         # hess mu
         tmp0 = X_bis/tau.T
@@ -194,7 +191,7 @@ def create_cost_egrad_ehess_location_covariance_texture(X, autodiff=False):
         hess_tau = hess_tau * (tau**(-2))
 
         # hess
-        hess = (np.squeeze(hess_mu), hess_sigma, hess_tau)
+        hess = (hess_mu, hess_sigma, hess_tau)
 
         return hess
 
@@ -230,9 +227,10 @@ def create_cost_egrad_ehess_location_covariance_texture(X, autodiff=False):
         return cost, egrad, ehess
 
 
-def estimate_location_covariance_texture_RGD(
+def estimate_location_covariance_texture(
     X,
     init=None,
+    information_geometry=False,
     tol=1e-3,
     iter_max=3*int(1e4),
     time_max=np.inf,
@@ -254,7 +252,6 @@ def estimate_location_covariance_texture_RGD(
             * sigma = estimate of covariance """
 
     # The estimation is done using Riemannian geometry.
-    # The manifold is: C^p x SHp++ x (R++)^n
     p, N = X.shape
 
     # Initialisation
@@ -265,7 +262,7 @@ def estimate_location_covariance_texture_RGD(
         sigma = sigma/(la.det(sigma)**(1/p))
         init = [mu, sigma, tau]
 
-    init[0] = init[0].reshape(-1)
+    init[0] = init[0].reshape((-1, 1))
     init[2] = init[2].reshape((-1, 1))
 
     # cost, egrad, ehess
@@ -295,14 +292,17 @@ def estimate_location_covariance_texture_RGD(
     )
 
     # manifold
-    SHPD = SpecialHermitianPositiveDefinite(p)
-    if solver_str == 'trust-regions':
-        # exp seems more stable than retr when using trust-regions
-        SHPD.retr = SHPD.exp
-    manifold = Product([
-        ComplexEuclidean(p),
-        SHPD,
-        StrictlyPositiveVectors(N)])
+    if information_geometry:
+        manifold = ComplexCompoundGaussianIG(p, N)
+    else:
+        SHPD = SpecialHermitianPositiveDefinite(p)
+        if solver_str == 'trust-regions':
+            # exp seems more stable than retr when using trust-regions
+            SHPD.retr = SHPD.exp
+        manifold = Product([
+            ComplexEuclidean(p, 1),
+            SHPD,
+            StrictlyPositiveVectors(N)])
 
     problem = Problem(
         manifold=manifold,
@@ -312,7 +312,6 @@ def estimate_location_covariance_texture_RGD(
         verbosity=0
     )
     Xopt, log = solver.solve(problem, x=init)
-    Xopt[0] = Xopt[0].reshape((-1, 1))
 
     return Xopt[0], Xopt[1], Xopt[2], log
 
@@ -363,15 +362,16 @@ def location_covariance_texture_Tyler(
 
 
 @make_feature_prototype
-def location_covariance_texture_RGD(
+def location_covariance_texture(
     iter_max=3*int(1e4),
+    information_geometry=False,
     solver='trust-regions',
     weights=(1, 1, 1),
     p=None,
     N=None,
     **kwargs
 ):
-    name = 'location_covariance_texture_RGD'
+    name = 'location_covariance_texture'
     M = (ComplexEuclidean,
          SpecialHermitianPositiveDefinite,
          StrictlyPositiveVectors)
@@ -381,8 +381,12 @@ def location_covariance_texture_RGD(
     }
 
     def _estimation(X):
-        mu, sigma, tau, _ = estimate_location_covariance_texture_RGD(
-            X, iter_max=iter_max, solver=solver)
+        mu, sigma, tau, _ = estimate_location_covariance_texture(
+            X,
+            information_geometry=information_geometry,
+            iter_max=iter_max,
+            solver=solver
+        )
         return mu, sigma, tau
 
     return Feature(name, _estimation, M, args_M)
