@@ -457,7 +457,15 @@ class Product(man.Product):
              for k, man in enumerate(self._manifolds)])
 
     def ehess2rhess(self, X, egrad, ehess, H):
-        raise NotImplementedError
+        # Using Koszul formula and R-linearity of affine connections, we get
+        # that the Riemannian Hessian of a weighted product manifold
+        # is the tuple of the Riemannian Hessians of the different manifolds
+        # multiplied by the inverted weights.
+        weights = self._weights
+        return _ProductTangentVector(
+            [(1/weights[k])*man.ehess2rhess(
+                X[k], egrad[k], ehess[k], H[k])
+             for k, man in enumerate(self._manifolds)])
 
     def randvec(self, X):
         weights = self._weights

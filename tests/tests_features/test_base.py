@@ -227,6 +227,16 @@ def test_product():
     np_test.assert_almost_equal(grad[0], res[0])
     np_test.assert_almost_equal(grad[1], res[1])
 
+    # ehess2rhess
+    egrad = [rnd.randn(p1, p1), rnd.randn(p2, p3)]
+    ehess = [rnd.randn(p1, p1), rnd.randn(p2, p3)]
+    xi = [rnd.randn(p1, p1), rnd.randn(p2, p3)]
+    p = m.proj(X, ehess)
+    res = [(1/w[0])*p[0], (1/w[1])*p[1]]
+    hess = m.ehess2rhess(X, egrad, ehess, xi)
+    np_test.assert_almost_equal(hess[0], res[0])
+    np_test.assert_almost_equal(hess[1], res[1])
+
     # exp
     X = m.rand()
     xi = m.randvec(X)

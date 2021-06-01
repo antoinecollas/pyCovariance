@@ -5,7 +5,7 @@ __all__ = [
     'covariance_texture',
     'location_covariance_texture_Gaussian',
     'location_covariance_texture_Tyler',
-    'location_covariance_texture_RGD',
+    'location_covariance_texture',
     'center_euclidean',
     'center_intensity_euclidean',
     'identity_euclidean',
@@ -24,7 +24,7 @@ from .covariance_texture import covariance_texture
 from .location_covariance_texture import\
         location_covariance_texture_Gaussian,\
         location_covariance_texture_Tyler,\
-        location_covariance_texture_RGD
+        location_covariance_texture
 from .dummy import\
         center_euclidean,\
         center_intensity_euclidean,\
