@@ -130,7 +130,7 @@ class ComplexCompoundGaussianIG(Manifold):
     #     hess += multiherm(multiprod(multiprod(u, egrad), x))
     #     return hess
 
-    def retr(self, x, u):
+    def _retr(self, x, u):
         n, p = self._n, self._p
         sigma_inv = la.inv(x[1])
         r = list()
@@ -153,12 +153,28 @@ class ComplexCompoundGaussianIG(Manifold):
         # textures
         c = (u[2]**2) * (1/x[2])
         tmp = multiprod(multiprod(u[0].conj().T, sigma_inv), u[0])
-        tmp = np.real(tmp)
+        tmp = np.real(tmp[0][0])
         c = c - (1/p) * tmp * np.ones((n, 1))
         t = x[2] + u[2] + (1/2) * c
-        t[t < 1e-12] = 1e-12  # numerically necessary
         r.append(t)
 
+        return r
+
+    def retr(self, x, u):
+        # The retraction self._retr does not guarantee
+        # to stay in the manifold. A good heuristic
+        # is to control that the eigenvalues of the scatter matrix
+        # and the textures are above a threshold.
+        # In the case they are not, the heuristic
+        # reduces the step size until the retracted point
+        # is above a threshold.
+        TH = 1e-12
+        r = self._retr(x, u)
+        d, _ = la.eigh(r[1])
+        while np.sum(d < TH) + np.sum(r[2] < TH) > 0:
+            u = 1/2 * u
+            r = self._retr(x, u)
+            d, _ = la.eigh(r[1])
         return r
 
     def transp(self, x1, x2, d):
