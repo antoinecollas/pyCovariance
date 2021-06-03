@@ -230,17 +230,18 @@ def create_cost_egrad_ehess_location_covariance_texture(X, autodiff=False):
 def estimate_location_covariance_texture(
     X,
     init=None,
-    information_geometry=False,
-    tol=1e-3,
-    iter_max=3*int(1e4),
+    information_geometry=True,
+    tol=0,
+    iter_max=50,
     time_max=np.inf,
     autodiff=False,
-    solver='conjugate'
+    solver='steepest'
 ):
     """ A function that estimates parameters of a compound Gaussian distribution.
         Inputs:
             * X = a matrix of size p*N
             * init = point on manifold to initliase estimation
+            * information_geometry = use manifold of Compound distribution
             * tol = minimum norm of gradient
             * iter_max = maximum number of iterations
             * time_max = maximum time in seconds
