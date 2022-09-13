@@ -1,0 +1,9 @@
+git+https://github.com/HIPS/autograd@master
+flake8>=4.0.1
+matplotlib>=3.5.1
+nose2[coverage_plugin]>=0.12.0
+numpy>=1.22.3
+scikit-learn>=1.0.2
+scipy>=1.8.0
+tikzplotlib>=0.10.1
+tqdm>=4.63.0
