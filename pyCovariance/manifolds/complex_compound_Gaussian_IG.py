@@ -344,7 +344,7 @@ class ComplexCompoundGaussianIGConstrainedTexture(Manifold):
             d = la.eigvalsh(r[1])
             while ((i < ITER_MAX)
                    and ((np.sum(d < EPS) + np.sum(r[2] < EPS)) > 0
-                        or np.abs(np.prod(r[2])-1) > 1e-12)):
+                        or np.abs(np.exp(np.sum(np.log(r[2])))-1) > 1e-12)):
                 u = 1/2 * u
                 r = retr_fct(self, x, u)
                 d = la.eigvalsh(r[1])
