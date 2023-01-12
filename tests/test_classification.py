@@ -20,7 +20,7 @@ def helper_test_MDM(clf):
 
     for j in range(n_datasets):
         # test several p, N
-        N = 21 + 5*j
+        N = 100 + 10*j
         p = 3 + j
 
         X = np.zeros((n_samples, p, N))
