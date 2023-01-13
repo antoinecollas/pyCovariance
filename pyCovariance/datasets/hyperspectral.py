@@ -5,7 +5,6 @@ import os
 from scipy.io import loadmat
 from sklearn.cluster import KMeans
 import time
-import urllib.request
 
 from ..clustering_datacube import K_means_datacube
 from ..pca import pca_image
@@ -25,9 +24,6 @@ class Dataset():
         self.name = name
         self.size_crop = 30
         if name == 'Pavia':
-            self.url = 'http://www.ehu.eus/ccwintco/uploads/e/ee/PaviaU.mat'
-            self.url_gt =\
-                'http://www.ehu.eus/ccwintco/uploads/5/50/PaviaU_gt.mat'
             self.path = 'data/Pavia/PaviaU.mat'
             self.key_dict = 'paviaU'
             self.path_gt = 'data/Pavia/PaviaU_gt.mat'
@@ -35,11 +31,6 @@ class Dataset():
             self.resolution = [1.3, 1.3]  # resolution in meters
             self.dimension = 103
         elif name == 'Indian_Pines':
-            self.url =\
-                ('http://www.ehu.eus/ccwintco/uploads/6/67/'
-                 'Indian_pines_corrected.mat')
-            self.url_gt =\
-                'http://www.ehu.eus/ccwintco/uploads/c/c4/Indian_pines_gt.mat'
             self.path = 'data/Indian_Pines/Indian_pines_corrected.mat'
             self.key_dict = 'indian_pines_corrected'
             self.path_gt = 'data/Indian_Pines/Indian_pines_gt.mat'
@@ -47,11 +38,6 @@ class Dataset():
             self.resolution = [1.3, 1.3]  # resolution in meters
             self.dimension = 200
         elif name == 'Salinas':
-            self.url =\
-                ('http://www.ehu.eus/ccwintco/uploads/a/a3/'
-                 'Salinas_corrected.mat')
-            self.url_gt =\
-                'http://www.ehu.eus/ccwintco/uploads/f/fa/Salinas_gt.mat'
             self.path = 'data/Salinas/Salinas_corrected.mat'
             self.key_dict = 'salinas_corrected'
             self.path_gt = 'data/Salinas/Salinas_gt.mat'
@@ -61,19 +47,6 @@ class Dataset():
         else:
             print(name)
             raise NotImplementedError
-        self.download()
-
-    def download(self):
-        if not os.path.exists(self.path):
-            _dir = os.path.dirname(self.path)
-            os.makedirs(_dir, exist_ok=True)
-            print('\n Download', self.name, 'dataset.')
-            urllib.request.urlretrieve(self.url, self.path)
-        if not os.path.exists(self.path_gt):
-            _dir = os.path.dirname(self.path_gt)
-            os.makedirs(_dir, exist_ok=True)
-            print('\n Download', self.name, 'ground truth.')
-            urllib.request.urlretrieve(self.url_gt, self.path_gt)
 
     def load(self, crop_image=False, border_size=0,
              pca=False, nb_bands_to_select=None):
