@@ -1,9 +1,6 @@
 # temporary files of VIM
 *.swp
 
-# data
-data/*
-
 # other
 other/*
 key_*
