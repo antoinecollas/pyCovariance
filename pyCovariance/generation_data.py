@@ -83,7 +83,7 @@ def generate_textures_gamma_dist(N, nu=0.1, min_value=0, unit_prod=False):
         fraction_thres_text = np.sum(mask) / N
         textures[mask] = min_value
 
-    if fraction_thres_text > 0.1:
+    if (fraction_thres_text > 0.1) and (N >= 30):
         warnings.warn('More than 10% of textures have been thresholded...')
 
     return textures
